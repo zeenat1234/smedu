@@ -1,2 +1,2 @@
 # smedu
-This is SMEDU - a project design to reshape education
+This is SMEDU - a project designed to reshape education
