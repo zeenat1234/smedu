@@ -51,3 +51,6 @@
 
 # Env template
 /.env
+
+# Windows
+Thumbs.db

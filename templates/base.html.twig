@@ -1,12 +1,242 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        {% block stylesheets %}{% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-        {% block javascripts %}{% endblock %}
-    </body>
+<html lang="en" dir="ltr">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ asset('css/smedustyle.css') }}">
+
+
+    <title>{% block title %}Welcome to SMEDU!{% endblock %}</title>
+
+    {% block stylesheets %}{% endblock %}
+
+  </head>
+
+
+  <body>
+
+    <div class="wrapper">
+
+    <!-- Sidebar  -->
+    <nav id="sidebarParent">
+      <div id="sidebar">
+        <div class="sidebar-header">
+            <h3>SmEDU Sidebar</h3>
+            <strong>SS</strong>
+        </div>
+
+        <ul class="list-unstyled components">
+            <li class="active">
+                <a href="#">
+                    <i class="fas fa-home"></i>
+                    Panou Control
+                </a>
+            </li>
+            <br>
+            <li>
+                <a href="#userSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-users"></i>
+                    Utilizatori
+                </a>
+                <ul class="collapse list-unstyled" id="userSubmenu">
+                  <li>
+                      <a href="#">Toți Utilizatorii</a>
+                  </li>
+                  <li>
+                      <a href="#">Adaugă Utilizator</a>
+                  </li>
+                  <li>
+                      <a href="#">Șterge Utilizator</a>
+                  </li>
+                  <li>
+                      <a href="#">Rapoarte</a>
+                  </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#clasesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-copy"></i>
+                    Clase
+                </a>
+                <ul class="collapse list-unstyled" id="clasesSubmenu">
+                    <li>
+                        <a href="#">Toate Clasele</a>
+                    </li>
+                    <li>
+                        <a href="#">Adaugă Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Șterge Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Rapoarte</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#modulesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-copy"></i>
+                    Module
+                </a>
+                <ul class="collapse list-unstyled" id="modulesSubmenu">
+                    <li>
+                        <a href="#">Toate Clasele</a>
+                    </li>
+                    <li>
+                        <a href="#">Adaugă Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Șterge Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Rapoarte</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#optionalsSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-copy"></i>
+                    Opționale
+                </a>
+                <ul class="collapse list-unstyled" id="optionalsSubmenu">
+                    <li>
+                        <a href="#">Toate Clasele</a>
+                    </li>
+                    <li>
+                        <a href="#">Adaugă Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Șterge Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Rapoarte</a>
+                    </li>
+                </ul>
+            </li>
+            <br>
+            <li>
+                <a href="#paySubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-coins"></i>
+                    Plăți
+                </a>
+                <ul class="collapse list-unstyled" id="paySubmenu">
+                    <li>
+                        <a href="#">Toate Clasele</a>
+                    </li>
+                    <li>
+                        <a href="#">Adaugă Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Șterge Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Rapoarte</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#transportSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-truck"></i>
+                    Transport
+                </a>
+                <ul class="collapse list-unstyled" id="transportSubmenu">
+                    <li>
+                        <a href="#">Toate Clasele</a>
+                    </li>
+                    <li>
+                        <a href="#">Adaugă Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Șterge Clasa</a>
+                    </li>
+                    <li>
+                        <a href="#">Rapoarte</a>
+                    </li>
+                </ul>
+            </li>
+            <br>
+            <li>
+                <a href="#">
+                    <i class="fas fa-cog"></i>
+                    Setări
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-briefcase"></i>
+                    Despre Sistem
+                </a>
+            </li>
+        </ul>
+
+        <ul class="list-unstyled CTAs">
+            <li>
+                <a href="#" class="download">Termeni de Utilizare</a>
+            </li>
+            <li>
+                <a href="#" class="article">Asistență Tehnică</a>
+            </li>
+        </ul>
+
+      </div>
+    </nav>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="navbar">
+
+      <div class="container-fluid">
+
+        <button type="button" id="sidebarCollapse" class="btn btn-info">
+          <i class="fas fa-align-left"></i>
+          <span> Navigație</span>
+        </button>
+        <!-- Brand -->
+        <a class="navbar-brand" href="./"><img src="{{ asset('img/smedu.png') }}" alt="Logo"></a>
+      </div>
+    </nav>
+
+    <!-- Page Content  -->
+    <div id="content">
+
+
+
+      {% block body %}{% endblock %}
+
+    </div>
+
+    <!-- End the wrapper -->
+    <div class="wrapper">
+
+    {% block javascripts %}{% endblock %}
+
+    <script>
+    /* -------- This script is used to collapse the sidebar and resize its content ----------- */
+      $(document).ready(function () {
+        $('#sidebarCollapse').on('click', function () {
+          $('#sidebar').toggleClass('active');
+          $('#content').toggleClass('active');
+          $('.navbar').toggleClass('active');
+
+        });
+      });
+    </script>
+
+    <script>
+      /* -------- This script is used to hide the scrollbar ----------- */
+      var parent = document.getElementById('sidebar'); // this is actually not needed
+      var child = document.getElementById('sidebarChild');
+      var myOffset = child.offsetWidth - child.clientWidth;
+      // child.style.paddingRight = myOffset + "px";
+      // child.style.width = child.clientWidth + myOffset + "px";
+    </script>
+
+  </body>
+
 </html>
