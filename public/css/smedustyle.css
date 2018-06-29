@@ -294,4 +294,10 @@ a.article:hover {
     #content.active {
         margin-left: 100px;
     }
+    .navbar {
+      padding-left: 15px;
+    }
+    .navbar.active {
+      padding-left: 115px;
+    }
 }
