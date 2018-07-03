@@ -20,3 +20,13 @@ a:focus {
     text-decoration: none;
     transition: all 0.3s;
 }
+
+/* .users {
+  table-layout: fixed;
+}
+
+.users th, td {
+  border-radius: 1px;
+  border-style: inset;
+  padding:2.5px 10px 2.5px 10px;
+} */
