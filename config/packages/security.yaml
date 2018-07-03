@@ -1,13 +1,32 @@
 security:
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    encoders:
+        App\Entity\User:
+          algorithm: bcrypt
+
     providers:
-        in_memory: { memory: ~ }
+        # Default value before edit
+        # in_memory: { memory: ~ }
+        my_provider:
+          entity:
+            class: App\Entity\User
+            property: username #we can use email instead
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             anonymous: true
+
+            form_login:
+              login_path: login
+              check_path: login
+              provider: my_provider
+
+            logout:
+              path: logout
+              target: login
 
             # activate different ways to authenticate
 
@@ -22,3 +41,5 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_ADMIN }
