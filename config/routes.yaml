@@ -5,8 +5,9 @@
 #    can use the following if we want a default controller defined:
 #    controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController::templateAction
 
-login:
-  path: /login
-  controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController::templateAction
-  defaults:
-    template: 'login.html.twig'
+# using controller route right now.
+# login:
+#   path: /login
+#   controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController::templateAction
+#   defaults:
+#     template: 'security/login.html.twig'
