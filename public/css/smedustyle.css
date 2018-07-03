@@ -21,6 +21,10 @@ a:focus {
     transition: all 0.3s;
 }
 
+select {
+  font-family: 'FontAwesome', sans-serif;
+}
+
 /* .users {
   table-layout: fixed;
 }
