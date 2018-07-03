@@ -13,10 +13,9 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ asset('css/smedustyle.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/navbsideb.css') }}">
+    {% block stylesheets %}{% endblock %}
 
     <title>{% block title %}Welcome to SMEDU!{% endblock %}</title>
-    {% block stylesheets %}{% endblock %}
 
   </head>
 
@@ -25,45 +24,18 @@
 
     <div class="wrapper">
 
-      <!-- Sidebar  -->
-      {{ include('inc/sidebar.html.twig') }}
-
-      <!-- Navbar -->
-      {{ include('inc/navbar.html.twig') }}
+      <!-- Optional Menus  -->
+      {% block menus %}{% endblock %}
 
       <!-- Page Content  -->
       <div id="content">
-
-
-
-      {% block body %}{% endblock %}
-
-    </div>
+        {% block body %}{% endblock %}
+      </div>
 
     <!-- End the wrapper -->
-    <div class="wrapper">
+    </div>
 
     {% block javascripts %}{% endblock %}
-
-    <script>
-    /* -------- This script is used to collapse the sidebar and resize its content ----------- */
-      $(document).ready(function () {
-        $('#sidebarCollapse').on('click', function () {
-          $('#sidebar').toggleClass('active');
-          $('.navbar').toggleClass('active');
-          $('#content').toggleClass('active');
-        });
-      });
-    </script>
-
-    <script>
-      /* -------- This script was used to hide the scrollbar ----------- */
-      //var parent = document.getElementById('sidebar'); // this is actually not needed
-      //var child = document.getElementById('sidebarChild');
-      //var myOffset = child.offsetWidth - child.clientWidth;
-      // child.style.paddingRight = myOffset + "px";
-      // child.style.width = child.clientWidth + myOffset + "px";
-    </script>
 
   </body>
 
