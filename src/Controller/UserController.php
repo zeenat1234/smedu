@@ -58,8 +58,8 @@ class UserController extends Controller
         $user = new User();
 
         $form = $this->CreateFormBuilder($user)
-          ->add('username', TextType::class, array('attr' =>
-            array('class' => 'form-control')
+          ->add('username', TextType::class, array(
+            'attr' => array('class' => 'form-control')
           ))
           ->add('email', EmailType::class, array(
             'label' => 'E-Mail',
@@ -91,6 +91,7 @@ class UserController extends Controller
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
+
           $user = $form->getData();
 
           $user->setPassword(
@@ -104,11 +105,77 @@ class UserController extends Controller
           return $this->redirectToRoute('users');
         }
 
-
         return $this->render('user/user.new.html.twig', array(
           'form' => $form->createView()
         ));
+    }
 
+    /**
+     * @Route("/user/edit/{id}", name="user_edit")
+     * @Method({"GET", "POST"})
+     */
+    public function edit(Request $request, $id)
+    {
+        $user = new User();
+
+        $user = $this->getDoctrine()->getRepository
+        (User::class)->find($id);
+
+        $originalPassword = $user->getPassword();
+
+        $form = $this->CreateFormBuilder($user)
+          ->add('username', TextType::class, array('attr' =>
+            array('class' => 'form-control')
+          ))
+          ->add('email', EmailType::class, array(
+            'label' => 'E-Mail',
+            'attr' => array('class' => 'form-control')
+          ))
+          ->add('password', RepeatedType::class, array(
+            'type' => PasswordType::class,
+            'invalid_message' => 'The password fields must match.',
+            'options' => array('attr' => array('class' => 'form-control')),
+            'required' => false,
+            'empty_data' => '',
+            'first_options'  => array('label' => 'Password'),
+            'second_options' => array('label' => 'Repeat Password')
+          ))
+          ->add('usertype', ChoiceType::class, array(
+            'choices'  => array(
+              'Administrator' => 'ROLE_ADMIN',
+              'Profesor' => 'ROLE_PROF',
+              'Părinte' => 'ROLE_PARENT'
+            ),
+            'label' => 'Tip Utilizator',
+            'attr' => array('class' => 'form-control')
+          ))
+          ->add('save', SubmitType::class, array(
+            'label' => 'Editează...',
+            'attr' => array('class' => 'btn btn-warning mt-3')
+          ))
+          ->getForm();
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+
+          if(!empty($user->getPassword())){
+            $user->setPassword(
+              $this->encoder->encodePassword($user, $user->getPassword())
+            );
+          } else {
+            $user->setPassword($originalPassword);
+          }
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->flush();
+
+          return $this->redirectToRoute('users');
+        }
+
+        return $this->render('user/user.edit.html.twig', array(
+          'form' => $form->createView()
+        ));
     }
 
     /**

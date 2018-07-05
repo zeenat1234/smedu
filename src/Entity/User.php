@@ -5,8 +5,20 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+//Validation Classes
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @UniqueEntity(
+ *     fields={"email"},
+ *     message="This e-mail address is already in use"
+ * )
+ * @UniqueEntity(
+ *     fields={"username"},
+ *     message="This username is already in use"
+ * )
  */
 class User implements UserInterface, \Serializable
 {
@@ -18,22 +30,40 @@ class User implements UserInterface, \Serializable
     private $id;
 
     /**
-     * @ORM\Column(type="text", length=32)
+     * @ORM\Column(type="string", length=32, unique=true)
+     * @Assert\NotBlank(message = "This field can not be blank")
+     * @Assert\Length(
+     *     min=4, minMessage = "The username must be at least '{{ limit }}' characters long",
+     *     max=32, maxMessage = "The username can NOT contain more than '{{ limit }}' characters"
+     * )
+     * @Assert\Type(
+     *     type="alpha",
+     *     message="The username can only contain letters"
+     * )
      */
     private $username;
 
     /**
-     * @ORM\Column(type="text", length=254)
+     * @ORM\Column(type="string", length=128, unique=true)
+     * @Assert\NotBlank(message = "This field can not be blank")
+     * @Assert\Email(
+     *     message = "The email '{{ value }}' is not a valid email",
+     *     checkMX = true
+     * )
      */
     private $email;
 
     /**
-    * @ORM\Column(type="text", length=32)
+    * @ORM\Column(type="string", length=128)
+    * @Assert\Length(
+    *     min=8, minMessage = "The password must be at least '{{ limit }}' characters long",
+    *     max=32, maxMessage = "The password can NOT contain more than '{{ limit }}' characters"
+    * )
     */
     private $password;
 
     /**
-     * @ORM\Column(type="text", length=16)
+     * @ORM\Column(type="string", length=16)
      */
     private $usertype;
 
@@ -71,11 +101,12 @@ class User implements UserInterface, \Serializable
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword($password): self
     {
         $this->password = $password;
 
         return $this;
+
     }
 
     public function getUsertype(): ?string
