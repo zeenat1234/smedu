@@ -12,24 +12,27 @@
   {{ include('inc/navbar.html.twig') }}
 {% endblock %}
 
-{% block javascripts %}
-  <script>
-  /* -------- This script is used to collapse the sidebar and resize its content ----------- */
-    $(document).ready(function () {
-      $('#sidebarCollapse').on('click', function () {
-        $('#sidebar').toggleClass('active');
-        $('.navbar').toggleClass('active');
-        $('#content').toggleClass('active');
-      });
-    });
-  </script>
+{# {% block javascripts %}
+{% endblock %} #}
 
-  <script>
-    /* -------- This script was used to hide the scrollbar ----------- */
-    //var parent = document.getElementById('sidebar'); // this is actually not needed
-    //var child = document.getElementById('sidebarChild');
-    //var myOffset = child.offsetWidth - child.clientWidth;
-    // child.style.paddingRight = myOffset + "px";
-    // child.style.width = child.clientWidth + myOffset + "px";
-  </script>
+{% block navscripts %}
+<script>
+/* -------- This script is used to collapse the sidebar and resize its content ----------- */
+  $(document).ready(function () {
+    $('#sidebarCollapse').on('click', function () {
+      $('#sidebar').toggleClass('active');
+      $('.navbar').toggleClass('active');
+      $('#content').toggleClass('active');
+    });
+  });
+</script>
+
+<script>
+  /* -------- This script was used to hide the scrollbar ----------- */
+  //var parent = document.getElementById('sidebar'); // this is actually not needed
+  //var child = document.getElementById('sidebarChild');
+  //var myOffset = child.offsetWidth - child.clientWidth;
+  // child.style.paddingRight = myOffset + "px";
+  // child.style.width = child.clientWidth + myOffset + "px";
+</script>
 {% endblock %}
