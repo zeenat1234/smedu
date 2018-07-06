@@ -19,6 +19,17 @@ class SchoolYearRepository extends ServiceEntityRepository
         parent::__construct($registry, SchoolYear::class);
     }
 
+    public function findCurrentYear(): ?SchoolYear
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.start_date < :val')
+            ->andWhere('s.end_date > :val')
+            ->setParameter('val', date("Y-m-d H:i:s"))
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
 //    /**
 //     * @return SchoolYear[] Returns an array of SchoolYear objects
 //     */

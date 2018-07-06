@@ -8,13 +8,13 @@
     .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
 </style>
 
-<div class="example-wrapper">
+<div class="school-wrapper">
     <h1>An în desfășurare - {{ school_year }}! ✅</h1>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/SchoolYearController.php'|file_link(0) }}">src/Controller/SchoolYearController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/school_year/school.year.settings.html.twig'|file_link(0) }}">templates/school_year/index.html.twig</a></code></li>
-    </ul>
+    {{ dump() }}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    {{ form_end(form) }}
+
 </div>
 {% endblock %}
