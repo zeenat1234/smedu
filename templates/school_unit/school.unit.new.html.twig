@@ -1,0 +1,10 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Administrare Unități Școlare -> Unitate Școlară Nouă{% endblock %}
+
+{% block body %}
+  {{ form_start(form) }}
+  {{ form_widget(form) }}
+    <input type="submit" class="btn btn-success mt-3" value="Creare">
+  {{ form_end(form) }}
+{% endblock %}

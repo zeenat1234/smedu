@@ -7,12 +7,14 @@
 <div class="school-wrapper">
     <h1>An în desfășurare - {{ school_year }}! ✅</h1>
 
-    {{ dump() }}
+    {# dump() #}
 
     {{ form_start(form) }}
     {{ form_widget(form) }}
       <input type="submit" class="btn btn-success mt-3" value="Actualizează">
     {{ form_end(form) }}
+
+    <a href="{{ path('school_units') }}"><button class="btn btn-warning mt-3" label="">Unități Școlare</button></a>
 
 </div>
 {% endblock %}
