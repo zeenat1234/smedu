@@ -130,10 +130,13 @@ class UserController extends Controller
         ));
     }
 
+    //TODO Find out how to fix 500 error which occurs in the browser console
+    //when a delete statement is executed
     /**
      * @Route("/user/delete/{id}", name="user_delete")
      * @Method({"DELETE"})
      */
+
     public function delete(Request $request, $id)
     {
       $user = $this->getDoctrine()->getRepository
@@ -145,7 +148,7 @@ class UserController extends Controller
       $entityManager->remove($user);
       $entityManager->flush();
 
-      console.log('Cica a mers!');
+      //console.log('A mers!');
       $response = new Response();
       $response->send();
 
