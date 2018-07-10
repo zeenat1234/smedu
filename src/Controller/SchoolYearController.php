@@ -32,6 +32,16 @@ class SchoolYearController extends Controller
 
         $form = $this->CreateForm(SchoolYearType::class, $currentSchoolYear);
 
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+          $currentSchoolYear = $form->getData();
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($currentSchoolYear);
+          $entityManager->flush();
+        }
+
         return $this->render('school_year/school.year.settings.html.twig', [
             'school_year' => $currentSchoolYear->getYearname(),
             'form' => $form->createView(),
