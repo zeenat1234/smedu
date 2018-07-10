@@ -26,3 +26,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    # the following line needs to be added to use the intl twig extension
+    # this requires the following steps:
+    # 1. install extension using composer >> composer require twig/extensions
+    # 2.
+
+    twig.extension.intl:
+        class: Twig_Extensions_Extension_Intl
+        tags:
+            - { name: twig.extension }
