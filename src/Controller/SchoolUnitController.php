@@ -51,9 +51,14 @@ class SchoolUnitController extends AbstractController
      */
     public function school_unit_new(Request $request)
     {
+        $availableSchoolYears = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findAll();
+
         $schoolunit = new SchoolUnit();
 
-        $form = $this->createForm(SchoolUnitType::Class, $schoolunit);
+        $form = $this->createForm(SchoolUnitType::Class, $schoolunit, array(
+          'schoolyears' => $availableSchoolYears,
+        ));
 
         $form->handleRequest($request);
 
@@ -78,12 +83,17 @@ class SchoolUnitController extends AbstractController
     */
     public function school_unit_edit(Request $request, $id)
     {
+        $availableSchoolYears = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findAll();
+
         $schoolunit = new SchoolUnit();
 
         $schoolunit = $this->getDoctrine()->getRepository
         (SchoolUnit::class)->find($id);
 
-        $form = $this->createForm(SchoolUnitType::Class, $schoolunit);
+        $form = $this->createForm(SchoolUnitType::Class, $schoolunit, array(
+          'schoolyears' => $availableSchoolYears,
+        ));
 
         $form->handleRequest($request);
 
