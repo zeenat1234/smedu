@@ -4,6 +4,9 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
 //Validation Classes
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -54,6 +57,23 @@ class SchoolYear
      * @ORM\Column(type="string", length=32)
      */
     private $license_status;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\SchoolUnit", mappedBy="schoolyear")
+     */
+    private $schoolunits;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\SchoolServices", mappedBy="schoolyear")
+     */
+    private $schoolservices;
+
+    public function __construct()
+    {
+        $this->schoolunits = new ArrayCollection();
+        $this->schoolservices = new ArrayCollection();
+    }
+
 
     public function getId()
     {
@@ -143,4 +163,67 @@ class SchoolYear
 
         return $this;
     }
+
+    /**
+     * @return Collection|SchoolUnit[]
+     */
+    public function getSchoolunits(): Collection
+    {
+        return $this->schoolunits;
+    }
+
+    public function addSchoolunit(SchoolUnit $schoolunit): self
+    {
+        if (!$this->schoolunits->contains($schoolunit)) {
+            $this->schoolunits[] = $schoolunit;
+            $schoolunit->setSchoolyear($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSchoolunit(SchoolUnit $schoolunit): self
+    {
+        if ($this->schoolunits->contains($schoolunit)) {
+            $this->schoolunits->removeElement($schoolunit);
+            // set the owning side to null (unless already changed)
+            if ($schoolunit->getSchoolyear() === $this) {
+                $schoolunit->setSchoolyear(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|SchoolService[]
+     */
+    public function getSchoolservices(): Collection
+    {
+        return $this->schoolservices;
+    }
+
+    public function addSchoolservice(SchoolService $schoolservice): self
+    {
+        if (!$this->schoolservices->contains($schoolservice)) {
+            $this->schoolservices[] = $schoolservice;
+            $schoolservice->setSchoolyear($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSchoolservice(SchoolService $schoolservice): self
+    {
+        if ($this->schoolservices->contains($schoolservice)) {
+            $this->schoolservices->removeElement($schoolservice);
+            // set the owning side to null (unless already changed)
+            if ($schoolservice->getSchoolyear() === $this) {
+                $schoolservice->setSchoolyear(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
