@@ -17,13 +17,13 @@ class SchoolService
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\SchoolYear", inversedBy="schoolservice")
+     * @ORM\ManyToOne(targetEntity="App\Entity\SchoolYear", inversedBy="schoolservices")
      * @ORM\JoinColumn(nullable=false)
      */
     private $schoolyear;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\SchoolUnit", inversedBy="schoolservice")
+     * @ORM\ManyToOne(targetEntity="App\Entity\SchoolUnit", inversedBy="schoolservices")
      * @ORM\JoinColumn(nullable=false)
      */
     private $schoolunit;

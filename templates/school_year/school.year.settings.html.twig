@@ -11,10 +11,17 @@
 
     {{ form_start(form) }}
     {{ form_widget(form) }}
-      <input type="submit" class="btn btn-success mt-3" value="Actualizează">
+      <!-- <input type="submit" class="btn btn-success mt-3" value="Actualizează"> -->
+      <button class="btn btn-success mt-3"><i class="fas fa-angle-double-up"></i> Actualizează</button>
     {{ form_end(form) }}
 
-    <a href="{{ path('school_units') }}"><button class="btn btn-warning mt-3" label="">Unități Școlare</button></a>
+    <a href="{{ path('school_units') }}">
+      <button class="btn btn-warning mt-3" label=""><i class="fas fa-box"></i> Unități Școlare</button>
+    </a>
+    <a href="{{ path('school_services') }}">
+      <button class="btn btn-primary mt-3"><i class="fas fa-box"></i> Servicii An Școlar</button>
+    </a>
 
+    {# dump(form) #}
 </div>
 {% endblock %}

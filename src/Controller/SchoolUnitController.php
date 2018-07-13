@@ -33,11 +33,13 @@ class SchoolUnitController extends AbstractController
         $currentSchoolYear = $this->getDoctrine()->getRepository
         (SchoolYear::class)->findCurrentYear();
 
-        $schoolunits = $this->getDoctrine()->getRepository
-        (SchoolUnit::class)->findCurrentUnits(
-          $currentSchoolYear->getStartDate(),
-          $currentSchoolYear->getEndDate()
-        );
+        $schoolunits = $currentSchoolYear->getSchoolunits();
+
+        // $schoolunits = $this->getDoctrine()->getRepository
+        // (SchoolUnit::class)->findCurrentUnits(
+        //   $currentSchoolYear->getStartDate(),
+        //   $currentSchoolYear->getEndDate()
+        // );
 
         return $this->render('school_unit/school.units.html.twig', [
             'schoolunits' => $schoolunits,

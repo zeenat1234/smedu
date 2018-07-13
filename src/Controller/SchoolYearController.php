@@ -10,6 +10,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
 #can instantiate the entity
 use App\Entity\SchoolYear;
+use App\Entity\SchoolUnit;
+use App\Entity\SchoolService;
 
 #form type definition
 use App\Form\SchoolYearType;

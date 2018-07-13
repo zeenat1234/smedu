@@ -64,7 +64,7 @@ class SchoolYear
     private $schoolunits;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\SchoolServices", mappedBy="schoolyear")
+     * @ORM\OneToMany(targetEntity="App\Entity\SchoolService", mappedBy="schoolyear")
      */
     private $schoolservices;
 

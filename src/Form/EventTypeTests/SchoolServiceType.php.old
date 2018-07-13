@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Form;
+
+use App\Entity\SchoolService;
+use App\Entity\SchoolYear;
+use App\Entity\SchoolUnit;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+
+#this is used for forms
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+
+class SchoolServiceType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        if (!empty($options['school_year']) && !empty($options['school_unit'])) {
+
+          echo'<script>console.log(\'single option\')</script>';
+
+          $yearchoices = array();
+          $yearchoices[$options['school_year']->getYearlabel()] = $options['school_year'];
+          $unitchoices = array();
+          $unitchoices[$options['school_unit']->getUnitname()] = $options['school_unit'];
+
+          $builder
+              ->add('schoolYear', ChoiceType::class, array(
+                'choices'  => $yearchoices,
+                'attr' => array(
+                  'class' => 'col-4 form-control',
+                  'readonly' => 'readonly',
+                ),
+              ))
+              ->add('schoolUnit', ChoiceType::class, array(
+                'choices'  => $unitchoices,
+                'attr' => array(
+                  'class' => 'col-4 form-control',
+                  'readonly' => 'readonly',
+                ),
+              ))
+          ;
+        }
+
+        if (!empty($options['school_years']) && !empty($options['school_units'])) {
+
+          // $yearchoices = array();
+          // $yearchoices['----'] = null;
+          //
+          // foreach ($options['school_years'] as $schoolyear) {
+          //     $label = $schoolyear->getYearlabel();
+          //     $yearchoices[$label]=$schoolyear;
+          // }
+          //
+          // $unitchoices = array();
+          // $unitchoices['----'] = null;
+          //
+          // foreach ($options['school_units'] as $schoolunit) {
+          //     $label = $schoolunit->getUnitname();
+          //     $unitchoices[$label]=$schoolunit;
+          // }
+
+          $builder->add('schoolYear', EntityType::class, array(
+              // looks for choices from this entity
+              'class' => SchoolYear::class,
+
+              // uses the User.username property as the visible option string
+              'choice_label' => 'yearlabel',
+
+              // used to render a select box, check boxes or radios
+              // 'multiple' => true,
+              // 'expanded' => true,
+              'attr' => array(
+                'class' => 'col-4 form-control',
+              ),
+          ));
+
+          $formModifier = function (FormInterface $form, SchoolYear $schoolYear = null) {
+              $schoolUnits = null === $schoolYear ? array() : $schoolYear->getSchoolunits();
+
+              $form->add('schoolUnit', EntityType::class, array(
+                  'class' => SchoolUnit::class,
+                  'choice_label' => 'unitname',
+                  'choices' => $schoolUnits,
+              ));
+          };
+
+          $builder->addEventListener(
+              FormEvents::PRE_SET_DATA,
+              function (FormEvent $event) use ($formModifier) {
+                  // this would be your entity, i.e. SportMeetup
+                  $data = $event->getData();
+                  $formModifier($event->getForm(), $data->getSchoolyear());
+              }
+          );
+
+          $builder->get('schoolYear')->addEventListener(
+              FormEvents::POST_SUBMIT,
+              function (FormEvent $event) use ($formModifier) {
+                  // It's important here to fetch $event->getForm()->getData(), as
+                  // $event->getData() will get you the client data (that is, the ID)
+                  $schoolYear = $event->getForm()->getData();
+
+                  // since we've added the listener to the child, we'll have to pass on
+                  // the parent to the callback functions!
+                  $formModifier($event->getForm()->getParent(), $schoolYear);
+              }
+          );
+
+
+        }
+
+        $builder
+            ->add('serviceName', TextType::class, array(
+              'attr' => array('class' => 'col-6 form-control')
+            ))
+            ->add('serviceDescription', TextareaType::class, array(
+              'attr' => array('class' => 'col-6 form-control'),
+            ))
+            ->add('servicePrice', MoneyType::class, array(
+              'currency' => 'RON',
+              'scale' => 2,
+              'attr' => array('class' => 'col-3 form-control'),
+            ))
+        ;
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults([
+            'data_class' => SchoolService::class,
+            'school_years' => null,
+            'school_units' => null,
+            'school_year' => null,
+            'school_unit' => null,
+        ]);
+    }
+}
