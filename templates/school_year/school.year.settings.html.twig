@@ -10,9 +10,48 @@
     {# dump() #}
 
     {{ form_start(form) }}
-    {{ form_widget(form) }}
+      <div class="row">
+        <div class="col-12">
+          {{ form_row(form.yearLabel) }}
+        </div>
+      </div>
+      <br>
+      <div class="row">
+        <div class="col-6">
+          {{ form_row(form.startDate) }}
+        </div>
+        <div class="col-6">
+          {{ form_row(form.endDate) }}
+        </div>
+      </div>
+      <br>
+      {# form_row(form.is_perm_activity) #}
+      <div class="row">
+        <div class="col-auto">
+          {{ form_label(form.is_perm_activity) }}
+          {{ form_errors(form.is_perm_activity) }}
+        </div>
+        <div class="col-auto">
+          <div class="double">
+            {{ form_widget(form.is_perm_activity) }}
+          </div>
+          {{ form_help(form.is_perm_activity) }}
+        </div>
+      </div>
+      <br>
+      <div class="row">
+        <div class="col-12 col-sm-10 col-md-6 col-lg-5">
+          {{ form_row(form.license) }}
+          <br>
+        </div>
+
+        <div class="col-12 col-sm-10 col-md-6 col-lg-5">
+          {{ form_row(form.license_status) }}
+        </div>
+      </div>
       <!-- <input type="submit" class="btn btn-success mt-3" value="Actualizează"> -->
       <button class="btn btn-success mt-3"><i class="fas fa-angle-double-up"></i> Actualizează</button>
+
     {{ form_end(form) }}
 
     <a href="{{ path('school_units') }}">
@@ -21,7 +60,14 @@
     <a href="{{ path('school_services') }}">
       <button class="btn btn-primary mt-3"><i class="fas fa-box"></i> Servicii An Școlar</button>
     </a>
+    <hr>
 
-    {# dump(form) #}
+    <h2>Noul An Școlar</h2>
+    <a href="#">
+      <button class="btn btn-primary mt-3"><i class="fas fa-plus"></i> Adaugă Licență</button>
+    </a>
+    <hr>
+
+    <h2>Ani Școlari Trecuți</h2>
 </div>
 {% endblock %}
