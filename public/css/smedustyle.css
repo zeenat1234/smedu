@@ -33,6 +33,24 @@ select {
     margin-top: 50px;
 }
 
+/* Using this in order to make Checkbox bigger */
+.double {
+  zoom: 1.5;
+  transform: scale(1.3);
+  -ms-transform: scale(1.3);
+  -webkit-transform: scale(1.3);
+  -o-transform: scale(1.3);
+  -moz-transform: scale(1.3);
+
+  transform-origin: 150% 70%;
+  -ms-transform-origin: 150% 70%;
+  -webkit-transform-origin: 150% 70%;
+  -o-transform-origin: 150% 70%;
+  -moz-transform-origin: 150% 70%;
+  -webkit-transform-origin: 150% 70%;
+
+  color:#f00;
+}
 
 
 /* .users {
