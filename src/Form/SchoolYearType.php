@@ -22,29 +22,31 @@ class SchoolYearType extends AbstractType
     {
         $builder
             ->add('yearLabel', TextType::class, array(
-              'attr' => array('class' => 'col-12 form-control'),
+              'attr' => array('class' => 'form-control'),
               'required' => true,
             ))
             ->add('startDate', DateType::class, array(
               'input' => 'datetime',
               'widget' => 'single_text',
-              'attr' => array('type' => 'datetime', 'class' => 'col-6 form-control'),
+              'attr' => array('type' => 'datetime', 'class' => 'form-control'),
             ))
             ->add('endDate', DateType::class, array(
               'input' => 'datetime',
               'widget' => 'single_text',
-              'attr' => array('type' => 'datetime', 'class' => 'col-6 form-control'),
+              'attr' => array('type' => 'datetime', 'class' => 'form-control'),
             ))
             ->add('is_perm_activity', CheckboxType::class, array(
-              'label'    => 'Activitate Permanentă?',
+              'label'    => 'Activitate Permanentă ?',
               'required' => false,
               'attr' => array('class' => 'form-check form-check-inline'),
             ))
             ->add('license', TextType::class, array(
-              'attr' => array('class' => 'col-4 form-control'),
+              'label'    => 'Licență',
+              'attr' => array('class' => 'form-control'),
             ))
             ->add('license_status', TextType::class, array(
-              'attr' => array('class' => 'col-4 form-control'),
+              'label'    => 'Status licență',
+              'attr' => array('class' => 'form-control'),
             ))
         ;
     }
