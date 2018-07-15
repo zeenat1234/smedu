@@ -27,8 +27,6 @@ class SchoolYearController extends Controller
      */
     public function schoolYear(Request $request)
     {
-        $currentSchoolYear = new SchoolYear();
-
         $currentSchoolYear = $this->getDoctrine()->getRepository
         (SchoolYear::class)->findCurrentYear();
 
@@ -57,6 +55,36 @@ class SchoolYearController extends Controller
             'form' => $form->createView(),
         ]);
     }
+
+    /**
+     * @Route("/school/year/new", name="school_year_new")
+     * @Method({"GET", "POST"})
+     */
+     public function newSchoolYear(Request $request)
+     {
+        $schoolYear = new SchoolYear();
+
+        $form = $this->CreateForm(SchoolYearType::class, $schoolYear);
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+          $schoolYear = $form->getData();
+
+          $schoolYearName = $schoolYear->getStartDate()->format("y")."/".$schoolYear->getEndDate()->format("y");
+          $schoolYear->setYearname($schoolYearName);
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($schoolYear);
+          $entityManager->flush();
+
+          return $this->redirectToRoute('school_year');
+        }
+
+        return $this->render('school_year/school.year.new.html.twig', [
+            'form' => $form->createView(),
+        ]);
+     }
 
     /**
      * @Route("/school/year/{id}", name="school_year_view")
