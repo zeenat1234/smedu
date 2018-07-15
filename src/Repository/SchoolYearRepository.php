@@ -29,6 +29,31 @@ class SchoolYearRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
+    /**
+      * @return SchoolYear[] Returns an array of SchoolYear objects
+      */
+    public function findPreviousYears()
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.end_date < :val')
+            ->setParameter('val', date("Y-m-d H:i:s"))
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+      * @return SchoolYear[] Returns an array of SchoolYear objects
+      */
+    public function findNextYears()
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.start_date > :val')
+            ->setParameter('val', date("Y-m-d H:i:s"))
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 
 //    /**
 //     * @return SchoolYear[] Returns an array of SchoolYear objects

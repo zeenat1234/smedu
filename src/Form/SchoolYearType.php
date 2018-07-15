@@ -22,15 +22,18 @@ class SchoolYearType extends AbstractType
     {
         $builder
             ->add('yearLabel', TextType::class, array(
+              'label'    => 'Denumire an școlar',
               'attr' => array('class' => 'form-control'),
               'required' => true,
             ))
             ->add('startDate', DateType::class, array(
+              'label'    => 'Data de început',
               'input' => 'datetime',
               'widget' => 'single_text',
               'attr' => array('type' => 'datetime', 'class' => 'form-control'),
             ))
             ->add('endDate', DateType::class, array(
+              'label'    => 'Data de sfârșit',
               'input' => 'datetime',
               'widget' => 'single_text',
               'attr' => array('type' => 'datetime', 'class' => 'form-control'),

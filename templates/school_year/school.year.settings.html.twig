@@ -25,7 +25,6 @@
         </div>
       </div>
       <br>
-      {# form_row(form.is_perm_activity) #}
       <div class="row">
         <div class="col-auto">
           {{ form_label(form.is_perm_activity) }}
@@ -40,12 +39,12 @@
       </div>
       <br>
       <div class="row">
-        <div class="col-12 col-sm-10 col-md-6 col-lg-5">
+        <div class="col-12 col-sm-10 col-md-6 col-lg-6">
           {{ form_row(form.license) }}
           <br>
         </div>
 
-        <div class="col-12 col-sm-10 col-md-6 col-lg-5">
+        <div class="col-12 col-sm-10 col-md-6 col-lg-6">
           {{ form_row(form.license_status) }}
         </div>
       </div>
@@ -63,11 +62,73 @@
     <hr>
 
     <h2>Noul An Școlar</h2>
+    {% if next_years is not empty %}
+      <table id="nextyears" class="table table-striped table-hover">
+
+        <thead>
+          <tr>
+            <th>An școlar</th>
+            <th>Data de început / sfârșit</th>
+            <th>Status Licență</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for next_year in next_years %}
+            <tr>
+              <td>{{ next_year.yearlabel }}</td>
+              <td>{{ next_year.startDate|localizeddate('medium', 'none', 'ro') }} / {{ next_year.endDate|localizeddate('medium', 'none', 'ro') }}</td>
+              <td>{{ next_year.licenseStatus }}</td>
+              <td>
+                <a href="{{ path('school_year_view', {'id':next_year.id}) }}"><button type="button" class="btn btn-primary">Editează</button></a>
+                <a href="#"><button type="button" class="btn btn-danger delete-service" data-id="{{ next_year.id }}">Șterge</button></a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+      {% else %}
+        <p>Puteți adăuga un nou an școlar utilizând butonul <strong>"Adaugă Licență"</strong></p>
+        <hr>
+      {% endif %}
     <a href="#">
       <button class="btn btn-primary mt-3"><i class="fas fa-plus"></i> Adaugă Licență</button>
     </a>
     <hr>
 
     <h2>Ani Școlari Trecuți</h2>
+    {% if prev_years is not empty %}
+      <table id="prevyears" class="table table-striped table-hover">
+
+        <thead>
+          <tr>
+            <th>An școlar</th>
+            <th>Data de început</th>
+            <th>Data de sfârșit</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for prev_year in prev_years %}
+            <tr>
+              <td>{{ prev_year.yearlabel }}</td>
+              <td>{{ prev_year.startDate|localizeddate('medium', 'none', 'ro') }}</td>
+              <td>{{ prev_year.endDate|localizeddate('medium', 'none', 'ro') }}</td>
+              <td>
+                <a href="#"><button type="button" class="btn btn-primary">Vizualizează</button></a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+      {% else %}
+        <p>Nu există date istorice.</strong></p>
+        <hr>
+      {% endif %}
+
 </div>
 {% endblock %}
