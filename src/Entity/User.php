@@ -67,6 +67,8 @@ class User implements UserInterface, \Serializable
      */
     private $usertype;
 
+    //TODO: Add firstname, lastname, dateofbirth, id_parent (manyToOne)
+
     public function getId()
     {
         return $this->id;
@@ -111,7 +113,32 @@ class User implements UserInterface, \Serializable
 
     public function getUsertype(): ?string
     {
+        // switch ($this->usertype) {
+        //   case 'ROLE_ADMIN':
+        //     return 'Administrator';
+        //   case 'ROLE_PROF':
+        //     return 'Profesor';
+        //   case 'ROLE_PARENT':
+        //     return 'Părinte';
+        //   case 'ROLE_PUPIL':
+        //     return 'Elev';
+        // }
         return $this->usertype;
+    }
+
+    public function getNormalized(): ?string
+    {
+        switch ($this->usertype) {
+          case 'ROLE_ADMIN':
+            return 'Administrator';
+          case 'ROLE_PROF':
+            return 'Profesor';
+          case 'ROLE_PARENT':
+            return 'Părinte';
+          case 'ROLE_PUPIL':
+            return 'Elev';
+        }
+        // return $this->usertype;
     }
 
     public function setUsertype(string $usertype): self

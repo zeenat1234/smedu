@@ -41,7 +41,8 @@ class UserType extends AbstractType
               'choices'  => array(
                 'Administrator' => 'ROLE_ADMIN',
                 'Profesor' => 'ROLE_PROF',
-                'Părinte' => 'ROLE_PARENT'
+                'Părinte' => 'ROLE_PARENT',
+                'Elev' => 'ROLE_PUPIL'
               ),
               'label' => 'Tip Utilizator',
               'attr' => array('class' => 'form-control')
