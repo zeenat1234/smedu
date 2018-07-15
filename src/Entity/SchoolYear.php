@@ -54,7 +54,7 @@ class SchoolYear
     private $license;
 
     /**
-     * @ORM\Column(type="string", length=32)
+     * @ORM\Column(type="string", length=64)
      */
     private $license_status;
 
