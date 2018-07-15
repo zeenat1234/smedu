@@ -86,6 +86,31 @@ class SchoolYearController extends Controller
         ]);
      }
 
+     //TODO Find out how to fix 500 error which occurs in the browser console
+     //when a delete statement is executed
+     /**
+      * @Route("/school/year/delete/{id}", name="school_year_delete")
+      * @Method({"DELETE"})
+      */
+
+     public function deleteYear(Request $request, $id)
+     {
+       $schoolYear = $this->getDoctrine()->getRepository
+       (SchoolYear::class)->find($id);
+
+
+       $entityManager = $this->getDoctrine()->getManager();
+
+       $entityManager->remove($schoolYear);
+       $entityManager->flush();
+
+       //console.log('A mers!');
+       $response = new Response();
+       $response->send();
+
+       //return $this->redirectToRoute('users');
+     }
+
     /**
      * @Route("/school/year/{id}", name="school_year_view")
      * @Method({"GET", "POST"})

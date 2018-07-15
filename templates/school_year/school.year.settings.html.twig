@@ -82,12 +82,12 @@
               <td>{{ next_year.licenseStatus }}</td>
               <td>
                 <a href="{{ path('school_year_view', {'id':next_year.id}) }}"><button type="button" class="btn btn-primary">Editează</button></a>
-                <a href="#"><button type="button" class="btn btn-danger delete-service" data-id="{{ next_year.id }}">Șterge</button></a>
+                <a href="#"><button type="button" class="btn btn-danger delete-year" data-id="{{ next_year.id }}">Șterge</button></a>
               </td>
             </tr>
           {% endfor %}
         </tbody>
-        
+
       </table>
       {% else %}
         <p>Puteți adăuga un nou an școlar utilizând butonul <strong>"Adaugă Licență"</strong></p>
@@ -131,4 +131,9 @@
       {% endif %}
 
 </div>
+{% endblock %}
+
+{% block javascripts %}
+  <script src="/js/schoolyear_delete.js"></script>
+  <!-- <script src="{{ asset('js/schoolyear_delete.js') }}"></script> -->
 {% endblock %}
