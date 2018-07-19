@@ -19,6 +19,56 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    /**
+    * @return User[] Returns an array of User objects
+    */
+
+    public function findAllChildren()
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.usertype = :val')
+            ->setParameter('val', 'ROLE_PUPIL')
+            ->orderBy('u.username', 'ASC')
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+    * @return User[] Returns an array of User objects
+    */
+
+    public function findAllParents()
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.usertype = :val')
+            ->setParameter('val', 'ROLE_PARENT')
+            ->orderBy('u.username', 'ASC')
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+    * @return User[] Returns an array of User objects
+    */
+
+    public function findAllProfs()
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.usertype = :val')
+            ->setParameter('val', 'ROLE_PROF')
+            ->orderBy('u.username', 'ASC')
+            //->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+
+
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */
