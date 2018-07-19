@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -42,6 +44,16 @@ class SchoolService
      * @ORM\Column(type="decimal", precision=7, scale=2)
      */
     private $serviceprice;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Enrollment", mappedBy="idService")
+     */
+    private $enrollments;
+
+    public function __construct()
+    {
+        $this->enrollments = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -104,6 +116,37 @@ class SchoolService
     public function setServiceprice($serviceprice): self
     {
         $this->serviceprice = $serviceprice;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Enrollment[]
+     */
+    public function getEnrollments(): Collection
+    {
+        return $this->enrollments;
+    }
+
+    public function addEnrollment(Enrollment $enrollment): self
+    {
+        if (!$this->enrollments->contains($enrollment)) {
+            $this->enrollments[] = $enrollment;
+            $enrollment->setIdService($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnrollment(Enrollment $enrollment): self
+    {
+        if ($this->enrollments->contains($enrollment)) {
+            $this->enrollments->removeElement($enrollment);
+            // set the owning side to null (unless already changed)
+            if ($enrollment->getIdService() === $this) {
+                $enrollment->setIdService(null);
+            }
+        }
 
         return $this;
     }

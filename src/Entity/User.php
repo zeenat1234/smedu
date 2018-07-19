@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -66,6 +68,16 @@ class User implements UserInterface, \Serializable
      * @ORM\Column(type="string", length=16)
      */
     private $usertype;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Enrollment", mappedBy="idParent")
+     */
+    private $enrollments;
+
+    public function __construct()
+    {
+        $this->enrollments = new ArrayCollection();
+    }
 
     //TODO: Add firstname, lastname, dateofbirth, id_parent (manyToOne)
 
@@ -180,5 +192,36 @@ class User implements UserInterface, \Serializable
         $this->password,
         $this->usertype
       ) = unserialize($string, ['allowed_classes' => false]);
+    }
+
+    /**
+     * @return Collection|Enrollment[]
+     */
+    public function getEnrollments(): Collection
+    {
+        return $this->enrollments;
+    }
+
+    public function addEnrollment(Enrollment $enrollment): self
+    {
+        if (!$this->enrollments->contains($enrollment)) {
+            $this->enrollments[] = $enrollment;
+            $enrollment->setIdParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnrollment(Enrollment $enrollment): self
+    {
+        if ($this->enrollments->contains($enrollment)) {
+            $this->enrollments->removeElement($enrollment);
+            // set the owning side to null (unless already changed)
+            if ($enrollment->getIdParent() === $this) {
+                $enrollment->setIdParent(null);
+            }
+        }
+
+        return $this;
     }
 }
