@@ -55,6 +55,19 @@ class SchoolYearRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+      * @return SchoolYear[] Returns an array of SchoolYear objects
+      */
+    public function findCurrentAndNew()
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.end_date > :val')
+            ->setParameter('val', date("Y-m-d H:i:s"))
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return SchoolYear[] Returns an array of SchoolYear objects
 //     */

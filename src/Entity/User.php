@@ -126,6 +126,7 @@ class User implements UserInterface, \Serializable
         return $this->usertype;
     }
 
+    // function used for display purposes only
     public function getNormalized(): ?string
     {
         switch ($this->usertype) {

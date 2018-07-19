@@ -18,6 +18,12 @@ use App\Form\SchoolServiceType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+// use Symfony\Component\HttpFoundation\JsonResponse;
+//
+// use Symfony\Component\Serializer\Serializer;
+// use Symfony\Component\Serializer\Encoder\XmlEncoder;
+// use Symfony\Component\Serializer\Encoder\JsonEncoder;
+// use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class SchoolServiceController extends AbstractController
 {
@@ -38,6 +44,60 @@ class SchoolServiceController extends AbstractController
     }
 
     //TODO Consider implementing Add where Unit updates according to year (ie. using jQuery, Ajax calls etc)
+    //TODO Try JSON response for dynamic fields
+
+    // /**
+    //  * @Route("/school/service/new", name="school_service_new")
+    //  * @Method({"GET", "POST"})
+    //  */
+    //  public function new_service (Request $request)
+    //  {
+    //       $currentSchoolYear = $this->getDoctrine()->getRepository
+    //       (SchoolYear::class)->findCurrentYear();
+    //
+    //       $jsonResponse = array();
+    //
+    //
+    //      //return new JsonResponse($jsonResponse);
+    //
+    //      return $this->render('school_service/new.html.twig', [
+    //           'json' => json_encode($jsonResponse),
+    //      ]);
+    //  }
+    //  //TODO Use this GET request when using JSON
+    //  /**
+    //   * @Route("/school/service/getData")
+    //   * @Method({"GET"})
+    //   */
+    //   public function json_get_data(Request $request)
+    //   {
+    //       $schoolYears = $schoolYear = $this->getDoctrine()->getRepository
+    //       (SchoolYear::class)->findCurrentAndNew();
+    //
+    //       // $jsonResponse = array();
+    //
+    //       // foreach ($schoolYears as $schoolYear) {
+    //       //   $jsonResponse[$schoolYear->getYearlabel()]=$schoolYear->getSchoolunits();
+    //       //     foreach ($jsonResponse[$schoolYear->getYearlabel()] as $schoolUnit) {
+    //       //     $jsonResponse[$schoolYear->getYearlabel()]=$schoolUnit->getUnitname();
+    //       //   }
+    //       // }
+    //       // $jsonResponse = json_encode($schoolYears);
+    //       $encoders = array(new XmlEncoder(), new JsonEncoder());
+    //       $normalizers = array(new ObjectNormalizer());
+    //
+    //       $normalizers[0]->setCircularReferenceHandler(function ($object) {
+    //           return $object->getId();
+    //       });
+    //
+    //       $serializer = new Serializer($normalizers, $encoders);
+    //
+    //       $jsonResponse = $serializer->serialize($schoolYears, 'json');
+    //
+    //       //return new JsonResponse($jsonResponse);
+    //       return new Response($jsonResponse);
+    //   }
+
 
     /**
      * @Route("/school/service/add", name="school_service_add_to_currentYear")
@@ -69,7 +129,7 @@ class SchoolServiceController extends AbstractController
             return $this->redirectToRoute('school_services');
          }
 
-         return $this->render('school_service/new.html.twig', [
+         return $this->render('school_service/add.to.year.html.twig', [
               'form' => $form->createView()
          ]);
 

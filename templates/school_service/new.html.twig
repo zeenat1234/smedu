@@ -1,10 +1,36 @@
 {% extends 'base.nav.html.twig' %}
-
+{#TODO Use this page to add new service - dynamic forms #}
 {% block title %}Administrare Servicii -> Serviciu Nou{% endblock %}
 
 {% block body %}
-  {{ form_start(form) }}
-  {{ form_widget(form) }}
-    <input type="submit" class="btn btn-success mt-3" value="Actualizează">
-  {{ form_end(form) }}
+  <h1>New Service</h1>
+  <p>Let's try some JSON</p>
+  <br>
+  <ul class="objects">
+    <!-- jQuery here -->
+  </ul>
+{% endblock %}
+
+
+{% block javascripts %}
+
+    <script>
+
+      $(function () {
+
+        var $myObjects = $('#objects');
+
+        $.ajax({
+          type: 'GET',
+          url: '/school/service/getData',
+          success: function(myObjects) {
+            $.each(myObjects, function(i, anObject) {
+              console.log(anObject);
+              //$myObjects.append('<li>Object: '+ anObject +'</li>')
+            });
+          }
+        });
+
+      });
+    </script>
 {% endblock %}
