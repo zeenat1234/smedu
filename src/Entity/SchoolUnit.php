@@ -54,6 +54,11 @@ class SchoolUnit
      */
     private $enrollments;
 
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private $availableSpots;
+
     public function __construct()
     {
         $this->schoolservices = new ArrayCollection();
@@ -183,6 +188,18 @@ class SchoolUnit
                 $enrollment->setIdUnit(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAvailableSpots(): ?int
+    {
+        return $this->availableSpots;
+    }
+
+    public function setAvailableSpots(int $availableSpots): self
+    {
+        $this->availableSpots = $availableSpots;
 
         return $this;
     }

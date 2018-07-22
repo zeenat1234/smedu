@@ -37,10 +37,15 @@ class EnrollmentController extends AbstractController
         $currentEnrollments = $this->getDoctrine()->getRepository
         (Enrollment::class)->findLatest(10);
 
+        //TODO: Find unique pupil entries, rather than count all enrollment objects - do this in repo as a new query
+        $totalEnrollments = sizeof($this->getDoctrine()->getRepository
+        (Enrollment::class)->findAll());
+
         return $this->render('enrollment/enrollment.html.twig', [
             'current_year' => $currentSchoolYear,
             'current_units' => $currentUnits,
             'enrollments' => $currentEnrollments,
+            'total_enrollments' => $totalEnrollments,
         ]);
     }
 

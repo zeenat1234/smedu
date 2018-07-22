@@ -9,6 +9,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #this is used for forms
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -42,6 +43,9 @@ class SchoolUnitType extends AbstractType
             ))
             ->add('schoolyear', ChoiceType::class, array(
               'choices'  => $choices,
+              'attr' => array('class' => 'col-4 form-control'),
+            ))
+            ->add('availableSpots', NumberType::class, array(
               'attr' => array('class' => 'col-4 form-control'),
             ))
             ->add('description', TextareaType::class, array(
