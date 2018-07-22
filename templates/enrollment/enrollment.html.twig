@@ -1,0 +1,73 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Înscrieri{% endblock %}
+
+{% block body %}
+
+<div class="enrollment-wrapper">
+  <h1>Înscrieri {{ current_year.getYearlabel|lower }}</h1>
+  <br>
+  <i class="far fa-arrow-alt-circle-right"></i> Statistici curente:
+  <ul>
+    <li>Cea mai recentă înscriere: <strong>RADU</strong> (<small><a href="" style="text-decoration: underline;">modifică</a></small>)</li>
+    <li>Total elevi înscriși: <strong>200</strong></li>
+  </ul>
+  {% if current_units|length == 1 %}
+    <i class="far fa-arrow-alt-circle-right"></i> Pe unitate de învățământ:
+    <ul>
+      <li>{{ (current_units|first).getUnitname }}</li>
+    </ul>
+  {% elseif current_units|length > 1 %}
+    <table>
+    <i class="far fa-arrow-alt-circle-right"></i> Pe unități de învățământ:
+    <div class="row">
+      <tr>
+        <th></th>
+        <th>Unitate</th>
+        <th>Locuri ocupate</th>
+        <th>Locuri libere</th>
+      </tr>
+      {% for current_unit in current_units %}
+      <tr>
+        <td>
+          <a href="{{ path('new_enrollment_in_unit', {'unitId':current_unit.id }) }}">
+            <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+          </a>
+        </td>
+        <td>
+          {{ current_unit.getUnitname }}
+        </td>
+        <td style='color:#f00'>
+          <center><strong>50</strong></center>
+        </td>
+        <td style='color:#0f0'>
+          <center><strong>50</strong></center>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Nu există nicio unitate definită în acest an școlar!</p>
+  {% endif %}
+  <br>
+  <div class="row">
+    <div class="col">
+      <i class="far fa-arrow-alt-circle-right"></i> Alte statistici/proprietăți:
+      <p>(under construction)</p>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col">
+      <i class="far fa-arrow-alt-circle-right"></i> Ultimele 10 înscrieri:
+      <ol type="1" style="type:1;">
+      {% for enrollment in enrollments %}
+        <li>
+          {{ enrollment.getIdParent.getUsername }} - {{ enrollment.getIdUnit.getUnitname }} - ({{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro')}})
+        </li>
+      {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>
+{% endblock %}

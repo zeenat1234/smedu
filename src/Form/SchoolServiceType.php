@@ -26,26 +26,26 @@ class SchoolServiceType extends AbstractType
     {
         if (!empty($options['school_unit'])) {
 
-          echo'<script>console.log(\'single option\')</script>';
+          //echo'<script>console.log(\'single option\')</script>';
 
-          $unitchoices = array();
-          $unitchoices[$options['school_unit']->getUnitname()] = $options['school_unit'];
+          $unitchoice = array();
+          $unitchoice[$options['school_unit']->getUnitname()] = $options['school_unit'];
 
           $currentSchoolyear=$options['school_unit']->getSchoolyear();
 
-          $yearchoices = array();
-          $yearchoices[$currentSchoolyear->getYearlabel()] = $currentSchoolyear;
+          $yearchoice = array();
+          $yearchoice[$currentSchoolyear->getYearlabel()] = $currentSchoolyear;
 
           $builder
               ->add('schoolYear', ChoiceType::class, array(
-                'choices'  => $yearchoices,
+                'choices'  => $yearchoice,
                 'attr' => array(
                   'class' => 'col-4 form-control',
                   'readonly' => 'readonly',
                 ),
               ))
               ->add('schoolUnit', ChoiceType::class, array(
-                'choices'  => $unitchoices,
+                'choices'  => $unitchoice,
                 'attr' => array(
                   'class' => 'col-4 form-control',
                   'readonly' => 'readonly',
@@ -55,6 +55,8 @@ class SchoolServiceType extends AbstractType
         }
 
         if (!empty($options['school_units'])) {
+
+          //echo'<script>console.log(\'multiple options\')</script>';
 
           $unitchoices = array();
           foreach ($options['school_units'] as $schoolunit) {

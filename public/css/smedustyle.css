@@ -10,7 +10,7 @@ p {
     font-size: 1.1em;
     font-weight: 300;
     line-height: 1.7em;
-    color: #999;
+    color: #000;
 }
 
 a,
@@ -31,6 +31,23 @@ select {
 
 .login-wrapper {
     margin-top: 50px;
+}
+
+.enrollment-wrapper th,td {
+  padding-left:10px;
+  padding-right:10px;
+}
+.enrollment-wrapper p {
+    /* color: #000; */
+}
+.enrollment-wrapper a {
+    /* text-decoration: underline; */
+}
+.enrollment-wrapper ul {
+    list-style:none;
+}
+.enrollment-wrapper li {
+    /* list-style-type:none; */
 }
 
 /* Using this in order to make Checkbox bigger */

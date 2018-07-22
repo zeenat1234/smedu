@@ -72,7 +72,12 @@ class User implements UserInterface, \Serializable
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Enrollment", mappedBy="idParent")
      */
-    private $enrollments;
+    private $enrollmentsParent;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Enrollment", mappedBy="idChild")
+     */
+    private $enrollmentsChild;
 
     public function __construct()
     {
@@ -197,25 +202,25 @@ class User implements UserInterface, \Serializable
     /**
      * @return Collection|Enrollment[]
      */
-    public function getEnrollments(): Collection
+    public function getEnrollmentsParent(): Collection
     {
-        return $this->enrollments;
+        return $this->enrollmentsParent;
     }
 
-    public function addEnrollment(Enrollment $enrollment): self
+    public function addEnrollmentParent(Enrollment $enrollment): self
     {
-        if (!$this->enrollments->contains($enrollment)) {
-            $this->enrollments[] = $enrollment;
+        if (!$this->enrollmentsParent->contains($enrollment)) {
+            $this->enrollmentsParent[] = $enrollment;
             $enrollment->setIdParent($this);
         }
 
         return $this;
     }
 
-    public function removeEnrollment(Enrollment $enrollment): self
+    public function removeEnrollmentParent(Enrollment $enrollment): self
     {
-        if ($this->enrollments->contains($enrollment)) {
-            $this->enrollments->removeElement($enrollment);
+        if ($this->enrollmentsChild->contains($enrollment)) {
+            $this->enrollmentsChild->removeElement($enrollment);
             // set the owning side to null (unless already changed)
             if ($enrollment->getIdParent() === $this) {
                 $enrollment->setIdParent(null);
@@ -224,4 +229,37 @@ class User implements UserInterface, \Serializable
 
         return $this;
     }
+
+    /**
+     * @return Collection|Enrollment[]
+     */
+    public function getEnrollmentsChild(): Collection
+    {
+        return $this->enrollmentsChild;
+    }
+
+    public function addEnrollmentChild(Enrollment $enrollment): self
+    {
+        if (!$this->enrollmentsChild->contains($enrollment)) {
+            $this->enrollmentsChild[] = $enrollment;
+            $enrollment->setIdParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnrollmentChild(Enrollment $enrollment): self
+    {
+        if ($this->enrollmentsChild->contains($enrollment)) {
+            $this->enrollmentsChild->removeElement($enrollment);
+            // set the owning side to null (unless already changed)
+            if ($enrollment->getIdParent() === $this) {
+                $enrollment->setIdParent(null);
+            }
+        }
+
+        return $this;
+    }
+
+
 }

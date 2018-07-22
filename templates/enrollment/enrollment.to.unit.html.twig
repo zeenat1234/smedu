@@ -1,0 +1,28 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Înscrieri -> Înscriere Nouă în {{ current_unit.unitname }} {% endblock %}
+
+{% block body %}
+  {% if current_unit.getSchoolservices|length == 0 %}
+    <h2>
+      Nu există niciun serviciu definit în {{ current_unit.unitname }};
+      <br><br>
+      Puteți defini un nou serviciu în această unitate
+      <br>
+      <a href="{{ path('school_service_add_to_unit', {'id':current_unit.id }) }}">
+        <button class="btn btn-success"><i class="fas fa-plus"></i> ADAUGĂ SERVICIU</button>
+      </a>
+      <br><br>
+      Dacă doriți să vă întoarceți la meniul înscrieri, folosiți următorul buton:
+      <br>
+      <a href="{{ path('enrollment') }}">
+        <button class="btn btn-primary"><i class="fas fa-bars"></i> Înscrieri</button>
+      </a>
+    </h2>
+  {% else %}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+      <input type="submit" class="btn btn-success mt-3" value="Adaugă">
+    {{ form_end(form) }}
+  {% endif %}
+{% endblock %}

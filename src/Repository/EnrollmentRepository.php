@@ -19,6 +19,21 @@ class EnrollmentRepository extends ServiceEntityRepository
         parent::__construct($registry, Enrollment::class);
     }
 
+   /**
+    * @return Enrollment[] Returns an array of Enrollment objects
+    */
+
+    public function findLatest($value)
+    {
+        return $this->createQueryBuilder('e')
+            ->orderBy('e.id', 'DESC')
+            ->setMaxResults($value)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+
 //    /**
 //     * @return Enrollment[] Returns an array of Enrollment objects
 //     */

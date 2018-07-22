@@ -17,13 +17,13 @@ class Enrollment
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="enrollments")
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="enrollmentsParent")
      * @ORM\JoinColumn(nullable=false)
      */
     private $idParent;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="enrollments")
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="enrollmentsChild")
      * @ORM\JoinColumn(nullable=false)
      */
     private $idChild;
@@ -49,6 +49,11 @@ class Enrollment
      * @ORM\Column(type="string", length=512)
      */
     private $notes;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isActive = false;
 
     public function getId()
     {
@@ -123,6 +128,18 @@ class Enrollment
     public function setNotes(string $notes): self
     {
         $this->notes = $notes;
+
+        return $this;
+    }
+
+    public function getIsActive(): ?bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
 
         return $this;
     }
