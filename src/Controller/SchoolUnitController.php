@@ -48,6 +48,29 @@ class SchoolUnitController extends AbstractController
     }
 
     /**
+     * @Route("/school/units/{id}", name="school_units_year")
+     * @Method({"GET"})
+     */
+    public function school_units_id($id)
+    {
+        $schoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->find($id);
+
+        $schoolunits = $schoolYear->getSchoolunits();
+
+        // $schoolunits = $this->getDoctrine()->getRepository
+        // (SchoolUnit::class)->findCurrentUnits(
+        //   $currentSchoolYear->getStartDate(),
+        //   $currentSchoolYear->getEndDate()
+        // );
+
+        return $this->render('school_unit/school.units.html.twig', [
+            'schoolunits' => $schoolunits,
+            'school_year' => $schoolYear->getYearname(),
+        ]);
+    }
+
+    /**
      * @Route("/school/unit/new", name="school_unit_new")
      * @Method({"GET", "POST"})
      */
@@ -71,7 +94,7 @@ class SchoolUnitController extends AbstractController
           $entityManager->persist($schoolunit);
           $entityManager->flush();
 
-          return $this->redirectToRoute('school_units');
+          return $this->redirectToRoute('school_units_year', array('id'=>$schoolunit->getSchoolyear()->getId()));
         }
 
         return $this->render('school_unit/school.unit.new.html.twig', [
@@ -104,7 +127,7 @@ class SchoolUnitController extends AbstractController
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->flush();
 
-          return $this->redirectToRoute('school_units');
+          return $this->redirectToRoute('school_units_year', array('id'=>$schoolunit->getSchoolyear()->getId()));
         }
 
         return $this->render('school_unit/school.unit.edit.html.twig', array(

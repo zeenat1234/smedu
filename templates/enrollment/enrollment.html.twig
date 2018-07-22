@@ -12,46 +12,46 @@
     <li>Cea mai recentă înscriere: <strong>{{ enrollments[0].getIdChild.getUsername }}</strong> (<small><a href="" style="text-decoration: underline;">modifică</a></small>)</li>
     <li>Total elevi înscriși: <strong>{{ total_enrollments }}</strong></li>
   </ul>
-  {% if current_units|length == 1 %}
-    <i class="far fa-arrow-alt-circle-right"></i> Pe unitate de învățământ:
-    <ul>
-      <li>{{ (current_units|first).getUnitname }}</li>
-    </ul>
-  {% elseif current_units|length > 1 %}
+
+  {% if current_units|length >= 1 %}
     <table>
-    <i class="far fa-arrow-alt-circle-right"></i> Pe unități de învățământ:
-    <div class="row">
-      <tr>
-        <th></th>
-        <th>Unitate</th>
-        <th>Locuri ocupate</th>
-        <th>Locuri libere</th>
-      </tr>
-      {% for current_unit in current_units %}
-      <tr>
-        <td>
-          {% if current_unit.getAvailableSpots > (current_unit.getEnrollments|length) %}
-            <a href="{{ path('new_enrollment_in_unit', {'unitId':current_unit.id }) }}">
-              <button class="btn btn-success"><i class="fas fa-plus"></i></button>
-            </a>
-          {% else %}
-            <a href="#">
-              <button class="btn btn-disabled" title="Nu mai există locuri libere în această unitate"><i class="fas fa-plus"></i></button>
-            </a>
-          {% endif %}
-        </td>
-        <td>
-          {{ current_unit.getUnitname }}
-        </td>
-        <td style='color:#f00'>
-          <center><strong>{{ current_unit.getEnrollments|length }}</strong></center>
-        </td>
-        <td style='color:#0f0'>
-          <center><strong>{{ current_unit.getAvailableSpots - (current_unit.getEnrollments|length) }}</strong></center>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
+      {% if current_units|length == 1 %}
+        <i class="far fa-arrow-alt-circle-right"></i> Pe unitate de învățământ:
+      {% elseif current_units|length > 1 %}
+        <i class="far fa-arrow-alt-circle-right"></i> Pe unități de învățământ:
+      {% endif %}
+      <div class="row">
+        <tr>
+          <th></th>
+          <th>Unitate</th>
+          <th>Locuri ocupate</th>
+          <th>Locuri libere</th>
+        </tr>
+        {% for current_unit in current_units %}
+        <tr>
+          <td>
+            {% if current_unit.getAvailableSpots > (current_unit.getEnrollments|length) %}
+              <a href="{{ path('new_enrollment_in_unit', {'unitId':current_unit.id }) }}">
+                <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+              </a>
+            {% else %}
+              <a href="#">
+                <button class="btn btn-disabled" title="Nu mai există locuri libere în această unitate"><i class="fas fa-plus"></i></button>
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            {{ current_unit.getUnitname }}
+          </td>
+          <td style='color:#f00'>
+            <center><strong>{{ current_unit.getEnrollments|length }}</strong></center>
+          </td>
+          <td style='color:#0f0'>
+            <center><strong>{{ current_unit.getAvailableSpots - (current_unit.getEnrollments|length) }}</strong></center>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
   {% else %}
     <p>Nu există nicio unitate definită în acest an școlar!</p>
   {% endif %}

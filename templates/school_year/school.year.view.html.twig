@@ -5,7 +5,7 @@
 {% block body %}
 
 <div class="school-wrapper">
-    <h1>An școlar - {{ school_year }}! ✅</h1>
+    <h1>An școlar - {{ school_year.getYearname }}! ✅</h1>
 
     {# dump() #}
 
@@ -53,10 +53,10 @@
 
     {{ form_end(form) }}
 
-    <a href="{{ path('school_units') }}">
+    <a href="{{ path('school_units_year', {'id':school_year.getId}) }}">
       <button class="btn btn-warning mt-3" label=""><i class="fas fa-box"></i> Unități Școlare</button>
     </a>
-    <a href="{{ path('school_services') }}">
+    <a href="{{ path('school_services_view', {'id':school_year.getId}) }}">
       <button class="btn btn-primary mt-3"><i class="fas fa-box"></i> Servicii An Școlar</button>
     </a>
     <hr>

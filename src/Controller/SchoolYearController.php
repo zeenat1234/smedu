@@ -133,7 +133,7 @@ class SchoolYearController extends Controller
         }
 
         return $this->render('school_year/school.year.view.html.twig', [
-            'school_year' => $schoolYear->getYearname(),
+            'school_year' => $schoolYear,
             'form' => $form->createView(),
         ]);
      }

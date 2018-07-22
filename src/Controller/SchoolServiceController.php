@@ -43,6 +43,22 @@ class SchoolServiceController extends AbstractController
         ]);
     }
 
+    /**
+     * @Route("/school/services/{id}", name="school_services_view")
+     * @Method({"GET"})
+     */
+    public function school_services_view($id)
+    {
+        $schoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->find($id);
+
+        $schoolUnits = $schoolYear->getSchoolunits();
+
+        return $this->render('school_service/school.services.html.twig', [
+            'school_units'    => $schoolUnits,
+        ]);
+    }
+
     //TODO Consider implementing Add where Unit updates according to year (ie. using jQuery, Ajax calls etc)
     //TODO Try JSON response for dynamic fields
 
@@ -126,7 +142,7 @@ class SchoolServiceController extends AbstractController
             $entityManager->persist($schoolService);
             $entityManager->flush();
 
-            return $this->redirectToRoute('school_services');
+            return $this->redirectToRoute('school_services_view', array('id'=>$schoolYear->getId()));
          }
 
          return $this->render('school_service/add.to.year.html.twig', [
@@ -160,7 +176,7 @@ class SchoolServiceController extends AbstractController
            $entityManager->persist($schoolService);
            $entityManager->flush();
 
-           return $this->redirectToRoute('school_services');
+           return $this->redirectToRoute('school_services_view', array('id'=>$schoolService->getSchoolyear()->getId()));
         }
 
         return $this->render('school_service/add.to.unit.html.twig', [
@@ -190,7 +206,7 @@ class SchoolServiceController extends AbstractController
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->flush();
 
-           return $this->redirectToRoute('school_services');
+           return $this->redirectToRoute('school_services_view', array('id'=>$schoolService->getSchoolyear()->getId()));
         }
 
         return $this->render('school_service/edit.unit.html.twig', [
@@ -219,7 +235,6 @@ class SchoolServiceController extends AbstractController
       $response = new Response();
       $response->send();
 
-      //return $this->redirectToRoute('school_units');
     }
 
 }
