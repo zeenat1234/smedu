@@ -50,9 +50,15 @@ class SchoolService
      */
     private $enrollments;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ClassOptional", mappedBy="inServices")
+     */
+    private $classOptionals;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
+        $this->classOptionals = new ArrayCollection();
     }
 
     public function getId()
@@ -146,6 +152,34 @@ class SchoolService
             if ($enrollment->getIdService() === $this) {
                 $enrollment->setIdService(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ClassOptional[]
+     */
+    public function getClassOptionals(): Collection
+    {
+        return $this->classOptionals;
+    }
+
+    public function addClassOptional(ClassOptional $classOptional): self
+    {
+        if (!$this->classOptionals->contains($classOptional)) {
+            $this->classOptionals[] = $classOptional;
+            $classOptional->addInService($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClassOptional(ClassOptional $classOptional): self
+    {
+        if ($this->classOptionals->contains($classOptional)) {
+            $this->classOptionals->removeElement($classOptional);
+            $classOptional->removeInService($this);
         }
 
         return $this;

@@ -64,11 +64,23 @@ class SchoolUnit
      */
     private $classGroups;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ClassOptional", mappedBy="schoolUnit")
+     */
+    private $classOptionals;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ClassModule", mappedBy="schoolUnit")
+     */
+    private $classModules;
+
     public function __construct()
     {
         $this->schoolservices = new ArrayCollection();
         $this->enrollments = new ArrayCollection();
         $this->classGroups = new ArrayCollection();
+        $this->classOptionals = new ArrayCollection();
+        $this->classModules = new ArrayCollection();
     }
 
     public function getId()
@@ -235,6 +247,68 @@ class SchoolUnit
             // set the owning side to null (unless already changed)
             if ($classGroup->getSchoolUnit() === $this) {
                 $classGroup->setSchoolUnit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ClassOptional[]
+     */
+    public function getClassOptionals(): Collection
+    {
+        return $this->classOptionals;
+    }
+
+    public function addClassOptional(ClassOptional $classOptional): self
+    {
+        if (!$this->classOptionals->contains($classOptional)) {
+            $this->classOptionals[] = $classOptional;
+            $classOptional->setSchoolUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClassOptional(ClassOptional $classOptional): self
+    {
+        if ($this->classOptionals->contains($classOptional)) {
+            $this->classOptionals->removeElement($classOptional);
+            // set the owning side to null (unless already changed)
+            if ($classOptional->getSchoolUnit() === $this) {
+                $classOptional->setSchoolUnit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ClassModule[]
+     */
+    public function getClassModules(): Collection
+    {
+        return $this->classModules;
+    }
+
+    public function addClassModule(ClassModule $classModule): self
+    {
+        if (!$this->classModules->contains($classModule)) {
+            $this->classModules[] = $classModule;
+            $classModule->setSchoolUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClassModule(ClassModule $classModule): self
+    {
+        if ($this->classModules->contains($classModule)) {
+            $this->classModules->removeElement($classModule);
+            // set the owning side to null (unless already changed)
+            if ($classModule->getSchoolUnit() === $this) {
+                $classModule->setSchoolUnit(null);
             }
         }
 
