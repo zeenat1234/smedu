@@ -4,8 +4,16 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
+//Validation Classes
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EnrollmentRepository")
+ * @UniqueEntity(
+ *     fields = {"idChild", "idUnit"},
+ *     message = "The student is already enrolled in this unit"
+ * )
  */
 class Enrollment
 {
@@ -54,6 +62,12 @@ class Enrollment
      * @ORM\Column(type="boolean")
      */
     private $isActive = false;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\SchoolYear", inversedBy="enrollments")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $schoolYear;
 
     public function getId()
     {
@@ -140,6 +154,18 @@ class Enrollment
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getSchoolYear(): ?SchoolYear
+    {
+        return $this->schoolYear;
+    }
+
+    public function setSchoolYear(?SchoolYear $schoolYear): self
+    {
+        $this->schoolYear = $schoolYear;
 
         return $this;
     }

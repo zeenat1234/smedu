@@ -59,10 +59,16 @@ class SchoolUnit
      */
     private $availableSpots;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ClassGroup", mappedBy="schoolUnit")
+     */
+    private $classGroups;
+
     public function __construct()
     {
         $this->schoolservices = new ArrayCollection();
         $this->enrollments = new ArrayCollection();
+        $this->classGroups = new ArrayCollection();
     }
 
     public function getId()
@@ -200,6 +206,37 @@ class SchoolUnit
     public function setAvailableSpots(int $availableSpots): self
     {
         $this->availableSpots = $availableSpots;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ClassGroup[]
+     */
+    public function getClassGroups(): Collection
+    {
+        return $this->classGroups;
+    }
+
+    public function addClassGroup(ClassGroup $classGroup): self
+    {
+        if (!$this->classGroups->contains($classGroup)) {
+            $this->classGroups[] = $classGroup;
+            $classGroup->setSchoolUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClassGroup(ClassGroup $classGroup): self
+    {
+        if ($this->classGroups->contains($classGroup)) {
+            $this->classGroups->removeElement($classGroup);
+            // set the owning side to null (unless already changed)
+            if ($classGroup->getSchoolUnit() === $this) {
+                $classGroup->setSchoolUnit(null);
+            }
+        }
 
         return $this;
     }

@@ -1,0 +1,12 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Înscrieri -> Editare înscriere{% endblock %}
+
+{% block body %}
+
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+      <input type="submit" class="btn btn-success mt-3" value="Actualizează">
+    {{ form_end(form) }}
+
+{% endblock %}

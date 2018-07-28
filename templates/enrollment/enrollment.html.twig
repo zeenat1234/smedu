@@ -9,7 +9,11 @@
   <br>
   <i class="far fa-arrow-alt-circle-right"></i> Statistici curente:
   <ul>
-    <li>Cea mai recentă înscriere: <strong>{{ enrollments[0].getIdChild.getUsername }}</strong> (<small><a href="" style="text-decoration: underline;">modifică</a></small>)</li>
+    <li>Cea mai recentă înscriere: <strong>{{ enrollments[0].getIdChild.getUsername|default('Nu există') }}</strong>
+      {% if enrollments is not empty %}
+        (<small><a href="{{ path('edit_enrollment', {'enrollId':enrollments[0].id }) }}" style="text-decoration: underline;">modifică</a></small>)
+      {% endif %}
+    </li>
     <li>Total elevi înscriși: <strong>{{ total_enrollments }}</strong></li>
   </ul>
 
@@ -69,7 +73,7 @@
       <ol type="1" style="type:1;">
       {% for enrollment in enrollments %}
         <li>
-          {{ enrollment.getIdChild.getUsername }} - {{ enrollment.getIdUnit.getUnitname }} - ({{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro')}})
+          {{ enrollment.getIdChild.getUsername }} - {{ enrollment.getIdUnit.getUnitname }} - {{ enrollment.getIdService.getServicename }} - ({{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro')}})
         </li>
       {% endfor %}
       </ol>

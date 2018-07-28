@@ -14,9 +14,13 @@ use App\Entity\SchoolService;
 use App\Entity\SchoolUnit;
 use App\Entity\SchoolYear;
 use App\Entity\User;
+use App\Entity\Student;
 
 #form type definition
 use App\Form\EnrollmentType;
+
+#this is used for forms
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,13 +38,12 @@ class EnrollmentController extends AbstractController
 
         $currentUnits = $currentSchoolYear->getSchoolunits();
 
-        //TODO Adjust for individual year
         $currentEnrollments = $this->getDoctrine()->getRepository
-        (Enrollment::class)->findLatest(10);
+        (Enrollment::class)->findLatest(10, $currentSchoolYear->getId());
 
         //TODO: Find unique pupil entries, rather than count all enrollment objects - do this in repo as a new query
         $totalEnrollments = sizeof($this->getDoctrine()->getRepository
-        (Enrollment::class)->findAll());
+        (Enrollment::class)->findAllYear($currentSchoolYear->getId()));
 
         return $this->render('enrollment/enrollment.html.twig', [
             'current_year' => $currentSchoolYear,
@@ -56,21 +59,20 @@ class EnrollmentController extends AbstractController
      */
     public function enrollment_year($id)
     {
-        $currentSchoolYear = $this->getDoctrine()->getRepository
+        $schoolYear = $this->getDoctrine()->getRepository
         (SchoolYear::class)->find($id);
 
-        $currentUnits = $currentSchoolYear->getSchoolunits();
+        $currentUnits = $schoolYear->getSchoolunits();
 
-        //TODO Adjust for individual year
         $currentEnrollments = $this->getDoctrine()->getRepository
-        (Enrollment::class)->findLatest(10);
+        (Enrollment::class)->findLatest(10, $schoolYear->getId());
 
         //TODO: Find unique pupil entries, rather than count all enrollment objects - do this in repo as a new query
         $totalEnrollments = sizeof($this->getDoctrine()->getRepository
-        (Enrollment::class)->findAll());
+        (Enrollment::class)->findAllYear($schoolYear->getId()));
 
         return $this->render('enrollment/enrollment.html.twig', [
-            'current_year' => $currentSchoolYear,
+            'current_year' => $schoolYear,
             'current_units' => $currentUnits,
             'enrollments' => $currentEnrollments,
             'total_enrollments' => $totalEnrollments,
@@ -90,6 +92,7 @@ class EnrollmentController extends AbstractController
 
         $enrollment->setEnrollDate(new \DateTime('now'));
         $enrollment->setIsActive(true);
+        $enrollment->setSchoolYear($currentUnit->getSchoolYear());
 
         $parents = $this->getDoctrine()->getRepository
         (User::class)->findAllParents();
@@ -102,6 +105,62 @@ class EnrollmentController extends AbstractController
          'parents'     => $parents,
          'children'    => $children
         ));
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+           $enrollment = $form->getData();
+
+
+           $entityManager = $this->getDoctrine()->getManager();
+           $entityManager->persist($enrollment);
+           $entityManager->flush();
+
+           $newStudent = new Student();
+           $newStudent->setUser($enrollment->getIdChild());
+
+           $entityManager = $this->getDoctrine()->getManager();
+           $entityManager->persist($newStudent);
+           $entityManager->flush();
+
+           return $this->redirectToRoute('enrollment');
+        }
+
+        return $this->render('enrollment/enrollment.to.unit.html.twig', [
+            'current_unit' => $currentUnit,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
+     * @Route("/enrollment/edit/{enrollId}", name="edit_enrollment")
+     * @Method({"GET", "POST"})
+     */
+    public function edit(Request $request, $enrollId)
+    {
+        $enrollment = $this->getDoctrine()->getRepository
+        (Enrollment::class)->find($enrollId);
+
+        $currentUnit = $enrollment->getIdUnit();
+
+        $parent = $this->getDoctrine()->getRepository
+        (User::class)->find($enrollment->getIdParent());
+
+        $child = $this->getDoctrine()->getRepository
+        (User::class)->find($enrollment->getIdChild());
+
+        $form = $this->createForm(EnrollmentType::Class, $enrollment, array(
+         'school_unit' => $currentUnit,
+         'parents'     => array($parent),
+         'children'    => array($child)
+        ));
+
+        $form
+          ->add('isActive', CheckboxType::class, array(
+            'label'    => 'Înscriere Activă',
+            'required' => false,
+            'attr' => array('class' => 'form-check form-check-inline'),
+          ));
 
         $form->handleRequest($request);
 

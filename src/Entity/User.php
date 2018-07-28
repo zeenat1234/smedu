@@ -79,9 +79,21 @@ class User implements UserInterface, \Serializable
      */
     private $enrollmentsChild;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ClassGroup", mappedBy="professor")
+     */
+    private $classGroups;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Student", mappedBy="User", orphanRemoval=true)
+     */
+    private $students;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
+        $this->classGroups = new ArrayCollection();
+        $this->students = new ArrayCollection();
     }
 
     //TODO: Add firstname, lastname, dateofbirth, id_parent (manyToOne)
@@ -255,6 +267,68 @@ class User implements UserInterface, \Serializable
             // set the owning side to null (unless already changed)
             if ($enrollment->getIdParent() === $this) {
                 $enrollment->setIdParent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ClassGroup[]
+     */
+    public function getClassGroups(): Collection
+    {
+        return $this->classGroups;
+    }
+
+    public function addClassGroup(ClassGroup $classGroup): self
+    {
+        if (!$this->classGroups->contains($classGroup)) {
+            $this->classGroups[] = $classGroup;
+            $classGroup->setProfessor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClassGroup(ClassGroup $classGroup): self
+    {
+        if ($this->classGroups->contains($classGroup)) {
+            $this->classGroups->removeElement($classGroup);
+            // set the owning side to null (unless already changed)
+            if ($classGroup->getProfessor() === $this) {
+                $classGroup->setProfessor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Student[]
+     */
+    public function getStudents(): Collection
+    {
+        return $this->students;
+    }
+
+    public function addStudent(Student $student): self
+    {
+        if (!$this->students->contains($student)) {
+            $this->students[] = $student;
+            $student->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStudent(Student $student): self
+    {
+        if ($this->students->contains($student)) {
+            $this->students->removeElement($student);
+            // set the owning side to null (unless already changed)
+            if ($student->getUser() === $this) {
+                $student->setUser(null);
             }
         }
 

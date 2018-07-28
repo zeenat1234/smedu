@@ -1,0 +1,39 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Toate Grupele{% endblock %}
+
+{% block body %}
+
+    <h2>Grupe Școlare - {{ school_year.yearname }}</h2>
+    <br>
+    {% for schoolunit in school_units %}
+      <div class="row">
+        <div class="col-auto">
+          <h3>Grupe {{ schoolunit.unitname|lower }}</h3>
+        </div>
+        <div class="col">
+        <a href="{{ path('class_groups_new', {'unitId':schoolunit.id }) }}">
+          <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+        </a>
+        </div>
+      </div>
+      {% if schoolunit.getClassGroups is empty %}
+        <p>Nu există nicio grupă definită pentru această unitate școlară.</p>
+        <hr>
+      {% else %}
+        <div class="row">
+        {% for classgroup in schoolunit.getClassGroups %}
+          <div class="col-12 col-md-6 col-lg-4">
+            <h1>{{ classgroup.getGroupName }}</h1>
+            <p>Some text</p>
+            <button class="btn btn-success">Un Buton</button>
+          </div>
+        {% endfor %}
+        </div>
+        <hr>
+        <br>
+      {% endif %}
+
+    {% endfor %}
+
+{% endblock %}

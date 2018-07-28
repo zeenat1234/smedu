@@ -68,10 +68,16 @@ class SchoolYear
      */
     private $schoolservices;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Enrollment", mappedBy="schoolYear")
+     */
+    private $enrollments;
+
     public function __construct()
     {
         $this->schoolunits = new ArrayCollection();
         $this->schoolservices = new ArrayCollection();
+        $this->enrollments = new ArrayCollection();
     }
 
 
@@ -220,6 +226,37 @@ class SchoolYear
             // set the owning side to null (unless already changed)
             if ($schoolservice->getSchoolyear() === $this) {
                 $schoolservice->setSchoolyear(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Enrollment[]
+     */
+    public function getEnrollments(): Collection
+    {
+        return $this->enrollments;
+    }
+
+    public function addEnrollment(Enrollment $enrollment): self
+    {
+        if (!$this->enrollments->contains($enrollment)) {
+            $this->enrollments[] = $enrollment;
+            $enrollment->setSchoolYear($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnrollment(Enrollment $enrollment): self
+    {
+        if ($this->enrollments->contains($enrollment)) {
+            $this->enrollments->removeElement($enrollment);
+            // set the owning side to null (unless already changed)
+            if ($enrollment->getSchoolYear() === $this) {
+                $enrollment->setSchoolYear(null);
             }
         }
 

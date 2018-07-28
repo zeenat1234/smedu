@@ -7,7 +7,7 @@
       {% for school_unit in school_units %}
       <div class="row">
         <div class="col-auto">
-          <h2>Servicii pentru {{ school_unit.unitname }}</h2>
+          <h2>Servicii pentru {{ school_unit.unitname|lower }}</h2>
         </div>
         <div class="col">
         <a href="{{ path('school_service_add_to_unit', {'id':school_unit.id }) }}">
