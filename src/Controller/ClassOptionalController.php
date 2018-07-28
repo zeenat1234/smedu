@@ -12,7 +12,7 @@ class ClassOptionalController extends Controller
      */
     public function index()
     {
-        return $this->render('class_optional/index.html.twig', [
+        return $this->render('class_optional/class.optionals.html.twig', [
             'controller_name' => 'ClassOptionalController',
         ]);
     }

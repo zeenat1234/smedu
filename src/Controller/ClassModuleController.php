@@ -12,7 +12,7 @@ class ClassModuleController extends Controller
      */
     public function index()
     {
-        return $this->render('class_module/index.html.twig', [
+        return $this->render('class_module/class.modules.html.twig', [
             'controller_name' => 'ClassModuleController',
         ]);
     }

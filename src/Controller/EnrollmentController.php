@@ -75,13 +75,13 @@ class EnrollmentController extends AbstractController
     }
 
     /**
-     * @Route("/enrollment/{id}", name="enrollment_year")
+     * @Route("/enrollment/{yearId}", name="enrollment_year")
      * @Method({"GET"})
      */
-    public function enrollment_year($id)
+    public function enrollment_year($yearId)
     {
         $schoolYear = $this->getDoctrine()->getRepository
-        (SchoolYear::class)->find($id);
+        (SchoolYear::class)->find($yearId);
 
         $currentUnits = $schoolYear->getSchoolunits();
 
@@ -97,6 +97,27 @@ class EnrollmentController extends AbstractController
             'current_units' => $currentUnits,
             'enrollments' => $currentEnrollments,
             'total_enrollments' => $totalEnrollments,
+        ]);
+    }
+
+    /**
+     * @Route("/enrollment/all/{yearId}", name="all_enrollments_year")
+     * @Method({"GET"})
+     */
+    public function enrollment_all_year($yearId)
+    {
+        $schoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->find($yearId);
+
+        $currentUnits = $schoolYear->getSchoolunits();
+
+        $allEnrollments = $this->getDoctrine()->getRepository
+        (Enrollment::class)->findAllYear($schoolYear->getId());
+
+        return $this->render('enrollment/enrollment.all.html.twig', [
+            'current_year' => $schoolYear,
+            'current_units' => $currentUnits,
+            'enrollments' => $allEnrollments,
         ]);
     }
 
@@ -144,7 +165,7 @@ class EnrollmentController extends AbstractController
            $entityManager->persist($newStudent);
            $entityManager->flush();
 
-           return $this->redirectToRoute('enrollment');
+           return $this->redirectToRoute('enrollment_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
         }
 
         return $this->render('enrollment/enrollment.to.unit.html.twig', [
@@ -192,7 +213,7 @@ class EnrollmentController extends AbstractController
            $entityManager->persist($enrollment);
            $entityManager->flush();
 
-           return $this->redirectToRoute('enrollment');
+           return $this->redirectToRoute('all_enrollments_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
         }
 
 
