@@ -54,6 +54,27 @@ class EnrollmentController extends AbstractController
     }
 
     /**
+     * @Route("/enrollment/all", name="all_enrollments")
+     * @Method({"GET"})
+     */
+    public function enrollment_all_home()
+    {
+        $currentSchoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findCurrentYear();
+
+        $currentUnits = $currentSchoolYear->getSchoolunits();
+
+        $allEnrollments = $this->getDoctrine()->getRepository
+        (Enrollment::class)->findAllYear($currentSchoolYear->getId());
+
+        return $this->render('enrollment/enrollment.all.html.twig', [
+            'current_year' => $currentSchoolYear,
+            'current_units' => $currentUnits,
+            'enrollments' => $allEnrollments,
+        ]);
+    }
+
+    /**
      * @Route("/enrollment/{id}", name="enrollment_year")
      * @Method({"GET"})
      */
@@ -175,7 +196,7 @@ class EnrollmentController extends AbstractController
         }
 
 
-        return $this->render('enrollment/enrollment.to.unit.html.twig', [
+        return $this->render('enrollment/enrollment.edit.html.twig', [
             'current_unit' => $currentUnit,
             'form' => $form->createView(),
         ]);

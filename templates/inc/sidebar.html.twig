@@ -31,10 +31,18 @@
             </ul>
         </li>
         <li>
-          <a href="{{ path('enrollment') }}">
-            <i class="fas fa-address-card"></i>
-            Înscrieri
+          <a href="#enrollSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+              <i class="fas fa-address-card"></i>
+              Înscrieri
           </a>
+          <ul class="collapse list-unstyled" id="enrollSubmenu">
+            <li>
+                <a href="{{ path('enrollment') }}">Status Înscrieri</a>
+            </li>
+            <li>
+                <a href="{{ path('all_enrollments') }}">Toate Înscrierile</a>
+            </li>
+          </ul>
         </li>
         <li>
             <a href="#groupsSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">

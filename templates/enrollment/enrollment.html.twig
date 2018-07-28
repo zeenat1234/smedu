@@ -1,6 +1,6 @@
 {% extends 'base.nav.html.twig' %}
 
-{% block title %}Înscrieri{% endblock %}
+{% block title %}Înscrieri -> Status{% endblock %}
 
 {% block body %}
 
@@ -24,7 +24,6 @@
       {% elseif current_units|length > 1 %}
         <i class="far fa-arrow-alt-circle-right"></i> Pe unități de învățământ:
       {% endif %}
-      <div class="row">
         <tr>
           <th></th>
           <th>Unitate</th>
@@ -73,7 +72,7 @@
       <ol type="1" style="type:1;">
       {% for enrollment in enrollments %}
         <li>
-          {{ enrollment.getIdChild.getUsername }} - {{ enrollment.getIdUnit.getUnitname }} - {{ enrollment.getIdService.getServicename }} - ({{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro')}})
+          {{ enrollment.getIdChild.getUsername }} - {{ enrollment.getIdUnit.getUnitname }} - {{ enrollment.getIdService.getServicename }} - ({{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro')}}) [<small><a href="{{ path('edit_enrollment', {'enrollId':enrollment.id }) }}" style="text-decoration: underline;">modifică</a></small>]
         </li>
       {% endfor %}
       </ol>
