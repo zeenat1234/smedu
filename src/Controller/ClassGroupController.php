@@ -94,4 +94,21 @@ class ClassGroupController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+    /**
+     * @Route("/class/group/{groupId}", name="class_group_view")
+     * @Method({"GET"})
+     */
+    public function class_group_view($groupId)
+    {
+        $classGroup = $this->getDoctrine()->getRepository
+        (ClassGroup::class)->find($groupId);
+
+        $students = $classGroup->getStudents();
+
+        return $this->render('class_group/class.group.view.html.twig', [
+            'class_group' => $classGroup,
+            'students' => $students,
+        ]);
+    }
 }

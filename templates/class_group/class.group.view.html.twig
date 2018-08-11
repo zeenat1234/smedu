@@ -1,0 +1,23 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}{{ class_group.getGroupName }}{% endblock %}
+
+{% block body %}
+
+  <h2>{{ class_group.getGroupName }}</h2>
+  <br>
+  {% if students is not empty %}
+    <ol type="1" style="type:1;">
+    {% for student in students %}
+        <li>
+          {{ student.getUser.getFullName(1) }}
+        </li>
+
+    {% endfor %}
+    </ol>
+
+  {% else %}
+    <p>Nu există elevi înscriși în această clasă</p>
+  {% endif %}
+
+{% endblock %}

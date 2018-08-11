@@ -1,20 +1,56 @@
 {% extends 'base.nav.html.twig' %}
 
-{% block title %}Hello {{ controller_name }}!{% endblock %}
+{% block title %}Administrare Opționale{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <h1>Opționale {{ current_year.getYearlabel|lower }}</h1>
+    <br>
+    {% if current_units is not empty %}
+      {% for schoolunit in current_units %}
+        <div class="row">
+          <div class="col-auto">
+            <h2>Opționale {{ schoolunit.unitname|lower }} </h2>
+          </div>
+          <div class="col">
+          <a href="{{ path('class_optional_new', {'unitId':schoolunit.id }) }}">
+            <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+          </a>
+          </div>
+        </div>
+        {% if schoolunit.getClassOptionals is empty %}
+          <p>Nu există niciun opțional definit în această unitate</p>
+        {% else %}
+          <table id="optionals-{{ schoolunit.id }}" class="table table-striped table-hover">
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/ClassOptionalController.php'|file_link(0) }}">src/Controller/ClassOptionalController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/class_optional/index.html.twig'|file_link(0) }}">templates/class_optional/index.html.twig</a></code></li>
-    </ul>
-</div>
+            <thead>
+              <tr>
+                <th>Nume Opțional</th>
+                <th>Descriere</th>
+                <th>Preț</th>
+                <th>Elevi Înscriși</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for optional in schoolunit.getClassOptionals %}
+                <tr>
+                  <td>{{ optional.getOptionalName }}</td>
+                  <td>{{ optional.getDescription }}</td>
+                  <td>{{ optional.getPrice|localizedcurrency('RON') }}</td>
+                  <td>666</td>
+                  <td>
+                    <a href="#"><button type="button" class="btn btn-primary">Program</button></a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+          <br>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
 {% endblock %}

@@ -89,6 +89,21 @@ class User implements UserInterface, \Serializable
      */
     private $students;
 
+    /**
+     * @ORM\Column(type="string", length=32)
+     */
+    private $firstName;
+
+    /**
+     * @ORM\Column(type="string", length=32)
+     */
+    private $lastName;
+
+    /**
+     * @ORM\Column(type="string", length=16)
+     */
+    private $phoneNo;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -331,6 +346,52 @@ class User implements UserInterface, \Serializable
                 $student->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): self
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): self
+    {
+        $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getFullName(int $order=0): ?string
+    {
+        if ($order == 1) {
+            return $this->lastName.' '.$this->firstName;
+        } else {
+            return $this->firstName.' '.$this->lastName;
+        }
+
+    }
+
+    public function getPhoneNo(): ?string
+    {
+        return $this->phoneNo;
+    }
+
+    public function setPhoneNo(string $phoneNo): self
+    {
+        $this->phoneNo = $phoneNo;
 
         return $this;
     }

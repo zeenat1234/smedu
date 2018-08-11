@@ -30,13 +30,13 @@ class EnrollmentType extends AbstractType
 
         $parents = array();
         foreach ($options['parents'] as $parent) {
-          $label = $parent->getUsername();
+          $label = $parent->getFullName(1);
           $parents[$label] = $parent;
         }
 
         $children = array();
         foreach ($options['children'] as $child) {
-          $label = $child->getUsername();
+          $label = $child->getFullName(1);
           $children[$label] = $child;
         }
 
