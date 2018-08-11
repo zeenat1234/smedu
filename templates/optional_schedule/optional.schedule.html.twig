@@ -1,0 +1,21 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Opționale -> Program{% endblock %}
+
+{% block body %}
+    <h2>Program {{ the_optional.getOptionalName }}</h2>
+    <br>
+    {% if schedules is empty %}
+      <p>Nu există niciun program definit pentru acest opțional! </p>
+    {% else %}
+      <ul>
+        {% for schedule in schedules %}
+          <li>
+            {{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }} (<a href="{{ path('optional_schedule_edit', {'id':the_optional.id }) }}", style="text-decoration:underline;">Modifică</a>)
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <br>
+    <a href="{{ path('optional_schedule_add', {'id':the_optional.id }) }}"><button type="button" class="btn btn-success">Adaugă</button></a>
+{% endblock %}

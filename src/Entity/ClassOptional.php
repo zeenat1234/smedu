@@ -49,10 +49,16 @@ class ClassOptional
      */
     private $students;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OptionalSchedule", mappedBy="classOptional", orphanRemoval=true)
+     */
+    private $optionalSchedules;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
         $this->students = new ArrayCollection();
+        $this->optionalSchedules = new ArrayCollection();
     }
 
     public function getId()
@@ -157,6 +163,37 @@ class ClassOptional
         if ($this->students->contains($student)) {
             $this->students->removeElement($student);
             $student->removeClassOptional($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OptionalSchedule[]
+     */
+    public function getOptionalSchedules(): Collection
+    {
+        return $this->optionalSchedules;
+    }
+
+    public function addOptionalSchedule(OptionalSchedule $optionalSchedule): self
+    {
+        if (!$this->optionalSchedules->contains($optionalSchedule)) {
+            $this->optionalSchedules[] = $optionalSchedule;
+            $optionalSchedule->setClassOptional($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOptionalSchedule(OptionalSchedule $optionalSchedule): self
+    {
+        if ($this->optionalSchedules->contains($optionalSchedule)) {
+            $this->optionalSchedules->removeElement($optionalSchedule);
+            // set the owning side to null (unless already changed)
+            if ($optionalSchedule->getClassOptional() === $this) {
+                $optionalSchedule->setClassOptional(null);
+            }
         }
 
         return $this;

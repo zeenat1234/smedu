@@ -42,7 +42,7 @@
                   <td>{{ optional.getStudents|length }}</td>
                   <td>
                     <a href="{{ path('class_optional_students', {'id':optional.id }) }}"><button type="button" class="btn btn-success">Înscrieri</button></a>
-                    <a href="#"><button type="button" class="btn btn-primary">Program</button></a>
+                    <a href="{{ path('optional_schedule', {'id':optional.id }) }}"><button type="button" class="btn btn-primary">Program</button></a>
                   </td>
                 </tr>
               {% endfor %}
