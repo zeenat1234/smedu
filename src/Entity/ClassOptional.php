@@ -44,9 +44,15 @@ class ClassOptional
      */
     private $inServices;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Student", inversedBy="ClassOptionals")
+     */
+    private $students;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
+        $this->students = new ArrayCollection();
     }
 
     public function getId()
@@ -123,6 +129,34 @@ class ClassOptional
     {
         if ($this->inServices->contains($inService)) {
             $this->inServices->removeElement($inService);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Student[]
+     */
+    public function getStudents(): Collection
+    {
+        return $this->students;
+    }
+
+    public function addStudent(Student $student): self
+    {
+        if (!$this->students->contains($student)) {
+            $this->students[] = $student;
+            $student->addClassOptional($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStudent(Student $student): self
+    {
+        if ($this->students->contains($student)) {
+            $this->students->removeElement($student);
+            $student->removeClassOptional($this);
         }
 
         return $this;

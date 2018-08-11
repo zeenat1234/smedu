@@ -16,6 +16,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
 #form type definition
 use App\Form\ClassOptionalType;
+use App\Form\ClassOptionalEnrollType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -88,4 +89,63 @@ class ClassOptionalController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+    /**
+     * @Route("/class/optional/{id}/students", name="class_optional_students")
+     * @Method({"GET", "POST"})
+     */
+     public function optional_students(Request $request, $id)
+     {
+         $optional = $this->getDoctrine()->getRepository
+         (ClassOptional::class)->find($id);
+
+         $students = $optional->getStudents();
+
+         return $this->render('class_optional/class.optional.students.html.twig', [
+             'optional' => $optional,
+             'students' => $students,
+         ]);
+
+     }
+
+     /**
+      * @Route("/class/optional/{id}/enroll", name="class_optional_enroll")
+      * @Method({"GET", "POST"})
+      */
+      public function optional_enroll(Request $request, $id)
+      {
+          $optional = $this->getDoctrine()->getRepository
+          (ClassOptional::class)->find($id);
+
+          //getavailablestudents
+          $availableStudents = $optional->getSchoolUnit()->getStudents();
+          foreach ($availableStudents as $student) {
+              if ($student->getEnrollment()->getIsActive() == 1) {
+                $students[]=$student;
+              }
+          }
+
+          $form = $this->createForm(ClassOptionalEnrollType::Class, $optional, array(
+            'students' => $students,
+          ));
+
+          $form->handleRequest($request);
+
+          if($form->isSubmitted() && $form->isValid()) {
+             $optional = $form->getData();
+
+             $entityManager = $this->getDoctrine()->getManager();
+             $entityManager->persist($optional);
+             $entityManager->flush();
+
+             return $this->redirectToRoute('class_optional_students', array('id' => $optional->getId()) );
+          }
+
+          return $this->render('class_optional/class.optional.enroll.html.twig', [
+              'optional' => $optional,
+              'students' => $students,
+              'form' => $form->createView(),
+          ]);
+
+      }
 }

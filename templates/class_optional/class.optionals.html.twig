@@ -39,8 +39,9 @@
                   <td>{{ optional.getOptionalName }}</td>
                   <td>{{ optional.getDescription }}</td>
                   <td>{{ optional.getPrice|localizedcurrency('RON') }}</td>
-                  <td>666</td>
+                  <td>{{ optional.getStudents|length }}</td>
                   <td>
+                    <a href="{{ path('class_optional_students', {'id':optional.id }) }}"><button type="button" class="btn btn-success">Înscrieri</button></a>
                     <a href="#"><button type="button" class="btn btn-primary">Program</button></a>
                   </td>
                 </tr>

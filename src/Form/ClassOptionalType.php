@@ -39,6 +39,7 @@ class ClassOptionalType extends AbstractType
                 'readonly' => 'readonly',
               ),
             ))
+            //TODO add Included in Services - not immediately required by project
             //->add('inServices')
         ;
     }

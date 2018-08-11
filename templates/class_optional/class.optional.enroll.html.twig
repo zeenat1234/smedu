@@ -1,0 +1,22 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Opționale -> Înscrieri{% endblock %}
+
+{% block body %}
+    <h1>Editează înscrieri {{ optional.getOptionalName|lower }}</h1>
+    <br>
+    {% if students is empty %}
+      <p>Nu există niciun elev înscris în unitate </p>
+    {% else %}
+
+      {% for student in students %}
+          <!-- <p>{{ student.getUser.getUsername }}</p> -->
+      {% endfor %}
+
+      {{ form_start(form) }}
+      {{ form_widget(form) }}
+        <input type="submit" class="btn btn-success mt-3" value="Actualizează">
+      {{ form_end(form) }}
+
+    {% endif %}
+{% endblock %}

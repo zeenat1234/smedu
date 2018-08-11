@@ -69,6 +69,12 @@ class Enrollment
      */
     private $schoolYear;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Student", inversedBy="enrollment", cascade={"persist", "remove"})
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $student;
+
     public function getId()
     {
         return $this->id;
@@ -166,6 +172,18 @@ class Enrollment
     public function setSchoolYear(?SchoolYear $schoolYear): self
     {
         $this->schoolYear = $schoolYear;
+
+        return $this;
+    }
+
+    public function getStudent(): ?Student
+    {
+        return $this->student;
+    }
+
+    public function setStudent(Student $student): self
+    {
+        $this->student = $student;
 
         return $this;
     }

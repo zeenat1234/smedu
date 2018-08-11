@@ -151,19 +151,25 @@ class EnrollmentController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
+
            $enrollment = $form->getData();
 
+           $newStudent = new Student();
+           $newStudent->setUser($enrollment->getIdChild());
+           $newStudent->setSchoolUnit($currentUnit);
+           $newStudent->setEnrollment($enrollment);
+
+           $entityManager = $this->getDoctrine()->getManager();
+           $entityManager->persist($newStudent);
+           $entityManager->flush();
+
+           $enrollment->setStudent($newStudent);
 
            $entityManager = $this->getDoctrine()->getManager();
            $entityManager->persist($enrollment);
            $entityManager->flush();
 
-           $newStudent = new Student();
-           $newStudent->setUser($enrollment->getIdChild());
 
-           $entityManager = $this->getDoctrine()->getManager();
-           $entityManager->persist($newStudent);
-           $entityManager->flush();
 
            return $this->redirectToRoute('enrollment_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
         }
@@ -212,6 +218,15 @@ class EnrollmentController extends AbstractController
            $entityManager = $this->getDoctrine()->getManager();
            $entityManager->persist($enrollment);
            $entityManager->flush();
+        // After a child is deactivated, we also remove it from any existing optional class
+           if ($enrollment->getIsActive() == 0) {
+               foreach ($enrollment->getStudent()->getClassOptionals() as $optional) {
+                  $optional->removeStudent($enrollment->getStudent());
+
+                  $entityManager->persist($optional);
+                  $entityManager->flush();
+               }
+           }
 
            return $this->redirectToRoute('all_enrollments_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
         }

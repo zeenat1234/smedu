@@ -74,6 +74,11 @@ class SchoolUnit
      */
     private $classModules;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Student", mappedBy="schoolUnit")
+     */
+    private $students;
+
     public function __construct()
     {
         $this->schoolservices = new ArrayCollection();
@@ -81,6 +86,7 @@ class SchoolUnit
         $this->classGroups = new ArrayCollection();
         $this->classOptionals = new ArrayCollection();
         $this->classModules = new ArrayCollection();
+        $this->students = new ArrayCollection();
     }
 
     public function getId()
@@ -309,6 +315,37 @@ class SchoolUnit
             // set the owning side to null (unless already changed)
             if ($classModule->getSchoolUnit() === $this) {
                 $classModule->setSchoolUnit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Student[]
+     */
+    public function getStudents(): Collection
+    {
+        return $this->students;
+    }
+
+    public function addStudent(Student $student): self
+    {
+        if (!$this->students->contains($student)) {
+            $this->students[] = $student;
+            $student->setSchoolUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStudent(Student $student): self
+    {
+        if ($this->students->contains($student)) {
+            $this->students->removeElement($student);
+            // set the owning side to null (unless already changed)
+            if ($student->getSchoolUnit() === $this) {
+                $student->setSchoolUnit(null);
             }
         }
 
