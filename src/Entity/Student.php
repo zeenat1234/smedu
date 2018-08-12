@@ -45,9 +45,15 @@ class Student
      */
     private $enrollment;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OptionalsAttendance", mappedBy="student", orphanRemoval=true)
+     */
+    private $optionalsAttendances;
+
     public function __construct()
     {
         $this->ClassOptionals = new ArrayCollection();
+        $this->optionalsAttendances = new ArrayCollection();
     }
 
     public function getId()
@@ -129,6 +135,37 @@ class Student
         // set the owning side of the relation if necessary
         if ($this !== $enrollment->getStudent()) {
             $enrollment->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OptionalsAttendance[]
+     */
+    public function getOptionalsAttendances(): Collection
+    {
+        return $this->optionalsAttendances;
+    }
+
+    public function addOptionalsAttendance(OptionalsAttendance $optionalsAttendance): self
+    {
+        if (!$this->optionalsAttendances->contains($optionalsAttendance)) {
+            $this->optionalsAttendances[] = $optionalsAttendance;
+            $optionalsAttendance->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOptionalsAttendance(OptionalsAttendance $optionalsAttendance): self
+    {
+        if ($this->optionalsAttendances->contains($optionalsAttendance)) {
+            $this->optionalsAttendances->removeElement($optionalsAttendance);
+            // set the owning side to null (unless already changed)
+            if ($optionalsAttendance->getStudent() === $this) {
+                $optionalsAttendance->setStudent(null);
+            }
         }
 
         return $this;

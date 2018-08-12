@@ -54,11 +54,17 @@ class ClassOptional
      */
     private $optionalSchedules;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OptionalsAttendance", mappedBy="classOptional", orphanRemoval=true)
+     */
+    private $optionalsAttendances;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
         $this->students = new ArrayCollection();
         $this->optionalSchedules = new ArrayCollection();
+        $this->optionalsAttendances = new ArrayCollection();
     }
 
     public function getId()
@@ -193,6 +199,37 @@ class ClassOptional
             // set the owning side to null (unless already changed)
             if ($optionalSchedule->getClassOptional() === $this) {
                 $optionalSchedule->setClassOptional(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OptionalsAttendance[]
+     */
+    public function getOptionalsAttendances(): Collection
+    {
+        return $this->optionalsAttendances;
+    }
+
+    public function addOptionalsAttendance(OptionalsAttendance $optionalsAttendance): self
+    {
+        if (!$this->optionalsAttendances->contains($optionalsAttendance)) {
+            $this->optionalsAttendances[] = $optionalsAttendance;
+            $optionalsAttendance->setClassOptional($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOptionalsAttendance(OptionalsAttendance $optionalsAttendance): self
+    {
+        if ($this->optionalsAttendances->contains($optionalsAttendance)) {
+            $this->optionalsAttendances->removeElement($optionalsAttendance);
+            // set the owning side to null (unless already changed)
+            if ($optionalsAttendance->getClassOptional() === $this) {
+                $optionalsAttendance->setClassOptional(null);
             }
         }
 
