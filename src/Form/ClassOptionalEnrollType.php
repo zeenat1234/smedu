@@ -19,10 +19,22 @@ class ClassOptionalEnrollType extends AbstractType
           ->add('students', EntityType::class, [
               'class'        => Student::class,
               'choices'      => $options['students'],
-              'choice_label' => 'user.getfullname',
+              'choice_label' => 'user.getroname',
               'label'        => 'Inscrieri elevi',
               'expanded'     => true,
               'multiple'     => true,
+              'attr'         => array(
+                //'class' => 'form-check',
+                //'id' => 'form_categories',
+              ),
+              'choice_attr' => function() {
+                return array('class' => '');
+              },
+              //'label_attr' => array('class' => 'form-check-label'),
+              // 'choice_attr' => array(
+              //   '0' => array('class' => 'form-check-input'),
+              // ),
+
           ])
         ;
     }

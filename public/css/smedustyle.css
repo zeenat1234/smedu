@@ -50,6 +50,15 @@ select {
     /* list-style-type:none; */
 }
 
+/* #class_optional_enroll_students {
+  display: flex;
+  flex-flow: row wrap;
+  width: 20%;
+}
+#class_optional_enroll_students > .checkbox {
+  width: 45%;
+} */
+
 /* Using this in order to make Checkbox bigger */
 .double {
   zoom: 1.5;

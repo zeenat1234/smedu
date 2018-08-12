@@ -381,7 +381,11 @@ class User implements UserInterface, \Serializable
         } else {
             return $this->firstName.' '.$this->lastName;
         }
+    }
 
+    public function getRoName(): ?string
+    {
+        return $this->lastName.' '.$this->firstName;
     }
 
     public function getPhoneNo(): ?string

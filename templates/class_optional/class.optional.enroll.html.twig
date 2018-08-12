@@ -14,8 +14,14 @@
       {% endfor %}
 
       {{ form_start(form) }}
-      {{ form_widget(form) }}
-        <input type="submit" class="btn btn-success mt-3" value="Actualizează">
+        <div class="row">
+        {% for s in form.students %}
+          <div class="col-6 col-lg-4 col-xl-3">
+            {{ form_widget(s) }} {{form_label(s) }}
+          </div>
+        {% endfor %}
+        </div>
+          <input type="submit" class="btn btn-success mt-3" value="Actualizează">
       {{ form_end(form) }}
 
     {% endif %}
