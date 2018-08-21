@@ -91,6 +91,38 @@ class ClassOptionalController extends AbstractController
     }
 
     /**
+     * @Route("/class/optional/edit/{id}", name="class_optional_edit")
+     * @Method({"GET", "POST"})
+     */
+    public function edit_optional(Request $request, $id)
+    {
+        $optional = $this->getDoctrine()->getRepository
+        (ClassOptional::class)->find($id);
+
+        $currentUnit = $optional->getSchoolUnit();
+
+        $form = $this->createForm(ClassOptionalType::Class, $optional, array(
+          'school_unit' => $currentUnit,
+        ));
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+           $optional = $form->getData();
+
+           $entityManager = $this->getDoctrine()->getManager();
+           $entityManager->persist($optional);
+           $entityManager->flush();
+
+           return $this->redirectToRoute('class_optionals_by_year', array('id' => $currentUnit->getSchoolyear()->getId()) );
+        }
+
+        return $this->render('class_optional/class.optional.edit.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
      * @Route("/class/optional/{id}/students", name="class_optional_students")
      * @Method({"GET", "POST"})
      */

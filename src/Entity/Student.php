@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -146,6 +147,18 @@ class Student
     public function getOptionalsAttendances(): Collection
     {
         return $this->optionalsAttendances;
+    }
+
+    public function getAttendanceBySched(OptionalSchedule $sched): ?OptionalsAttendance
+    {
+        $criteria = Criteria::create()
+          ->where(Criteria::expr()->eq("student", $this))
+          ->where(Criteria::expr()->eq("optionalSchedule", $sched))
+          ->setFirstResult(0)
+          ->setMaxResults(1)
+    ;
+
+        return $this->optionalsAttendances->matching($criteria)[0];
     }
 
     public function addOptionalsAttendance(OptionalsAttendance $optionalsAttendance): self

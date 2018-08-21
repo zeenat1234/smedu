@@ -36,7 +36,7 @@
             <tbody>
               {% for optional in schoolunit.getClassOptionals %}
                 <tr>
-                  <td>{{ optional.getOptionalName }}</td>
+                  <td><a href="{{ path('class_optional_edit', {'id':optional.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ optional.getOptionalName }}</a></td>
                   <td>{{ optional.getDescription }}</td>
                   <td>{{ optional.getPrice|localizedcurrency('RON') }}</td>
                   <td>{{ optional.getStudents|length }}</td>
@@ -52,6 +52,8 @@
           <br>
         {% endif %}
       {% endfor %}
+    {% else %}
+      <p>Nu există nicio unitate școlară definită în acest an școlar!</p>
     {% endif %}
 
 {% endblock %}

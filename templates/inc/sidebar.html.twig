@@ -1,8 +1,8 @@
 <nav id="sidebarParent">
   <div id="sidebar">
     <div class="sidebar-header">
-        <h3>SmEDU Sidebar</h3>
-        <strong>SS</strong>
+        <h3>iTeachSmart</h3>
+        <strong>iTS</strong>
     </div>
 
     <ul class="list-unstyled components">
@@ -54,12 +54,6 @@
                     <a href="{{ path('class_groups') }}">Toate Grupele</a>
                 </li>
                 <li>
-                    <a href="#">Grupe Unitate 1</a>
-                </li>
-                <li>
-                    <a href="#">Grupe Unitate 2</a>
-                </li>
-                <li>
                     <a href="#">Rapoarte</a>
                 </li>
             </ul>
@@ -74,12 +68,6 @@
                     <a href="{{ path('class_modules') }}">Toate Modulele</a>
                 </li>
                 <li>
-                    <a href="#">Module Unitate 1</a>
-                </li>
-                <li>
-                    <a href="#">Module Unitate 2</a>
-                </li>
-                <li>
                     <a href="#">Rapoarte</a>
                 </li>
             </ul>
@@ -91,13 +79,27 @@
             </a>
             <ul class="collapse list-unstyled" id="optionalsSubmenu">
                 <li>
-                    <a href="{{ path('class_optionals') }}">Toate Opționalele</a>
-                </li>
-                <li>
-                    <a href="#">Adaugă Opțional</a>
+                    <a href="{{ path('class_optionals') }}">Listă Opționale</a>
                 </li>
                 <li>
                     <a href="#">Rapoarte</a>
+                </li>
+            </ul>
+        </li>
+        <li>
+            <a href="#catalogueSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-copy"></i>
+                Catalog
+            </a>
+            <ul class="collapse list-unstyled" id="catalogueSubmenu">
+                <li>
+                    <a href="{{ path('attendance') }}">Prezențe</a>
+                </li>
+                <li>
+                    <a href="#">Note</a>
+                </li>
+                <li>
+                    <a href="#">Permisiuni</a>
                 </li>
             </ul>
         </li>

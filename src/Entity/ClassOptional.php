@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -58,6 +59,12 @@ class ClassOptional
      * @ORM\OneToMany(targetEntity="App\Entity\OptionalsAttendance", mappedBy="classOptional", orphanRemoval=true)
      */
     private $optionalsAttendances;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="classOptionals")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $professor;
 
     public function __construct()
     {
@@ -234,5 +241,97 @@ class ClassOptional
         }
 
         return $this;
+    }
+
+    public function getProfessor(): ?User
+    {
+        return $this->professor;
+    }
+
+    public function setProfessor(?User $professor): self
+    {
+        $this->professor = $professor;
+
+        return $this;
+    }
+
+    public function isSyncd()
+    {
+        $criteria = Criteria::create()
+          ->where(Criteria::expr()->gt("scheduledDateTime", (new \DateTime('now'))))
+          ->setFirstResult(0)
+          //->setMaxResults(1)
+        ;
+        $sync_schedules = $this->optionalSchedules->matching($criteria)->getValues();
+
+        $sync_students = $this->students->getValues();
+
+        $all_attendances = $this->optionalsAttendances;
+        $sync_attendances = array();
+        //verify against attendances from now and onwards
+        foreach ($all_attendances as $attendance) {
+            if ($attendance->getOptionalSchedule()->getScheduledDateTime() > (new \DateTime('now'))) {
+               $sync_attendances[]=$attendance;
+            }
+        }
+
+        // $criteria = Criteria::create()
+        //   ->where(Criteria::expr()->eq("optionalSchedule", $sched))
+        //   ->setFirstResult(0)
+        //   //->setMaxResults(1)
+        // ;
+        // $sync_attendances = $this->optionalsAttendances->matching($criteria);
+
+
+        //if there are no schedules or students defined, consider the optional not syncd
+        if ((count($sync_schedules) == 0) || (count($sync_students) == 0)) {
+          return false;
+        }
+
+        //create attendance list and schedule list to verify students and schedules
+        $attendees = array();
+        $schedules = array();
+
+        foreach ($sync_attendances as $attendance) {
+          if (!in_array($attendance->getStudent(), $attendees)) {
+            $attendees[] = $attendance->getStudent();
+          }
+          if (!in_array($attendance->getOptionalSchedule(), $schedules)) {
+            $schedules[] = $attendance->getOptionalSchedule();
+          }
+        }
+
+        //check if number of schedules and students match the attendance register
+        if (count($sync_schedules)*count($sync_students) === count($sync_attendances)) {
+          //check if attendance list students matches the enrolled students && attendance list schedules matches existing schedules
+          if ((count(array_uintersect($attendees, $sync_students, function($attendees, $sync_students) {
+              return strcmp(spl_object_hash($attendees), spl_object_hash($sync_students));
+          })) == count($sync_students)) &&
+              (count(array_uintersect($schedules, $sync_schedules, function($schedules, $sync_schedules) {
+                  return strcmp(spl_object_hash($schedules), spl_object_hash($sync_schedules));
+              })) == count($sync_schedules)))
+              //Comment from Stack Overflow:
+              //Nice solution. For contemporary readers: in php7, the strcmp() can be replaced
+              //with the <=> operator, like this: return spl_object_hash($a) <=> spl_object_hash($b);
+          {
+            return true;
+          }
+        } else {
+          return false;
+        }
+    }
+
+    //The following should only be used after verifying if the optional is synchronized with the function isSyncd()
+    public function isModified()
+    {
+
+        $attendances = $this->getOptionalsAttendances();
+        $attendCount = count($attendances);
+
+        if ($attendCount == 0) {
+          return false;
+        } elseif ($attendCount >= 1) {
+          return true;
+        }
     }
 }

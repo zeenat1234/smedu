@@ -1,0 +1,42 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Catalog prezențe -> {{ optional.getOptionalName }}{% endblock %}
+
+{% block body %}
+
+    <h2>Prezențe {{ optional.getOptionalName|lower }}</h2>
+    <h4>Profesor {{ optional.getProfessor.getFullName(1)|title }}</h4>
+    <hr>
+    <br>
+    <div class="row">
+    {% for schedule in optional.getOptionalSchedules %}
+        <div class="col-6 col-md-4">
+        <h5>{{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }}</h5>
+        <table>
+
+        {% for attendance in schedule.getOptionalsAttendances %}
+          <tr>
+            <td>
+              {{ attendance.getStudent.getUser.getFullName(1) }}
+            </td>
+            <td>
+            <td>
+              {% if schedule.getScheduledDateTime <= date() %}
+                {% if attendance.getHasAttended %}
+                  <i class="fas fa-check" style='color:#0f0'></i>
+                {% else %}
+                  <i class="fas fa-times" style='color:#f00'></i>
+                {% endif %}
+              {% else %}
+                <i class="fas far fa-clock" style='color:#333'></i>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </table>
+        <br>
+        </div>
+    {% endfor %}
+    </div>
+
+{% endblock %}

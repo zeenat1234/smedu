@@ -1,0 +1,99 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Catalog prezențe{% endblock %}
+
+{% block body %}
+
+  <h1>Prezențe {{ current_year.getYearlabel|lower }}</h1>
+  <br>
+  {% if current_units is not empty %}
+    {% for schoolunit in current_units %}
+      <div class="row">
+        <div class="col-auto">
+          <h2>{{ schoolunit.unitname|capitalize }} </h2>
+        </div>
+        <!-- <div class="col">
+        <a href="#{# path('class_optional_new', {'unitId':schoolunit.id }) #}">
+          <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+        </a>
+        </div> -->
+      </div>
+      <p style="font-weight:bold;">Module</p>
+      {% if modules is not empty %}
+        <table id="modules-{{ schoolunit.id }}" class="table table-striped table-hover">
+
+          <thead>
+            <tr>
+              <th>Modul</th>
+              <th>Profesor</th>
+              <th>Elevi</th>
+              <th>Prezențe/Absențe</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+          </tbody>
+
+        </table>
+        {% else %}
+          <p>Nu există module.</p>
+        {% endif %}
+        <p style="font-weight:bold;">Opționale</p>
+        {% if schoolunit.getClassOptionals is not empty %}
+          <table id="optionals-{{ schoolunit.id }}" class="table table-striped table-hover">
+
+            <thead>
+              <tr>
+                <th>Opțional</th>
+                <th>Profesor</th>
+                <th>Elevi</th>
+                <th>Prezențe/Absențe</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for optional in schoolunit.getClassOptionals %}
+                <tr>
+                  <td><a href="{{ path('class_optional_edit', {'id':optional.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ optional.getOptionalName }}</a></td>
+                  <td>{{ optional.getProfessor.getFullName(1) }}</td>
+                  <td>{{ optional.getStudents|length }}</td>
+                  <td> placeholder </td>
+                  <td>
+                    {% if optional.getStudents is empty %}
+                      <p>0 Înscrieri</p>
+                    {% else %}
+                      {% if optional.getOptionalSchedules is empty %}
+                        <p>0 Ore</p>
+                      {% else %}
+                        {% if optional.isSyncd == true %}
+                          {# View or Edit attenandance #}
+                          <a href="{{ path('view_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn btn-success">Vizualizează</button></a>
+                          <a href="#{# path('optional_schedule', {'id':optional.id }) #}"><button type="button" class="btn btn-secondary">Modifică</button></a>
+                        {% else %}
+                          {% if optional.isModified == true %}
+                            {# Update attenandance #}
+                            <a href="{{ path('update_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn btn-warning">Actualizează</button></a>
+                          {% else %}
+                            {# Generate attenandance #}
+                            <a href="{{ path('generate_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn btn-primary">Catalog NOU</button></a>
+                          {% endif %}
+                        {% endif %}
+                      {% endif %}
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+          {% else %}
+            <p>Nu există opționale.</p>
+          {% endif %}
+    {% endfor %}
+  {% else %}
+    <p>Nu există nicio unitate școlară definită în acest an școlar!</p>
+  {% endif %}
+
+{% endblock %}

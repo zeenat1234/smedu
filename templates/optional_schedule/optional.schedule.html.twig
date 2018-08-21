@@ -11,7 +11,11 @@
       <ul>
         {% for schedule in schedules %}
           <li>
-            {{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }} (<a href="{{ path('optional_schedule_edit', {'id':the_optional.id }) }}", style="text-decoration:underline;">Modifică</a>)
+            {{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }}
+            (<a href="{{ path('optional_schedule_edit', {'id':schedule.id }) }}", style="text-decoration:underline;">Modifică</a>)
+            {% if schedule.getScheduledDateTime > date() %}
+              (<a href="{{ path('optional_schedule_remove', {'id':schedule.id }) }}", style="text-decoration:underline;">Șterge</a>)
+            {% endif %}
           </li>
         {% endfor %}
       </ul>

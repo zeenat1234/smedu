@@ -104,11 +104,17 @@ class User implements UserInterface, \Serializable
      */
     private $phoneNo;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ClassOptional", mappedBy="professor")
+     */
+    private $classOptionals;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
         $this->classGroups = new ArrayCollection();
         $this->students = new ArrayCollection();
+        $this->classOptionals = new ArrayCollection();
     }
 
     //TODO: Add firstname, lastname, dateofbirth, id_parent (manyToOne)
@@ -396,6 +402,37 @@ class User implements UserInterface, \Serializable
     public function setPhoneNo(string $phoneNo): self
     {
         $this->phoneNo = $phoneNo;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ClassOptional[]
+     */
+    public function getClassOptionals(): Collection
+    {
+        return $this->classOptionals;
+    }
+
+    public function addClassOptional(ClassOptional $classOptional): self
+    {
+        if (!$this->classOptionals->contains($classOptional)) {
+            $this->classOptionals[] = $classOptional;
+            $classOptional->setProfessor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeClassOptional(ClassOptional $classOptional): self
+    {
+        if ($this->classOptionals->contains($classOptional)) {
+            $this->classOptionals->removeElement($classOptional);
+            // set the owning side to null (unless already changed)
+            if ($classOptional->getProfessor() === $this) {
+                $classOptional->setProfessor(null);
+            }
+        }
 
         return $this;
     }
