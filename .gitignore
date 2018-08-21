@@ -57,3 +57,6 @@ Thumbs.db
 
 # Ctags file - think it's used for atom, so will ignore in commit
 /.tags1
+
+# Create different fixtures for each environment
+/src/DataFixtures/*
