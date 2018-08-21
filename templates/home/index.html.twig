@@ -1,19 +1,33 @@
 {% extends 'base.nav.html.twig' %}
 
-{% block title %}Hello {{ controller_name }}!{% endblock %}
+{% block title %}Pagina de Start{% endblock %}
 
 {% block body %}
 
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
+    <h1> Bine ați revenit! ✅</h1>
+    <br>
+    Software-ul este încă în dezvoltare. Funcționalitate curentă:
     <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/HomeController.php'|file_link(0) }}">src/Controller/HomeController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/home/index.html.twig'|file_link(0) }}">templates/home/index.html.twig</a></code></li>
+        <li>Modificare setări an școlar <code><a href="{{ path('school_year') }}">(Link)</a></code></li>
+        <li>Adăugare/Modificare unități școlare <code><a href="{{ path('school_units') }}">(Link)</a></code></li>
+        <li>Adăugare/Modificare/Ștergere servicii școlare <code><a href="{{ path('school_services') }}">(Link)</a></code></li>
+        <li>Administrare utilizatori <code><a href="{{ path('users') }}">(Link)</a></code></li>
+        <li>Efectuare/Modificare/Dezactivare înscrieri<code><a href="#">(Link)</a></code></li>
+
+
     </ul>
 
     <br><br><br>
-
-    <p>Trololololol</p>
+    <div class="row">
+      <div class="col-5" style="text-align:justify;">
+        <p>
+          Disclaimer: Acest software este în stadiul de beta. Anumite funcționalități nu sunt
+          implementate sau nu funcționează în conformitate cu produsul final.
+          <br><br>
+          Mulțumim,<br>
+          Echipa Kiklab & SIRPOD IT
+        </p>
+      </div>
+    </div>
 
 {% endblock %}
