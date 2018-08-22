@@ -29,26 +29,32 @@ class SchoolUnitType extends AbstractType
 
         $builder
             ->add('unitName', TextType::class, array(
+              'label' => 'Denumire unitate',
               'attr' => array('class' => 'form-control')
             ))
             ->add('startDate', DateType::class, array(
+              'label' => 'Începutul activității',
               'input' => 'datetime',
               'widget' => 'single_text',
               'attr' => array('type' => 'datetime', 'class' => 'col-6 form-control'),
             ))
             ->add('endDate', DateType::class, array(
+              'label' => 'Terminarea activității',
               'input' => 'datetime',
               'widget' => 'single_text',
               'attr' => array('type' => 'datetime', 'class' => 'col-6 form-control'),
             ))
             ->add('schoolyear', ChoiceType::class, array(
+              'label' => 'An școlar',
               'choices'  => $choices,
               'attr' => array('class' => 'col-4 form-control'),
             ))
             ->add('availableSpots', NumberType::class, array(
+              'label' => 'Locuri disponibile',
               'attr' => array('class' => 'col-4 form-control'),
             ))
             ->add('description', TextareaType::class, array(
+              'label' => 'Descriere',
               'attr' => array('class' => 'col-4 form-control'),
             ))
         ;
