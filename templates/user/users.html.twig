@@ -19,6 +19,7 @@
 
       <tbody>
         {% for user in users %}
+          {# DO NOT display root user if imported from fixtures (useful for prod)#}
           {% if user.getUsername != "root" %}
           <tr>
             <td><a href="{{ path('user_show', {'id':user.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ user.username }}</a></td>
