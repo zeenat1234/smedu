@@ -15,10 +15,10 @@ class SchoolYearFixtures extends Fixture
         // $manager->persist($product);
 
         $schoolYear = new SchoolYear();
-        $schoolYear->setYearname(date('Y',time())."/".date('Y',strtotime('+1 year')));
-        $schoolYear->setStartDate(new \DateTime(time()));
-        $schoolYear->setEndDate(new \DateTime(strtotime('+1 year')));
-        $schoolYear->setYearlabel("An școlar ".date('Y',time())."/".date('Y',strtotime('+1 year')));
+        $schoolYear->setYearname(date('Y')."/".date('Y',strtotime('+1 year')));
+        $schoolYear->setStartDate(\DateTime::createFromFormat('Y-m-d', date('Y-m-d')));
+        $schoolYear->setEndDate(\DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime('+1 year'))));
+        $schoolYear->setYearlabel("An școlar ".date('Y')."/".date('Y',strtotime('+1 year')));
         $schoolYear->setIsPermActivity(1);
 
         $manager->persist($schoolYear);
