@@ -65,12 +65,17 @@ class ClassOptionalController extends AbstractController
         $currentUnit = $this->getDoctrine()->getRepository
         (SchoolUnit::class)->find($unitId);
 
+        $profChoice = array();
+        $profChoice = $this->getDoctrine()->getRepository
+        (User::class)->findAllProfs();
+
         $optional = new ClassOptional();
 
         $optional->setSchoolUnit($currentUnit);
 
         $form = $this->createForm(ClassOptionalType::Class, $optional, array(
           'school_unit' => $currentUnit,
+          'professors'  => $profChoice,
         ));
 
         $form->handleRequest($request);

@@ -20,9 +20,21 @@ class ClassOptionalType extends AbstractType
         $unitchoice = array();
         $unitchoice[$options['school_unit']->getUnitname()] = $options['school_unit'];
 
+        $profchoice = array();
+        foreach ($options['professors'] as $professor) {
+            $profchoice[$professor->getFullName(1)] = $professor;
+        }
+
         $builder
             ->add('optionalName', TextType::class, array(
               'attr' => array('class' => 'col-6 form-control')
+            ))
+            ->add('professor', ChoiceType::class, array(
+              'label'  => 'Profesor',
+              'choices'  => $profchoice,
+              'attr' => array(
+                'class' => 'form-control',
+              )
             ))
             ->add('description', TextareaType::class, array(
               'attr' => array('class' => 'col-6 form-control'),
@@ -49,6 +61,7 @@ class ClassOptionalType extends AbstractType
         $resolver->setDefaults([
             'data_class' => ClassOptional::class,
             'school_unit' => SchoolUnit::class,
+            'professors' => array(User::class),
         ]);
     }
 }
