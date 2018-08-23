@@ -27,6 +27,7 @@ class ClassOptionalType extends AbstractType
 
         $builder
             ->add('optionalName', TextType::class, array(
+              'label' => 'Nume opțional',
               'attr' => array('class' => 'col-6 form-control')
             ))
             ->add('professor', ChoiceType::class, array(
@@ -37,14 +38,17 @@ class ClassOptionalType extends AbstractType
               )
             ))
             ->add('description', TextareaType::class, array(
+              'label' => 'Descriere',
               'attr' => array('class' => 'col-6 form-control'),
             ))
             ->add('price', MoneyType::class, array(
+              'label' => 'Preț',
               'currency' => 'RON',
               'scale' => 2,
               'attr' => array('class' => 'col-3 form-control'),
             ))
             ->add('schoolUnit', ChoiceType::class, array(
+              'label' => 'Unitate școlară',
               'choices'  => $unitchoice,
               'attr' => array(
                 'class' => 'form-control',
