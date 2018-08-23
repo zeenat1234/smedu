@@ -8,16 +8,16 @@
   <div class="d-flex justify-content-center">
     <div class="d-flex flex-column">
 
-        <h1>Login SmEDU</h1> <!-- ✅ -->
+        <h1>Login iTeachSmart</h1> <!-- ✅ -->
         <br>
         {% if error %}
           <span class="error">{{ error.messageKey }}</span>
         {% endif %}
         <form action="{{ path('login') }}" method="POST">
           <center>
-            <input type="text" name="_username" class="form-control" value="{{ last_username }}" placeholder="Username here...">
+            <input type="text" name="_username" class="form-control" value="{{ last_username }}" placeholder="User...">
             <br>
-            <input type="password" name="_password" class="form-control" placeholder="Password here...">
+            <input type="password" name="_password" class="form-control" placeholder="Parolă...">
             <br>
             <br>
             <button type="submit" class="btn btn-success mt-1">Login</button>
