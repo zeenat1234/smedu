@@ -71,12 +71,18 @@ class ClassOptional
      */
     private $useAttend = true;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PaymentItem", mappedBy="itemOptional")
+     */
+    private $paymentItems;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
         $this->students = new ArrayCollection();
         $this->optionalSchedules = new ArrayCollection();
         $this->optionalsAttendances = new ArrayCollection();
+        $this->paymentItems = new ArrayCollection();
     }
 
     public function getId()
@@ -348,6 +354,37 @@ class ClassOptional
     public function setUseAttend(bool $useAttend): self
     {
         $this->useAttend = $useAttend;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PaymentItem[]
+     */
+    public function getPaymentItems(): Collection
+    {
+        return $this->paymentItems;
+    }
+
+    public function addPaymentItem(PaymentItem $paymentItem): self
+    {
+        if (!$this->paymentItems->contains($paymentItem)) {
+            $this->paymentItems[] = $paymentItem;
+            $paymentItem->setItemOptional($this);
+        }
+
+        return $this;
+    }
+
+    public function removePaymentItem(PaymentItem $paymentItem): self
+    {
+        if ($this->paymentItems->contains($paymentItem)) {
+            $this->paymentItems->removeElement($paymentItem);
+            // set the owning side to null (unless already changed)
+            if ($paymentItem->getItemOptional() === $this) {
+                $paymentItem->setItemOptional(null);
+            }
+        }
 
         return $this;
     }

@@ -51,10 +51,16 @@ class Student
      */
     private $optionalsAttendances;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\MonthAccount", mappedBy="student", orphanRemoval=true)
+     */
+    private $monthAccounts;
+
     public function __construct()
     {
         $this->ClassOptionals = new ArrayCollection();
         $this->optionalsAttendances = new ArrayCollection();
+        $this->monthAccounts = new ArrayCollection();
     }
 
     public function getId()
@@ -178,6 +184,37 @@ class Student
             // set the owning side to null (unless already changed)
             if ($optionalsAttendance->getStudent() === $this) {
                 $optionalsAttendance->setStudent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MonthAccount[]
+     */
+    public function getMonthAccounts(): Collection
+    {
+        return $this->monthAccounts;
+    }
+
+    public function addMonthAccount(MonthAccount $monthAccount): self
+    {
+        if (!$this->monthAccounts->contains($monthAccount)) {
+            $this->monthAccounts[] = $monthAccount;
+            $monthAccount->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMonthAccount(MonthAccount $monthAccount): self
+    {
+        if ($this->monthAccounts->contains($monthAccount)) {
+            $this->monthAccounts->removeElement($monthAccount);
+            // set the owning side to null (unless already changed)
+            if ($monthAccount->getStudent() === $this) {
+                $monthAccount->setStudent(null);
             }
         }
 
