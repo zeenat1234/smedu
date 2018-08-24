@@ -66,6 +66,11 @@ class ClassOptional
      */
     private $professor;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $useAttend = true;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
@@ -333,5 +338,17 @@ class ClassOptional
         } elseif ($attendCount >= 1) {
           return true;
         }
+    }
+
+    public function getUseAttend(): ?bool
+    {
+        return $this->useAttend;
+    }
+
+    public function setUseAttend(bool $useAttend): self
+    {
+        $this->useAttend = $useAttend;
+
+        return $this;
     }
 }

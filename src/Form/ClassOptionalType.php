@@ -12,6 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class ClassOptionalType extends AbstractType
 {
@@ -40,6 +41,11 @@ class ClassOptionalType extends AbstractType
             ->add('description', TextareaType::class, array(
               'label' => 'Descriere',
               'attr' => array('class' => 'col-6 form-control'),
+            ))
+            ->add('useAttend', CheckboxType::class, array(
+              'label'    => 'Taxare pe prezență?',
+              'required' => false,
+              'attr' => array('class' => 'form-check form-check-inline'),
             ))
             ->add('price', MoneyType::class, array(
               'label' => 'Preț',

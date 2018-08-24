@@ -18,7 +18,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+//use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class SchoolServiceType extends AbstractType
 {
@@ -90,12 +91,20 @@ class SchoolServiceType extends AbstractType
 
         $builder
             ->add('serviceName', TextType::class, array(
+              'label'    => 'Denumire Serviciu',
               'attr' => array('class' => 'col-6 form-control')
             ))
             ->add('serviceDescription', TextareaType::class, array(
+              'label'    => 'Descriere',
               'attr' => array('class' => 'col-6 form-control'),
             ))
+            ->add('inAdvance', CheckboxType::class, array(
+              'label'    => 'Taxare în avans?',
+              'required' => false,
+              'attr' => array('class' => 'form-check form-check-inline'),
+            ))
             ->add('servicePrice', MoneyType::class, array(
+              'label'    => 'Taxă Lunară',
               'currency' => 'RON',
               'scale' => 2,
               'attr' => array('class' => 'col-3 form-control'),

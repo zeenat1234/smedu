@@ -55,6 +55,11 @@ class SchoolService
      */
     private $classOptionals;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $inAdvance = true;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -181,6 +186,18 @@ class SchoolService
             $this->classOptionals->removeElement($classOptional);
             $classOptional->removeInService($this);
         }
+
+        return $this;
+    }
+
+    public function getInAdvance(): ?bool
+    {
+        return $this->inAdvance;
+    }
+
+    public function setInAdvance(bool $inAdvance): self
+    {
+        $this->inAdvance = $inAdvance;
 
         return $this;
     }
