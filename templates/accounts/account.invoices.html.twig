@@ -1,0 +1,149 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Facturi Cont{% endblock %}
+
+{% block body %}
+
+  <div class="enrollment-wrapper">
+    <h2>{{ student.getUser.getFullName(1)|title }}</h2>
+    <h4>{{ month_year|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</h4>
+    <br>
+    {% if invoices is empty %}
+      <h5><code>Nu există nici o factură generată în această lună!</code></h5>
+      <a href="{{ path('account_invoice_all', {'accId':account.id, 'itemCount':1 }) }}">
+        <button>Facturează TOT</button>
+      </a>
+      <br>
+      <hr>
+    {% else %}
+      {% for invoice in invoices %}
+        <h4><code>{{ invoice.getInvoiceName }}</code></h4>
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Nr.</th>
+              <th>Prod.</th>
+              <th>Cant.</th>
+              <th>Preț</th>
+              <th>Mod.</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set i = 0 %}
+            {% for payItem in invoice.getPaymentItems %}
+              {% set i = i + 1 %}
+              <tr>
+                <td>{{ i }}</td>
+                <td>{{ payItem.getItemName }}</td>
+                <td>x{{ payItem.getItemCount }}</td>
+                <td style="text-align:right;">{{ payItem.getItemPrice|localizedcurrency('RON') }}</td>
+                <td>
+                  {% if invoice.getSentCount == 0 and invoice.getInvoicePaid == 0 %}
+                    <a href="{{ path('accounts_item_modify', {'itemId':payItem.id}) }}"><button>Modifică</button></a>
+                  {% else %}
+                    <a href="#"><button disabled>Modifică</button></a>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if invoice.getSentCount == 0 and invoice.getInvoicePaid == 0 %}
+                    <a href="{{ path('remove_item_from_invoice', {'itemId':payItem.getId}) }}">
+                    <button type="button" class="delete-account-item" data-id="{{ payItem.getId }}">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                    </a>
+                  {% else %}
+                    <button disabled>
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+            <tr>
+              <td></td>
+              <td>TOTAL DE PLATĂ:<br>TOTAL PLĂTIT:<br>Situație Factură:<br><br>Notificări Trimise: {{ invoice.getSentCount }}</td>
+              <td colspan="2" style="text-align:right;">
+                {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}<br>
+                {{ invoice.getInvoicePaid|localizedcurrency('RON') }}<br>
+                {% if invoice.getInvoiceTotal == invoice.getInvoicePaid %}
+                  <p style='color:#060'>Achitat</p>
+                {% else %}
+                  {% if invoice.getInvoicePaid == 0 %}
+                    <p style='color:#600; font-weight:bold'>Neachitat</p>
+                  {% else %}
+                    <p style='color:#660; font-weight:bold'>Achitat parțial</p>
+                  {% endif %}
+                {% endif %}
+                <a href=""><button><i class="fas fa-envelope"></i> Notifică</button></a>
+              </td>
+              <td colspan="2"></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <a href="{{ path('accounts_pay_invoice',{'invId':invoice.id}) }}">
+                  <button><i class="fas fa-plus"></i> Plată NOUĂ</button>
+                </a>
+              </td>
+              <td colspan="4"></td>
+            </tr>
+          </tbody>
+        </table>
+      {% endfor %}
+      <br>
+    {% endif %}
+    <h4><code>Produse Nefacturate</code></h4>
+    <hr>
+    {% set exists = 0 %}
+    {% for payItem in payment_items %}
+      {% if payItem.getIsInvoiced == 0 %}
+        {% set exists = 1 %}
+      {% endif %}
+    {% endfor %}
+    {% if exists == 0 %}
+      <p><code>Nu există niciun produs nefacturat!</code></p>
+    {% else %}
+      <table class="table table-hover">
+        <thead>
+          <th>Nr.</th>
+          <th>Prod.</th>
+          <th>Cant.</th>
+          <th>Preț</th>
+          <th>Mod.</th>
+        </thead>
+        <tbody>
+          {% set i = 0 %}
+          {% for payItem in payment_items %}
+            {% if payItem.getIsInvoiced == 0 %}
+              {% set i = i + 1 %}
+              <tr>
+                <td>{{ i }}</td>
+                <td>{{ payItem.getItemName }}</td>
+                <td>x{{ payItem.getItemCount }}</td>
+                <th>{{ payItem.getItemPrice|localizedcurrency('RON') }}</th>
+                <td>
+                  <a href=""><button>Modifică</button></a>
+                </td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+          <tr>
+            <td></td>
+            <td>
+              <a href="">
+                <button>Facturează Selecție</button>
+              </a>
+            </td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    {% endif %}
+    <a href="{{ path ('accounts_item_add', {'monthAccId':account.id}) }}">
+      <button><i class="fas fa-plus"></i> Adaugă Produs</button>
+    </a>
+  </div>
+
+{% endblock %}

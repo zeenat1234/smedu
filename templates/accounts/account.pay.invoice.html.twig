@@ -1,0 +1,23 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Plată factură{% endblock %}
+
+{% block body %}
+
+  <div class="enrollment-wrapper">
+    <h2>{{ student.getUser.getFullName(1)|title }}</h2>
+    <h4>{{ month_year|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</h4>
+    <br>
+    <p>Total de plată: {{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</p>
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <br>
+    <p>Atașare Document (<code>În construcție</code>)</p>
+      <input type="submit" class="btn btn-success mt-3" value="Plătește">
+    {{ form_end(form) }}
+
+
+
+  </div>
+
+{% endblock %}

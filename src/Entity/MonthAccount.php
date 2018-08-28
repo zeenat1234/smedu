@@ -32,21 +32,27 @@ class MonthAccount
     /**
      * @ORM\Column(type="datetime")
      */
-    private $yearMonth;
+    private $accYearMonth;
 
     /**
      * @ORM\Column(type="decimal", precision=7, scale=2)
      */
-    private $totalPrice;
+    private $totalPrice = 0;
 
     /**
      * @ORM\Column(type="decimal", precision=7, scale=2)
      */
-    private $totalPaid;
+    private $totalPaid = 0;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\AccountInvoice", mappedBy="monthAccount", orphanRemoval=true)
+     */
+    private $accountInvoices;
 
     public function __construct()
     {
         $this->paymentItems = new ArrayCollection();
+        $this->accountInvoices = new ArrayCollection();
     }
 
     public function getId()
@@ -97,14 +103,14 @@ class MonthAccount
         return $this;
     }
 
-    public function getYearMonth(): ?\DateTimeInterface
+    public function getAccYearMonth(): ?\DateTimeInterface
     {
-        return $this->yearMonth;
+        return $this->accYearMonth;
     }
 
-    public function setYearMonth(\DateTimeInterface $yearMonth): self
+    public function setAccYearMonth(\DateTimeInterface $accYearMonth): self
     {
-        $this->yearMonth = $yearMonth;
+        $this->accYearMonth = $accYearMonth;
 
         return $this;
     }
@@ -121,6 +127,13 @@ class MonthAccount
         return $this;
     }
 
+    public function addToTotalPrice($addedPrice): self
+    {
+        $this->totalPrice += $addedPrice;
+
+        return $this;
+    }
+
     public function getTotalPaid()
     {
         return $this->totalPaid;
@@ -129,6 +142,37 @@ class MonthAccount
     public function setTotalPaid($totalPaid): self
     {
         $this->totalPaid = $totalPaid;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AccountInvoice[]
+     */
+    public function getAccountInvoices(): Collection
+    {
+        return $this->accountInvoices;
+    }
+
+    public function addAccountInvoice(AccountInvoice $accountInvoice): self
+    {
+        if (!$this->accountInvoices->contains($accountInvoice)) {
+            $this->accountInvoices[] = $accountInvoice;
+            $accountInvoice->setMonthAccount($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAccountInvoice(AccountInvoice $accountInvoice): self
+    {
+        if ($this->accountInvoices->contains($accountInvoice)) {
+            $this->accountInvoices->removeElement($accountInvoice);
+            // set the owning side to null (unless already changed)
+            if ($accountInvoice->getMonthAccount() === $this) {
+                $accountInvoice->setMonthAccount(null);
+            }
+        }
 
         return $this;
     }

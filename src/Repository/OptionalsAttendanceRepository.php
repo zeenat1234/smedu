@@ -19,6 +19,43 @@ class OptionalsAttendanceRepository extends ServiceEntityRepository
         parent::__construct($registry, OptionalsAttendance::class);
     }
 
+    /**
+     * @return OptionalsAttendance[] Returns an array of OptionalsAttendance objects
+     */
+    public function findAllByMonth(\DateTimeInterface $mY)
+    {
+        return $this->createQueryBuilder('oa')
+            ->leftJoin('oa.optionalSchedule', 'sched')
+            ->andWhere('sched.scheduledDateTime >= :firstOfMonth')
+            ->andWhere('sched.scheduledDateTime <= :lastOfMonth')
+            ->setParameter('firstOfMonth', $mY->modify('first day of this month')->format('Y-m-d H:i:s'))
+            ->setParameter('lastOfMonth', $mY->modify('last day of this month')->format('Y-m-d H:i:s'))
+            ->orderBy('oa.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * @return OptionalsAttendance[] Returns an array of OptionalsAttendance objects
+     */
+    public function findAllForStudByMonth(\DateTimeInterface $mY, $student)
+    {
+        return $this->createQueryBuilder('oa')
+            ->andWhere('oa.student = :theStudent')
+            ->setParameter('theStudent', $student->getId())
+            ->leftJoin('oa.optionalSchedule', 'sched')
+            ->andWhere('sched.scheduledDateTime >= :firstOfMonth')
+            ->andWhere('sched.scheduledDateTime <= :lastOfMonth')
+            ->setParameter('firstOfMonth', $mY->modify('first day of this month')->format('Y-m-d H:i:s'))
+            ->setParameter('lastOfMonth', $mY->modify('last day of this month')->format('Y-m-d H:i:s'))
+            ->orderBy('oa.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+
 //    /**
 //     * @return OptionalsAttendance[] Returns an array of OptionalsAttendance objects
 //     */

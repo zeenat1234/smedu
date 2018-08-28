@@ -286,14 +286,6 @@ class ClassOptional
             }
         }
 
-        // $criteria = Criteria::create()
-        //   ->where(Criteria::expr()->eq("optionalSchedule", $sched))
-        //   ->setFirstResult(0)
-        //   //->setMaxResults(1)
-        // ;
-        // $sync_attendances = $this->optionalsAttendances->matching($criteria);
-
-
         //if there are no schedules or students defined, consider the optional not syncd
         if ((count($sync_schedules) == 0) || (count($sync_students) == 0)) {
           return false;

@@ -162,7 +162,7 @@ class Student
           ->where(Criteria::expr()->eq("optionalSchedule", $sched))
           ->setFirstResult(0)
           ->setMaxResults(1)
-    ;
+        ;
 
         return $this->optionalsAttendances->matching($criteria)[0];
     }

@@ -30,7 +30,7 @@ class PaymentItem
     /**
      * @ORM\Column(type="smallint")
      */
-    private $itemCount;
+    private $itemCount = 1;
 
     /**
      * @ORM\Column(type="decimal", precision=7, scale=2)
@@ -45,12 +45,22 @@ class PaymentItem
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isEdited;
+    private $isEdited = false;
 
     /**
      * @ORM\Column(type="string", length=512)
      */
-    private $editNote;
+    private $editNote = '';
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\AccountInvoice", inversedBy="paymentItems", cascade={"persist", "remove"})
+     */
+    private $accountInvoice;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isInvoiced = false;
 
     public function getId()
     {
@@ -137,6 +147,30 @@ class PaymentItem
     public function setEditNote(string $editNote): self
     {
         $this->editNote = $editNote;
+
+        return $this;
+    }
+
+    public function getAccountInvoice(): ?AccountInvoice
+    {
+        return $this->accountInvoice;
+    }
+
+    public function setAccountInvoice(?AccountInvoice $accountInvoice): self
+    {
+        $this->accountInvoice = $accountInvoice;
+
+        return $this;
+    }
+
+    public function getIsInvoiced(): ?bool
+    {
+        return $this->isInvoiced;
+    }
+
+    public function setIsInvoiced(bool $isInvoiced): self
+    {
+        $this->isInvoiced = $isInvoiced;
 
         return $this;
     }
