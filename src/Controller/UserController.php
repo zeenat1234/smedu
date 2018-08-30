@@ -41,7 +41,8 @@ class UserController extends Controller
     public function users()
     {
         $users = $this->getDoctrine()->getRepository
-        (User::class)->findAll();
+        //(User::class)->findAll();
+        (User::class)->findBy([], ['lastName' => 'ASC']);
 
         return $this->render('user/users.html.twig', array(
           'users' => $users

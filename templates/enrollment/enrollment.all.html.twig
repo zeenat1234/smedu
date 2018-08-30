@@ -27,8 +27,8 @@
           <tbody>
             {% for enrollment in schoolunit.getEnrollments %}
               <tr>
-                <td>{{ enrollment.getIdChild.username }}</td>
-                <td>{{ enrollment.getIdParent.username }}</td>
+                <td>{{ enrollment.getIdChild.getFullName(1) }}</td>
+                <td>{{ enrollment.getIdParent.getFullName(1) }}</td>
                 <td>{{ enrollment.getIdService.servicename }}</td>
                 <td>{{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro') }}</td>
                 {% if enrollment.isActive == 0 %}

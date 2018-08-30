@@ -22,7 +22,7 @@
           {# DO NOT display root user if imported from fixtures (useful for prod)#}
           {% if user.getUsername != "root" %}
           <tr>
-            <td><a href="{{ path('user_show', {'id':user.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ user.username }}</a></td>
+            <td><a href="{{ path('user_show', {'id':user.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ user.getFullName(1) }}</a></td>
             <td>{{ user.email }}</td>
             <td>{{ user.getNormalized }}</td>
             <td>
