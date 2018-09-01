@@ -1,18 +1,18 @@
 {% extends 'base.nav.html.twig' %}
 
-{% block title %}Administrare Utilizatori{% endblock %}
+{% block title %}Administrare {{ role }}{% endblock %}
 
 {% block body %}
-  <h2>Administrare Utilizatori</h2>
+  <h2>Administrare {{ role }}</h2>
   <br>
   {% if users %}
     <table id="users" class="table table-striped table-hover">
 
       <thead>
         <tr>
-          <th>Username</th>
+          <th>Nume, Prenume</th>
           <th>E-mail</th>
-          <th>Type</th>
+          <th>Nivel Acces</th>
           <th></th>
         </tr>
       </thead>

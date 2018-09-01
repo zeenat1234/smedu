@@ -45,7 +45,68 @@ class UserController extends Controller
         (User::class)->findBy([], ['lastName' => 'ASC']);
 
         return $this->render('user/users.html.twig', array(
-          'users' => $users
+          'users' => $users,
+          'role' => 'Utilizatori',
+        ));
+    }
+
+    /**
+     * @Route("/users/students", name="users_students")
+     * @Method({"GET"})
+     */
+    public function users_students()
+    {
+        $users = $this->getDoctrine()->getRepository
+        (User::class)->findBy(['usertype' => 'ROLE_PUPIL'], ['lastName' => 'ASC']);
+
+        return $this->render('user/users.html.twig', array(
+          'users' => $users,
+          'role' => 'Elevi',
+        ));
+    }
+
+    /**
+     * @Route("/users/parents", name="users_parents")
+     * @Method({"GET"})
+     */
+    public function users_parents()
+    {
+        $users = $this->getDoctrine()->getRepository
+        (User::class)->findBy(['usertype' => 'ROLE_PARENT'], ['lastName' => 'ASC']);
+
+        return $this->render('user/users.html.twig', array(
+          'users' => $users,
+          'role' => 'Părinți',
+        ));
+    }
+
+    /**
+     * @Route("/users/professors", name="users_profs")
+     * @Method({"GET"})
+     */
+    public function users_profs()
+    {
+        $users = $this->getDoctrine()->getRepository
+        (User::class)->findBy(['usertype' => 'ROLE_PROF'], ['lastName' => 'ASC']);
+
+        return $this->render('user/users.html.twig', array(
+          'users' => $users,
+          'role' => 'Profesori',
+        ));
+    }
+
+    /**
+     * @Route("/users/admins", name="users_admins")
+     * @Method({"GET"})
+     */
+    public function users_admins()
+    {
+        $users = $this->getDoctrine()->getRepository
+        (User::class)->findBy(['usertype' => 'ROLE_ADMIN'], ['lastName' => 'ASC']);
+
+        return $this->render('user/users.html.twig', array(
+          'users' => $users,
+          'role' => 'Administratori',
         ));
     }
 
