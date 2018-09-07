@@ -40,14 +40,15 @@ select {
 .enrollment-wrapper p {
     /* color: #000; */
 }
-.enrollment-wrapper a {
-    /* text-decoration: underline; */
-}
 .enrollment-wrapper ul {
     list-style:none;
 }
 .enrollment-wrapper li {
     /* list-style-type:none; */
+}
+
+.show-links a {
+    text-decoration: underline;
 }
 
 /* #class_optional_enroll_students {

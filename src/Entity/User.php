@@ -15,11 +15,16 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @UniqueEntity(
  *     fields={"email"},
- *     message="This e-mail address is already in use"
+ *     message="Acest e-mail este deja folosit"
  * )
  * @UniqueEntity(
  *     fields={"username"},
- *     message="This username is already in use"
+ *     message="Acest username este deja folosit"
+ * )
+ * @UniqueEntity(
+ *     fields={"firstName", "lastName"},
+ *     message="Acest utilizator (nume, prenume) există deja în baza de date",
+ *     errorPath="username"
  * )
  */
 class User implements UserInterface, \Serializable
@@ -33,35 +38,35 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=32, unique=true)
-     * @Assert\NotBlank(message = "This field can not be blank")
+     * @Assert\NotBlank(message = "Acest câmp (username) nu poate fii gol")
      * @Assert\Length(
-     *     min=4, minMessage = "The username must be at least '{{ limit }}' characters long",
-     *     max=32, maxMessage = "The username can NOT contain more than '{{ limit }}' characters"
+     *     min=4, minMessage = "Numele de utilizator trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=32, maxMessage = "Numele de utilizator NU poate să conțină mai mult de '{{ limit }}' caractere"
      * )
-     * @Assert\Type(
-     *     type="alpha",
-     *     message="The username can only contain letters"
+     * @Assert\Regex(
+     *     pattern="/\A[a-zA-Z]+([-\.][a-zA-Z]+)*\z/",
+     *     message="Numele de utilizator poate să conțină doar litere și caracterele '.' și '-'"
      * )
      */
     private $username;
 
     /**
      * @ORM\Column(type="string", length=128, unique=true)
-     * @Assert\NotBlank(message = "This field can not be blank")
+     * @Assert\NotBlank(message = "Acest câmp (e-mail) nu poate fii gol")
      * @Assert\Email(
-     *     message = "The email '{{ value }}' is not a valid email",
+     *     message = "Adresa de e-mail '{{ value }}' nu este validă",
      *     checkMX = true
      * )
      */
     private $email;
 
     /**
-    * @ORM\Column(type="string", length=128)
-    * @Assert\Length(
-    *     min=8, minMessage = "The password must be at least '{{ limit }}' characters long",
-    *     max=32, maxMessage = "The password can NOT contain more than '{{ limit }}' characters"
-    * )
-    */
+     * @ORM\Column(type="string", length=128)
+     * @Assert\Length(
+     *     min=8, minMessage="Parola trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=32, maxMessage="Parola NU poate să conțină mai mult de '{{ limit }}' caractere"
+     * )
+     */
     private $password;
 
     /**
@@ -91,11 +96,29 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=32)
+     * @Assert\NotBlank(message = "Câmpul \'prenume\' nu poate fii gol.")
+     * @Assert\Length(
+     *     min=2, minMessage = "Câmpul 'nume' trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=32, maxMessage = "Câmpul 'nume' can NU poate să conțină mai mult de '{{ limit }}' caractere"
+     * )
+     * @Assert\Regex(
+     *     pattern="/\A[a-zA-Z]+([\s|-][a-zA-Z]+)*\z/",
+     *     message="Câmpul 'nume' poate să conțină doar litere, spații și caracterele '.' și '-'"
+     * )
      */
     private $firstName;
 
     /**
      * @ORM\Column(type="string", length=32)
+     * @Assert\NotBlank(message = "Câmpul 'nume' nu poate fii gol.")
+     * @Assert\Length(
+     *     min=2, minMessage = "Câmpul 'prenume' trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=32, maxMessage = "Câmpul 'prenume' can NU poate să conțină mai mult de '{{ limit }}' caractere"
+     * )
+     * @Assert\Regex(
+     *     pattern="/\A[a-zA-Z]+([\s|-][a-zA-Z]+)*\z/",
+     *     message="Câmpul 'prenume' poate să conțină doar litere, spații și caracterele '.' și '-'"
+     * )
      */
     private $lastName;
 
@@ -109,6 +132,16 @@ class User implements UserInterface, \Serializable
      */
     private $classOptionals;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Guardian", inversedBy="children")
+     */
+    private $guardian;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Guardian", mappedBy="user", cascade={"persist", "remove"})
+     */
+    private $guardianacc;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -116,8 +149,6 @@ class User implements UserInterface, \Serializable
         $this->students = new ArrayCollection();
         $this->classOptionals = new ArrayCollection();
     }
-
-    //TODO: Add firstname, lastname, dateofbirth, id_parent (manyToOne)
 
     public function getId()
     {
@@ -432,6 +463,35 @@ class User implements UserInterface, \Serializable
             if ($classOptional->getProfessor() === $this) {
                 $classOptional->setProfessor(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getGuardian(): ?Guardian
+    {
+        return $this->guardian;
+    }
+
+    public function setGuardian(?Guardian $guardian): self
+    {
+        $this->guardian = $guardian;
+
+        return $this;
+    }
+
+    public function getGuardianacc(): ?Guardian
+    {
+        return $this->guardianacc;
+    }
+
+    public function setGuardianacc(Guardian $guardianacc): self
+    {
+        $this->guardianacc = $guardianacc;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $guardianacc->getUser()) {
+            $guardianacc->setUser($this);
         }
 
         return $this;

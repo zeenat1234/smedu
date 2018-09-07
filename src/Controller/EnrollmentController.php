@@ -121,6 +121,7 @@ class EnrollmentController extends AbstractController
         ]);
     }
 
+    //TODO: Deprecated since EnrollWizard - currently removed from navigation - still active in controller
     /**
      * @Route("/enrollment/new/{unitId}", name="new_enrollment_in_unit")
      * @Method({"GET", "POST"})

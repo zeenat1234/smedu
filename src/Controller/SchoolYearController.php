@@ -71,7 +71,7 @@ class SchoolYearController extends Controller
         if($form->isSubmitted() && $form->isValid()) {
           $schoolYear = $form->getData();
 
-          $schoolYearName = $schoolYear->getStartDate()->format("y")."/".$schoolYear->getEndDate()->format("y");
+          $schoolYearName = $schoolYear->getStartDate()->format("Y")."/".$schoolYear->getEndDate()->format("Y");
           $schoolYear->setYearname($schoolYearName);
 
           $entityManager = $this->getDoctrine()->getManager();

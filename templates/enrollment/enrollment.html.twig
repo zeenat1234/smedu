@@ -34,23 +34,37 @@
         <tr>
           <td>
             {% if current_unit.getAvailableSpots > (current_unit.getEnrollments|length) %}
-              <a href="{{ path('new_enrollment_in_unit', {'unitId':current_unit.id }) }}">
+              <!-- Deprecated since EnrollWizard
+              <a href="{# path('new_enrollment_in_unit', {'unitId':current_unit.id }) #}">
                 <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+              </a> -->
+              <a href="#">
+                <button class="btn btn-success"><i class="fas fa-check"></i></button>
               </a>
             {% else %}
               <a href="#">
-                <button class="btn btn-disabled" title="Nu mai există locuri libere în această unitate"><i class="fas fa-plus"></i></button>
+                <button class="btn btn-disabled" title="Nu mai există locuri libere în această unitate"><i class="fas fa-cross"></i></button>
               </a>
             {% endif %}
           </td>
+
           <td>
             {{ current_unit.getUnitname }}
           </td>
-          <td style='color:#f00'>
+
+          <td style='color:#800'>
             <center><strong>{{ current_unit.getEnrollments|length }}</strong></center>
           </td>
-          <td style='color:#0f0'>
-            <center><strong>{{ current_unit.getAvailableSpots - (current_unit.getEnrollments|length) }}</strong></center>
+
+          {% set freeSpots = current_unit.getAvailableSpots - (current_unit.getEnrollments|length) %}
+          {% if freeSpots == 0 %}
+          <td style='color:#800'>
+          {% elseif freeSpots < (0.3)*(current_unit.getAvailableSpots) %}
+          <td style='color:#880'>
+          {% else %}
+          <td style='color:#080'>
+          {% endif %}
+            <center><strong>{{ freeSpots }}</strong></center>
           </td>
         </tr>
         {% endfor %}

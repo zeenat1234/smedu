@@ -10,6 +10,14 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
 #can instantiate the entity
 use App\Entity\User;
+use App\Entity\Student;
+use App\Entity\Guardian;
+use App\Entity\Enrollment;
+use App\Entity\SchoolYear;
+
+#form flow
+use Craue\FormFlowBundle\Form\FormFlowInterface;
+use App\Form\EnrollWizard\ParentStudentEnroll;
 
 #can use entity's form
 use App\Form\UserType;
@@ -231,4 +239,116 @@ class UserController extends Controller
     }
 
 
+    /**
+     * @Route("/users/enrollwizard", name="enroll_wizard")
+     * @Method({"GET", "POST"})
+     */
+    public function enrollWizard()
+    {
+        return $this->processFlow(new ParentStudentEnroll(), $this->get('smedu.form.flow.parentStudentEnroll'));
+    }
+
+    protected function processFlow($formData, FormFlowInterface $flow) {
+
+        $schoolYears = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findCurrentAndNew();
+
+        $flow->setGenericFormOptions(array(
+          'school_years' => $schoolYears,
+        ));
+        //always bind after settingGenericFormOptions
+        $flow->bind($formData);
+
+    		$form = $submittedForm = $flow->createForm(ParentStudentEnroll::class, $formData, array(
+            // 'school_years' => $schoolYears,
+            // 'guardian' => $formData->guardian,
+        ));
+    		if ($flow->isValid($submittedForm)) {
+      			$flow->saveCurrentStepData($submittedForm);
+      			if ($flow->nextStep()) {
+
+              $form = $flow->createForm(ParentStudentEnroll::class, $formData, array(
+                  'school_years' => $schoolYears,
+                  // 'guardian' => $formData->guardian,
+              ));
+
+      			} else {
+      				// flow finished
+
+              if ($formData->addGuardian) {
+                $guardian = $formData->newGuardian;
+                $guardian->setPassword(
+                  $this->encoder->encodePassword($guardian, $guardian->getPassword())
+                );
+                $guardian->setUsername($guardian->getFirstName().'.'.$guardian->getLastName());
+                $guardian->setUsertype('ROLE_PARENT');
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($guardian);
+                $entityManager->flush();
+
+                $guardianAcc = new Guardian();
+                $guardianAcc->setUser($guardian);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($guardianAcc);
+                $entityManager->flush();
+              } else {
+                $guardian = $formData->guardian;
+                $guardianAcc = $guardian->getGuardianacc();
+              }
+
+              if ($formData->addStudent) {
+                $student = $formData->newStudent;
+                $student->setPassword(
+                  $this->encoder->encodePassword($student, $student->getPassword())
+                );
+                $student->setUsername($student->getFirstName().'.'.$student->getLastName());
+                $student->setUsertype('ROLE_PUPIL');
+                $student->setEmail($student->getFirstName().'.'.$student->getLastName().'@iteachsmart.ro');
+                $student->setPhoneNo('0');
+                $student->setGuardian($guardianAcc);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($student);
+                $entityManager->flush();
+              } else {
+                $student = $formData->student;
+              }
+
+              $enrollment = $formData->enrollment;
+
+              //TODO: the following 2x lines may be redundant - check without this logic as well
+              $enrollment->setIdParent($guardian);
+              $enrollment->setIdChild($student);
+
+              //Same code is used in EnrollmentController
+              $newStudent = new Student();
+              $newStudent->setUser($student);
+              $newStudent->setSchoolUnit($formData->schoolUnit);
+              $newStudent->setEnrollment($enrollment);
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($newStudent);
+              $entityManager->flush();
+
+              $enrollment->setStudent($newStudent);
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($enrollment);
+              $entityManager->flush();
+
+              //TODO: Send e-mail after creating enrollment
+
+              //flow reset and redirect
+      				$flow->reset();
+      				return $this->redirect($this->generateUrl('all_enrollments'));
+      			}
+    		}
+        return $this->render('user/parent.student.enroll.html.twig', array(
+        		'form' => $form->createView(),
+        		'flow' => $flow,
+            'formData' => $formData,
+      	));
+  	}
 }

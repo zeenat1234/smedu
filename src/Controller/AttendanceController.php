@@ -51,18 +51,22 @@ class AttendanceController extends AbstractController
         $currentOptional = $this->getDoctrine()->getRepository
         (ClassOptional::class)->find($optId);
 
-        foreach ($currentOptional->getOptionalSchedules() as $sched) {
-            foreach ($currentOptional->getStudents() as $stud) {
-                $attendanceRecord = new OptionalsAttendance();
-                $attendanceRecord->setClassOptional($currentOptional);
-                $attendanceRecord->setOptionalSchedule($sched);
-                $attendanceRecord->setStudent($stud);
-                $attendanceRecord->setHasAttended(0);
+        if (count($currentOptional->getOptionalsAttendances()) == 0) {
+          foreach ($currentOptional->getOptionalSchedules() as $sched) {
+            if ($sched->getScheduledDateTime() > (new \DateTime('now'))) {
+              foreach ($currentOptional->getStudents() as $stud) {
+                  $attendanceRecord = new OptionalsAttendance();
+                  $attendanceRecord->setClassOptional($currentOptional);
+                  $attendanceRecord->setOptionalSchedule($sched);
+                  $attendanceRecord->setStudent($stud);
+                  $attendanceRecord->setHasAttended(0);
 
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($attendanceRecord);
-                $entityManager->flush();
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($attendanceRecord);
+                  $entityManager->flush();
+              }
             }
+          }
         }
 
         return $this->redirectToRoute('attendance');
@@ -83,7 +87,7 @@ class AttendanceController extends AbstractController
                 $result = $this->getDoctrine()->getRepository(OptionalsAttendance::class)->findOneBy(
                     array('optionalSchedule' => $sched, 'student' => $stud)
                 );
-                if (!$result) {
+                if (!$result && ($sched->getScheduledDateTime() > (new \DateTime('now'))) ) {
                     $attendanceRecord = new OptionalsAttendance();
                     $attendanceRecord->setClassOptional($currentOptional);
                     $attendanceRecord->setOptionalSchedule($sched);
