@@ -52,6 +52,9 @@
 # Env template
 /.env
 
+# Composer Lock File
+/composer.lock
+
 # Windows
 Thumbs.db
 
