@@ -4,8 +4,14 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\OptionalsAttendanceRepository")
+ * @UniqueEntity(
+ *     fields={"classOptional", "optionalSchedule", "student"},
+ *     message="Duplicate entry detected!!! Contact a webmaster and reference: Bug#1001C"
+ * )
  */
 class OptionalsAttendance
 {

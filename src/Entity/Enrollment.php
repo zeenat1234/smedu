@@ -12,7 +12,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\EnrollmentRepository")
  * @UniqueEntity(
  *     fields = {"idChild", "idUnit"},
- *     message = "The student is already enrolled in this unit"
+ *     message = "Elevul este deja înscris în acestă unitate"
  * )
  */
 class Enrollment

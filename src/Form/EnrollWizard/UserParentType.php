@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form;
+namespace App\Form\EnrollWizard;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
@@ -10,21 +10,17 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 #this is used for forms
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 # Symfony4 best practice is to not use a submit type in the formType or Controller
 #use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-class UserType extends AbstractType
+class UserParentType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('username', TextType::class, array(
-              'attr' => array('class' => 'form-control')
-            ))
             ->add('lastName', TextType::class, array(
               'label' => 'Nume',
               'attr' => array('class' => 'form-control')
@@ -41,24 +37,20 @@ class UserType extends AbstractType
               'label' => 'Număr de telefon',
               'attr' => array('class' => 'form-control')
             ))
-            ->add('password', RepeatedType::class, array(
-              'type' => PasswordType::class,
-              'invalid_message' => 'The password fields must match.',
-              'options' => array('attr' => array('class' => 'form-control')),
-              'required' => true,
-              'first_options'  => array('label' => 'Password'),
-              'second_options' => array('label' => 'Repeat Password')
-            ))
-            ->add('usertype', ChoiceType::class, array(
-              'choices'  => array(
-                'Profesor' => 'ROLE_PROF',
-                'Administrator' => 'ROLE_ADMIN',
-                //The following 2x roles can only be created using EnrollWizard
-                //'Părinte' => 'ROLE_PARENT',
-                //'Elev' => 'ROLE_PUPIL'
+            ->add('username', HiddenType::class, array(
+              'mapped' => true,
+              'data' => 'temporary.username',
+              'error_mapping' => array(
+                  '.' => 'email',
               ),
-              'label' => 'Tip Utilizator',
-              'attr' => array('class' => 'form-control')
+            ))
+            //TODO: generate random P@ssword
+            ->add('password', HiddenType::class, array(
+              'mapped' => true,
+              'data' => '73mPa@$$Sm3dU',
+              'error_mapping' => array(
+                  '.' => 'email',
+              ),
             ))
         ;
     }
@@ -67,6 +59,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'validation_groups' => array('Default'),
         ]);
     }
 }

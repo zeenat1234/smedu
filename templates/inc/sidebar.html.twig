@@ -35,12 +35,6 @@
                   <a href="{{ path('users_admins') }}">Administratori</a>
               </li>
               <li>
-                  <a href="{{ path('user_new') }}">Adaugă Părinte + Elev</a>
-              </li>
-              <li>
-                  <a href="{{ path('user_new') }}">Adaugă Elev</a>
-              </li>
-              <li>
                   <a href="{{ path('user_new') }}">Adaugă Utilizator</a>
               </li>
               <!-- <li>
@@ -55,10 +49,13 @@
           </a>
           <ul class="collapse list-unstyled" id="enrollSubmenu">
             <li>
-                <a href="{{ path('enrollment') }}">Status Înscrieri</a>
+                <a href="{{ path('enroll_wizard') }}">Înscre Nouă</a>
             </li>
             <li>
                 <a href="{{ path('all_enrollments') }}">Toate Înscrierile</a>
+            </li>
+            <li>
+                <a href="{{ path('enrollment') }}">Statistici Înscrieri</a>
             </li>
           </ul>
         </li>

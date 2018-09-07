@@ -1,0 +1,118 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %} Înscriere Familie Nouă {% endblock %}
+
+{% block extrastylesheets %}
+	<link type="text/css" rel="stylesheet" href="{{ asset('css/buttons.css') }}" />
+{% endblock %}
+
+{% block body %}
+
+<div class="show-links">
+<div>
+	Pași:
+	{% include '@CraueFormFlow/FormFlow/stepList.html.twig' %}
+</div>
+
+{{ form_start(form) }}
+	{{ form_errors(form) }}
+
+	{% if flow.getCurrentStepNumber() == 1 %}
+		<div>
+			Dacă părintele are un elev înscris în unitate, alege opțiunea: <b>NU</b>
+			{{ form_row(form.addGuardian) }}
+			<br>
+			Dacă părintele este deja înregistrat, alege-l din listă.
+			{{ form_row(form.guardian) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 2 %}
+		<div>
+			Adaugă cont părinte: <br>
+			{{ form_row(form.newGuardian) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 3 %}
+		<div>
+			Elev: <br>
+			{{ form_row(form.addStudent) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 4 and flow.formData.addGuardian == true %}
+		<div>
+			Adaugă cont elev pentru {{ flow.formData.newGuardian.getFullName(1) }} <br>
+			{{ form_row(form.newStudent) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 4 and flow.formData.addGuardian == false %}
+		<div>
+			{% if flow.formData.addStudent == true %}
+				Adaugă cont elev pentru {{ flow.formData.guardian.getFullName(1) }} <br>
+				{{ form_row(form.newStudent) }}
+			{% else %}
+				Alege elevul: <br>
+				{{ form_row(form.student) }}
+			{% endif %}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 5 %}
+		<div>
+			An școlar <br>
+			{{ form_row(form.schoolYear) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 6 %}
+		<div>
+			Unitate școlară <br>
+			{{ form_row(form.schoolUnit) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 7 %}
+		<div>
+			Serviciu școlar <br>
+			{{ form_row(form.schoolService) }}
+		</div>
+	{% endif %}
+
+	{% if flow.getCurrentStepNumber() == 8 %}
+		<div>
+			Sumar Înscriere: <br>
+			Părinte: <br>
+			{% if flow.formData.newGuardian is not empty %}
+			{{ flow.formData.newGuardian.getRoName }}
+			{% else %}
+			{{ flow.formData.guardian.getRoName }}
+			{% endif %}
+			<br>
+			Elev: <br>
+			{% if flow.formData.newStudent is not empty %}
+			{{ flow.formData.newStudent.getRoName }}
+			{% else %}
+			{{ flow.formData.student.getRoName }}
+			{% endif %}
+			<br>
+			An școlar: {{ flow.formData.schoolYear.getYearname }}<br>
+			Unitate: {{ flow.formData.schoolUnit.getUnitname }} <br>
+			Serviciu: {{ flow.formData.schoolService.getServicename }} <br>
+			<br>
+			Termeni și condiții: <br>
+			<p><code>Under construction</code></p>
+			{{ form_row(form.enrollment) }}
+		</div>
+	{% endif %}
+
+	{{ form_rest(form) }}
+
+	{% include '@CraueFormFlow/FormFlow/buttons.html.twig' %}
+{{ form_end(form) }}
+
+</div>
+
+{% endblock %}
