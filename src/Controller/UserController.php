@@ -25,6 +25,7 @@ use App\Form\UserType;
 #can overwrite form fields from type
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -174,7 +175,17 @@ class UserController extends Controller
             'empty_data' => '',
             'first_options'  => array('label' => 'Password'),
             'second_options' => array('label' => 'Repeat Password')
-          ));
+          ))
+            ->add('usertype', ChoiceType::class, array(
+              'choices'  => array(
+                'Profesor' => 'ROLE_PROF',
+                'Administrator' => 'ROLE_ADMIN',
+                //The following 2x roles can only be used when editing entries
+                'Părinte' => 'ROLE_PARENT',
+                'Elev' => 'ROLE_PUPIL'
+              ),
+              'attr' => array('class' => 'form-control')
+            ));
 
 
         $form->handleRequest($request);
