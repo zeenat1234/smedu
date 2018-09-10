@@ -16,6 +16,7 @@ use App\Entity\User;
 
 #form type definition
 use App\Form\ClassGroupType;
+use App\Form\ClassGroupEnrollType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -110,5 +111,59 @@ class ClassGroupController extends AbstractController
             'class_group' => $classGroup,
             'students' => $students,
         ]);
+    }
+
+    /**
+     * @Route("/class/group/{groupId}.{redirect?'class_groups'}/enroll", name="class_group_enroll")
+     * @Method({"GET", "POST"})
+     */
+    public function class_group_enroll(Request $request, $groupId, $redirect)
+    {
+      $classgroup = $this->getDoctrine()->getRepository
+      (ClassGroup::class)->find($groupId);
+
+      //getavailablestudents
+      $availableStudents = $classgroup->getSchoolUnit()->getStudents();
+      foreach ($availableStudents as $student) {
+          if ($student->getEnrollment()->getIsActive() == 1
+            && ($student->getClassGroup() == $classgroup || empty($student->getClassGroup()))
+          ) {
+            $students[]=$student;
+          }
+      }
+
+      $form = $this->createForm(ClassGroupEnrollType::Class, $classgroup, array(
+        'students' => $students,
+      ));
+
+      $form->handleRequest($request);
+
+      if($form->isSubmitted() && $form->isValid()) {
+        $classgroup = $form->getData();
+
+        foreach ($students as $student) {
+          if ($classgroup->getStudents()->contains($student)) {
+            $student->setClassGroup($classgroup);
+          } else {
+            $student->setClassGroup(NULL);
+          }
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->flush();
+        }
+
+        if ($redirect == 'class_groups') {
+          return $this->redirectToRoute('class_groups');
+        } else if ($redirect == 'group') {
+          return $this->redirectToRoute('class_group_view', ['groupId' => $groupId]);
+        } else {
+          return $this->redirectToRoute('class_groups');
+        }
+      }
+
+      return $this->render('class_group/class.group.enroll.html.twig', [
+          'classgroup' => $classgroup,
+          'students' => $students,
+          'form' => $form->createView(),
+      ]);
     }
 }

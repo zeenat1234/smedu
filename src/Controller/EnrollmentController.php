@@ -182,10 +182,10 @@ class EnrollmentController extends AbstractController
     }
 
     /**
-     * @Route("/enrollment/edit/{enrollId}", name="edit_enrollment")
+     * @Route("/enrollment/edit/{enrollId}.{studId?0}.{redirect?'all_enrollments_year'}", name="edit_enrollment")
      * @Method({"GET", "POST"})
      */
-    public function edit(Request $request, $enrollId)
+    public function edit(Request $request, $enrollId, $studId, $redirect)
     {
         $enrollment = $this->getDoctrine()->getRepository
         (Enrollment::class)->find($enrollId);
@@ -214,22 +214,26 @@ class EnrollmentController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
-           $enrollment = $form->getData();
+          $enrollment = $form->getData();
 
-           $entityManager = $this->getDoctrine()->getManager();
-           $entityManager->persist($enrollment);
-           $entityManager->flush();
-        // After a child is deactivated, we also remove it from any existing optional class
-           if ($enrollment->getIsActive() == 0) {
-               foreach ($enrollment->getStudent()->getClassOptionals() as $optional) {
-                  $optional->removeStudent($enrollment->getStudent());
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->flush();
+          // After a child is deactivated, we also remove it from any existing optional class
+          if ($enrollment->getIsActive() == 0) {
+             foreach ($enrollment->getStudent()->getClassOptionals() as $optional) {
+                $optional->removeStudent($enrollment->getStudent());
 
-                  $entityManager->persist($optional);
-                  $entityManager->flush();
-               }
-           }
-
-           return $this->redirectToRoute('all_enrollments_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
+                $entityManager->persist($optional);
+                $entityManager->flush();
+             }
+          }
+          if ($redirect == 'all_enrollments_year') {
+            return $this->redirectToRoute('all_enrollments_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
+          } else if ($redirect == 'class_group') {
+            $student = $this->getDoctrine()->getRepository
+            (Student::class)->find($studId);
+            return $this->redirectToRoute('class_group_view', ['groupId' => $student->getClassGroup()->getId()]);
+          } 
         }
 
 

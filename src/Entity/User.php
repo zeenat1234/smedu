@@ -44,7 +44,7 @@ class User implements UserInterface, \Serializable
      *     max=32, maxMessage = "Numele de utilizator NU poate să conțină mai mult de '{{ limit }}' caractere"
      * )
      * @Assert\Regex(
-     *     pattern="/\A[a-zA-Z]+([-\.][a-zA-Z]+)*\z/",
+     *     pattern="/\A[a-zA-Z0-9]+([-\.][a-zA-Z0-9]+)*\z/",
      *     message="Numele de utilizator poate să conțină doar litere și caracterele '.' și '-'"
      * )
      */

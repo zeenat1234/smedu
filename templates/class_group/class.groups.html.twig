@@ -29,6 +29,9 @@
             <a href="{{ path('class_group_view', {'groupId':classgroup.id }) }}">
               <button class="btn btn-success">Detalii</button>
             </a>
+            <a href="{{ path('class_group_enroll', {'groupId':classgroup.id }) }}">
+              <button class="btn btn-primary">Înscrieri</button>
+            </a>
           </div>
         {% endfor %}
         </div>

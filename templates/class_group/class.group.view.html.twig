@@ -7,17 +7,67 @@
   <h2>{{ class_group.getGroupName }}</h2>
   <br>
   {% if students is not empty %}
-    <ol type="1" style="type:1;">
-    {% for student in students %}
-        <li>
-          {{ student.getUser.getFullName(1) }}
-        </li>
-
-    {% endfor %}
-    </ol>
-
+    <table class="class-group-details-wrap show-links">
+      <thead>
+        <tr>
+          <th>Nr.</th>
+          <th>Nume</th>
+          <th>Elev</th>
+          <th>Înscriere</th>
+          <th>Părinte</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% set counter = 0 %}
+      {% for student in students %}
+          {% set counter = counter + 1 %}
+          <tr>
+            <td>
+              {{ counter }}
+            </td>
+            <td style="padding-right:30px">
+              {{ student.getUser.getFullName(1) }}
+            </td>
+            <td>
+              <a href="{{ path('user_edit',{
+                      'id':student.getUser.getId,
+                      'redirect':'class_group',
+                      'studId':student.getId
+              }) }}"> Detalii
+              </a>
+            </td>
+            <td>
+              {{ student.getEnrollment.getIdService.getServicename }}
+              <a href="{{ path('edit_enrollment', {
+                    'enrollId':student.getEnrollment.getId,
+                    'redirect':'class_group',
+                    'studId':student.getId
+              }) }}">Modifică</a>
+            </td>
+            <td>
+              {% set guardian = student.getUser.getGuardian %}
+              {% if guardian is not empty %}
+              <i class="fas fa-eye"></i> <a href="{{ path('user_edit',{
+                      'id':guardian.getUser.getId,
+                      'redirect':'class_group',
+                      'studId':student.getId
+              }) }}">
+                {{ guardian.getUser.getRoName }}
+              </a>
+              {% else %}
+                Nu există un părinte asociat.
+              {% endif %}
+            </td>
+          </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <br>
   {% else %}
     <p>Nu există elevi înscriși în această clasă</p>
+    <br>
   {% endif %}
-
+  <a href="{{ path('class_group_enroll', {'groupId':class_group.id, 'redirect':'group' }) }}">
+    <button class="btn btn-primary">Înscrieri</button>
+  </a>
 {% endblock %}

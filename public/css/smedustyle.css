@@ -51,6 +51,10 @@ select {
     text-decoration: underline;
 }
 
+.class-group-details-wrap th,td {
+  padding: 0px 8px 0px 8px;
+}
+
 /* #class_optional_enroll_students {
   display: flex;
   flex-flow: row wrap;

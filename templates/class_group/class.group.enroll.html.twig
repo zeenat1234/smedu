@@ -1,0 +1,28 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}{{ classgroup.getGroupName }} -> Înscrieri{% endblock %}
+
+{% block body %}
+    <h1>Editează înscrieri {{ classgroup.getGroupName }}</h1>
+    <br>
+    {% if students is empty %}
+      <p>Nu există niciun elev înscris în unitate </p>
+    {% else %}
+
+      {% for student in students %}
+          <!-- <p>{{ student.getUser.getUsername }}</p> -->
+      {% endfor %}
+
+      {{ form_start(form) }}
+        <div class="row">
+        {% for s in form.students %}
+          <div class="col-6 col-lg-4 col-xl-3">
+            {{ form_widget(s) }} {{form_label(s) }}
+          </div>
+        {% endfor %}
+        </div>
+          <input type="submit" class="btn btn-success mt-3" value="Actualizează">
+      {{ form_end(form) }}
+
+    {% endif %}
+{% endblock %}

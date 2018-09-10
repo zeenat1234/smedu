@@ -152,10 +152,10 @@ class UserController extends Controller
     }
 
     /**
-     * @Route("/user/edit/{id}", name="user_edit")
+     * @Route("/user/edit/{id}.{studId?0}.{redirect?'users'}", name="user_edit")
      * @Method({"GET", "POST"})
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, $redirect, $studId)
     {
         $user = new User();
 
@@ -177,6 +177,7 @@ class UserController extends Controller
             'second_options' => array('label' => 'Repeat Password')
           ))
             ->add('usertype', ChoiceType::class, array(
+              'label' => 'Tip utilizator:',
               'choices'  => array(
                 'Profesor' => 'ROLE_PROF',
                 'Administrator' => 'ROLE_ADMIN',
@@ -184,6 +185,7 @@ class UserController extends Controller
                 'Părinte' => 'ROLE_PARENT',
                 'Elev' => 'ROLE_PUPIL'
               ),
+              'disabled' => true,
               'attr' => array('class' => 'form-control')
             ));
 
@@ -199,15 +201,23 @@ class UserController extends Controller
           } else {
             $user->setPassword($originalPassword);
           }
-
+          //NOTE: no need to persist when editing
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->flush();
 
-          return $this->redirectToRoute('users');
+          if ($redirect == 'users') { //DEBUG: the first condition is not met - investigate
+            return $this->redirectToRoute('users');
+          } else if ($redirect == 'class_group') {
+            $student = $this->getDoctrine()->getRepository
+            (Student::class)->find($studId);
+            return $this->redirectToRoute('class_group_view', ['groupId' => $student->getClassGroup()->getId()]);
+          } else {
+            return $this->redirectToRoute('users');
+          }
         }
 
         return $this->render('user/user.edit.html.twig', array(
-          'form' => $form->createView()
+          'form' => $form->createView(),
         ));
     }
 

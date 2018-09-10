@@ -26,7 +26,7 @@ class Student
     private $User;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ClassGroup", inversedBy="students")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ClassGroup", inversedBy="students", cascade={"all"})
      */
     private $classGroup;
 
