@@ -6,7 +6,7 @@
     <h1>Editează înscrieri {{ classgroup.getGroupName }}</h1>
     <br>
     {% if students is empty %}
-      <p>Nu există niciun elev înscris în unitate </p>
+      <p>Nu există niciun elev înscris în unitate <code>sau</code> nu există niciun elev neînscris.</p>
     {% else %}
 
       {% for student in students %}
