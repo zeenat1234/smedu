@@ -19,10 +19,9 @@ class EnrollmentRepository extends ServiceEntityRepository
         parent::__construct($registry, Enrollment::class);
     }
 
-    /**
+   /**
     * @return Enrollment[] Returns an array of Enrollment objects
     */
-
     public function findLatest($value, $yearId)
     {
         return $this->createQueryBuilder('e')
@@ -41,13 +40,29 @@ class EnrollmentRepository extends ServiceEntityRepository
 
      public function findAllYear($yearId)
      {
-         return $this->createQueryBuilder('e')
+        return $this->createQueryBuilder('e')
+             ->leftJoin('e.idChild', 'u')
              ->andWhere('e.schoolYear = :val')
              ->setParameter('val', $yearId)
+             ->addOrderBy('u.lastName', 'ASC')
              ->getQuery()
              ->getResult()
-         ;
-     }
+        ;
+      }
+
+      public function findLatestForChild($yearId, $idChild): ?Enrollment
+      {
+        return $this->createQueryBuilder('e')
+             ->andWhere('e.schoolYear = :val')
+             ->andWhere('e.idChild =:vall')
+             ->setParameter('val', $yearId)
+             ->setParameter('vall', $idChild)
+             ->orderBy('e.enrollDate', 'DESC')
+             ->setMaxResults(1)
+             ->getQuery()
+             ->getOneOrNullResult()
+        ;
+      }
 
 
 

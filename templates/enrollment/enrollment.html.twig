@@ -5,9 +5,9 @@
 {% block body %}
 
 <div class="enrollment-wrapper">
-  <h1>Înscrieri {{ current_year.getYearlabel|lower }}</h1>
+  <h1 class="coinyFont">Înscrieri {{ current_year.getYearlabel|lower }}</h1>
   <br>
-  <i class="far fa-arrow-alt-circle-right"></i> Statistici curente:
+  <h4 class="kuraleFont"><i class="far fa-arrow-alt-circle-right"></i> Statistici curente:</h4>
   <ul>
     <li>Cea mai recentă înscriere: <strong>{{ enrollments[0].getIdChild.getFullName(1)|default('Nu există') }}</strong>
       {% if enrollments is not empty %}
@@ -20,9 +20,9 @@
   {% if current_units|length >= 1 %}
     <table>
       {% if current_units|length == 1 %}
-        <i class="far fa-arrow-alt-circle-right"></i> Pe unitate de învățământ:
+        <h4 class="kuraleFont"><i class="far fa-arrow-alt-circle-right"></i> Pe unitate de învățământ:</h4>
       {% elseif current_units|length > 1 %}
-        <i class="far fa-arrow-alt-circle-right"></i> Pe unități de învățământ:
+        <h4 class="kuraleFont"><i class="far fa-arrow-alt-circle-right"></i> Pe unități de învățământ:</h4>
       {% endif %}
         <tr>
           <th></th>
@@ -75,14 +75,14 @@
   <br>
   <div class="row">
     <div class="col">
-      <i class="far fa-arrow-alt-circle-right"></i> Alte statistici/proprietăți:
-      <p>(under construction)</p>
+      <h4 class="kuraleFont"><i class="far fa-arrow-alt-circle-right"></i> Alte statistici/proprietăți:</h4>
+      <code>under construction</code>
     </div>
   </div>
   <br>
   <div class="row">
     <div class="col">
-      <i class="far fa-arrow-alt-circle-right"></i> Ultimele 10 înscrieri:
+      <h4 class="kuraleFont"><i class="far fa-arrow-alt-circle-right"></i> Ultimele 10 înscrieri:</h4>
       <ol type="1" style="type:1;">
       {% for enrollment in enrollments %}
         <li>

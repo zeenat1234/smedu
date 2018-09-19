@@ -4,15 +4,17 @@
 
 {% block body %}
 
-    <h1> Bine ați revenit! ✅</h1>
+    <h1 class="coinyFont"> Bine ați revenit! ✅</h1>
     <br>
-    Software-ul este încă în dezvoltare. Funcționalitate curentă:
+    Software-ul este încă în dezvoltare. Funcționalitate curentă:<br><br>
     <ul>
         <li>Modificare setări an școlar <code><a href="{{ path('school_year') }}">(Link)</a></code></li>
         <li>Adăugare/Modificare unități școlare <code><a href="{{ path('school_units') }}">(Link)</a></code></li>
         <li>Adăugare/Modificare/Ștergere servicii școlare <code><a href="{{ path('school_services') }}">(Link)</a></code></li>
         <li>Administrare utilizatori <code><a href="{{ path('users') }}">(Link)</a></code></li>
-        <li>Efectuare/Modificare/Dezactivare înscrieri<code><a href="#">(Link)</a></code></li>
+        <li>Efectuare/Modificare/Dezactivare înscrieri<code><a href="{{ path('all_enrollments') }}">(Link)</a></code></li>
+        <li>Administrare Conturi<code><a href="{{ path('accounts') }}">(Link)</a></code></li>
+        <li>Portal Părinte</li>
 
 
     </ul>

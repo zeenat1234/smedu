@@ -3,9 +3,9 @@
 {% block title %}Date pentru: {{ user.username }}{% endblock %}
 
 {% block body %}
-  <h1>{{ user.username }}</h1>
+  <h2 class="coinyFont">{{ user.getRoName }}</h2>
   <p>E-mail: {{ user.email }}</p>
-  <p>Type: {{ user.usertype }}</p>
+  <p>Tip Utilizator: {{ user.usertype }}</p>
   <br>
   <br>
   <a href="{{ path('users') }}"><button type="button" class="btn btn-primary">Back...</button></a>

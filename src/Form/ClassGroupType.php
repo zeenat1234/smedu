@@ -29,19 +29,22 @@ class ClassGroupType extends AbstractType
 
         $builder
             ->add('schoolUnit', ChoiceType::class, array(
+              'label'    => 'Unitate Școlară',
               'choices'  => $unitchoice,
-              'attr' => array(
-                'class' => 'form-control',
-                'readonly' => 'readonly',
+              'attr'     => array(
+                'class'     => 'form-control',
+                'readonly'  => 'readonly',
               ),
             ))
             ->add('groupName', TextType::class, array(
-              'attr' => array(
+              'label'  => 'Nume grupă',
+              'attr'   => array(
                 'class' => 'form-control',
               ),
             ))
 
             ->add('professor', ChoiceType::class, array(
+              'label'    => 'Profesor',
               'choices'  => $profChoice,
               'attr' => array(
                 'class' => 'form-control',

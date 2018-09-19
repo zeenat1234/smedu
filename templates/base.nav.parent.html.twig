@@ -5,11 +5,9 @@
   <script src="https://unpkg.com/scrollreveal@4"></script>
 {% endblock %}
 
-
-
 {% block menus %}
   <!-- Sidebar  -->
-  {{ include('inc/sidebar.html.twig') }}
+  {{ include('inc/sidebar_parent.html.twig') }}
 
   <!-- Navbar -->
   {{ include('inc/navbar.html.twig') }}
@@ -31,42 +29,30 @@
       } else if (localStorage.getItem("collapsecookie") == 0) {
         localStorage.setItem("collapsecookie", 1);
       }
-      //console.log('dupa click =>'+localStorage.getItem("collapsecookie"));
     });
-
-    if (localStorage.getItem("collapsecookie") == null ) {
-      localStorage.setItem("collapsecookie", 0);
-      console.log('Am pus 0!!!');
-    } else if (localStorage.getItem("collapsecookie") == 1) {
-      $('#sidebar').toggleClass('active');
-      $('.navbar').toggleClass('active');
-      $('#content').toggleClass('active');
-      //console.log('ERA 1!');
-    } else {
-      //console.log('ERA 0!');
-    }
-
   });
 
-  // remove all active links
-  $("#sidebar li").each(function() { $(this).removeClass("active") });
+  if (localStorage.getItem("collapsecookie") == null ) {
+    localStorage.setItem("collapsecookie", 0);
+    console.log('Am pus 0!!!');
+  } else if (localStorage.getItem("collapsecookie") == 1) {
+    $('#sidebar').toggleClass('active');
+    $('.navbar').toggleClass('active');
+    $('#content').toggleClass('active');
+    //console.log('ERA 1!');
+  } else {
+    //console.log('ERA 0!');
+  }
 
-  // add active to the button (or parents) which are active and expand them
   $("#sidebar li").each(function() {
     var h = $("a",this).attr('href');
-
     //console.log(h+'\n'+window.location.pathname)
     if (h == window.location.pathname) {
         $(this).addClass("active");
-        $(this).parents("li").addClass("active");
-        $(this).parents("li").children("a").click();
-        //$(this).parents("li").children("a").attr("aria-expanded","true");
-        //$(this).parents("li").children("a").removeClass("collapsed");
     } else {
-        //$(this).removeClass("active");
+        $(this).removeClass("active");
     }
   });
-
 </script>
 
 <script>

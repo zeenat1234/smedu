@@ -1,0 +1,85 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Opționale{% endblock %}
+
+{% block body %}
+    <h2 class="coinyFont"><i class="fas fa-book-reader fa-fw"></i> Înscrieri opționale</h2>
+    <br>
+    <strong>Instrucțiuni: </strong>Opționalele la care elevul este înscris apar bifate în lisă. Pentru a înscrie elevul la un opțional, nu e nevoie decât să bifați opționalul/opționalele dorit(e) și să apăsați butonul <strong><i class="fas fa-angle-double-up"></i> Actualizează</strong>.
+    <br><br>
+    {% set kids = app.user.getGuardianacc.getChildren %}
+    {% set count = 0 %}
+    {% for kid in kids %}
+      {% if kid.getChildLatestEnroll.getId is not null %}
+        {% set count = count + 1 %}
+      {% endif %}
+    {% endfor %}
+    {% if count > 1 %}
+    <strong>Atenție: </strong> Modificările se fac individual, pe fiecare elev în parte. Astfel, dacă modificați mai mulți elevi, vor fii salvate doar modificările făcute elevului a cărui buton a fost apăsat. Vă rugăm să modificați fiecare elev individual!
+    <br><br>
+    {% endif %}
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+    <br>
+    <div class="row">
+    {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
+    {% set i = 0 %}
+    {% if kids|length > 0 %}
+      {% for kid in kids %}
+        {% if kid.getChildLatestEnroll.getId is not null %}
+          <div class="col-12">
+            <div class="indexParentHolder {{ holderColors[i] }}">
+              <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
+              <hr>
+              <b>Unitate școlară: </b>{{ kid.getChildLatestEnroll.getIdUnit.getUnitname }}
+              <br><br>
+              <b>Serviciu: </b>{{ kid.getChildLatestEnroll.getIdService.getServicename }}
+              <hr>
+              {{ form_start(forms[i]) }}
+                <div class="row">
+                  {% for f in forms[i].classOptionals %}
+                    <div class="col-12 col-lg-6 col-xl-4">
+                      <div class="kuraleFont" style="font-size: 20px;"><span class="double">{{ form_widget(f) }}</span>{{ form_label(f) }}</div>
+                      {% set index = f.vars.value %}
+                      {% set entity = forms[i].classOptionals.vars.choices[index].data %}
+                      <strong>Descriere: </strong>{{ entity.getDescription }}<br>
+                      <strong>Preț: </strong>{{ entity.getPrice }} RON/{% if entity.useAttend %}ședință{% else %}lună{% endif %}
+                      <hr>
+                    </div>
+                  {% endfor %}
+                  <div class="col-12">
+                    <button class="btn-sm btn-success mt-3"><i class="fas fa-angle-double-up"></i> Actualizează</button>
+                  </div>
+                </div>
+              {{ form_end(forms[i]) }}
+            </div>
+          </div>
+          {# SUPPORTS UP TO 4 CHILDREN #}
+          {% set i = i + 1 %}
+        {% endif %}
+      {% endfor %}
+      {% if i == 0 %}
+        <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+      {% endif %}
+    {% endif %}
+    </div>
+
+    <hr>
+    {% include('home/myaccount.terms.cond.html.twig') %}
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder', { duration:800, delay:0 });
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder2', { duration:1500, delay:50 });
+  </script>
+{% endblock %}

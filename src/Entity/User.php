@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+use App\Entity\Enrollment;
+
 //Validation Classes
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -44,7 +46,7 @@ class User implements UserInterface, \Serializable
      *     max=32, maxMessage = "Numele de utilizator NU poate să conțină mai mult de '{{ limit }}' caractere"
      * )
      * @Assert\Regex(
-     *     pattern="/\A[a-zA-Z0-9]+([-\.][a-zA-Z0-9]+)*\z/",
+     *     pattern="/\A[a-zA-Z0-9ăîșțâĂÎȘȚÂ]+([-\.][a-zA-Z0-9ăîșțâĂÎȘȚÂ]+)*\z/",
      *     message="Numele de utilizator poate să conțină doar litere și caracterele '.' și '-'"
      * )
      */
@@ -64,7 +66,7 @@ class User implements UserInterface, \Serializable
      * @ORM\Column(type="string", length=128)
      * @Assert\Length(
      *     min=8, minMessage="Parola trebuie să conțină cel puțin '{{ limit }}' caractere",
-     *     max=32, maxMessage="Parola NU poate să conțină mai mult de '{{ limit }}' caractere"
+     *     max=64, maxMessage="Parola NU poate să conțină mai mult de '{{ limit }}' caractere"
      * )
      */
     private $password;
@@ -102,7 +104,7 @@ class User implements UserInterface, \Serializable
      *     max=32, maxMessage = "Câmpul 'nume' can NU poate să conțină mai mult de '{{ limit }}' caractere"
      * )
      * @Assert\Regex(
-     *     pattern="/\A[a-zA-Z]+([\s|-][a-zA-Z]+)*\z/",
+     *     pattern="/\A[a-zA-ZăîșțâĂÎȘȚÂ]+([\s|-][a-zA-ZăîșțâĂÎȘȚÂ]+)*\z/",
      *     message="Câmpul 'nume' poate să conțină doar litere, spații și caracterele '.' și '-'"
      * )
      */
@@ -110,13 +112,13 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=32)
-     * @Assert\NotBlank(message = "Câmpul 'nume' nu poate fii gol.")
+     * @Assert\NotBlank(message = "Câmpul 'prenume' nu poate fii gol.")
      * @Assert\Length(
      *     min=2, minMessage = "Câmpul 'prenume' trebuie să conțină cel puțin '{{ limit }}' caractere",
      *     max=32, maxMessage = "Câmpul 'prenume' can NU poate să conțină mai mult de '{{ limit }}' caractere"
      * )
      * @Assert\Regex(
-     *     pattern="/\A[a-zA-Z]+([\s|-][a-zA-Z]+)*\z/",
+     *     pattern="/\A[a-zA-ZăîșțâĂÎȘȚÂ]+([\s|-][a-zA-ZăîșțâĂÎȘȚÂ]+)*\z/",
      *     message="Câmpul 'prenume' poate să conțină doar litere, spații și caracterele '.' și '-'"
      * )
      */
@@ -300,6 +302,18 @@ class User implements UserInterface, \Serializable
     public function getEnrollmentsChild(): Collection
     {
         return $this->enrollmentsChild;
+    }
+
+    public function getChildLatestEnroll(): ?Enrollment
+    {
+        $allEnrollments = $this->enrollmentsChild;
+        $latest = new Enrollment();
+        foreach ($allEnrollments as $theEnrollment) {
+          if ($theEnrollment->getEnrollDate() > $latest->getEnrollDate() && $theEnrollment->getIsActive()) {
+            $latest = $theEnrollment;
+          }
+        }
+        return $latest;
     }
 
     public function addEnrollmentChild(Enrollment $enrollment): self

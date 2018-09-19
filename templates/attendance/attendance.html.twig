@@ -18,13 +18,13 @@
         </a>
         </div> -->
       </div>
-      <p style="font-weight:bold;">Module</p>
+      <p style="font-weight:bold;">Materii</p>
       {% if modules is not empty %}
         <table id="modules-{{ schoolunit.id }}" class="table table-striped table-hover">
 
           <thead>
             <tr>
-              <th>Modul</th>
+              <th>Materia</th>
               <th>Profesor</th>
               <th>Elevi</th>
               <th>Prezențe/Absențe</th>
@@ -37,7 +37,7 @@
 
         </table>
         {% else %}
-          <p>Nu există module.</p>
+          <p>Nu există materii.</p>
         {% endif %}
         <p style="font-weight:bold;">Opționale</p>
         {% if schoolunit.getClassOptionals is not empty %}
@@ -69,15 +69,15 @@
                       {% else %}
                         {% if optional.isSyncd == true %}
                           {# View or Edit attenandance #}
-                          <a href="{{ path('view_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn btn-success">Vizualizează</button></a>
-                          <a href="#{# path('optional_schedule', {'id':optional.id }) #}"><button type="button" class="btn btn-secondary">Modifică</button></a>
+                          <a href="{{ path('view_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-success">Vizualizează</button></a>
+                          <a href="#{# path('optional_schedule', {'id':optional.id }) #}"><button type="button" class="btn-sm btn-secondary">Modifică</button></a>
                         {% else %}
                           {% if optional.isModified == true %}
                             {# Update attenandance #}
-                            <a href="{{ path('update_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn btn-warning">Actualizează</button></a>
+                            <a href="{{ path('update_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-warning">Actualizează</button></a>
                           {% else %}
                             {# Generate attenandance #}
-                            <a href="{{ path('generate_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn btn-primary">Catalog NOU</button></a>
+                            <a href="{{ path('generate_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-primary">Catalog NOU</button></a>
                           {% endif %}
                         {% endif %}
                       {% endif %}

@@ -14,6 +14,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 // use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+//use Symfony\Component\Intl\NumberFormatter\NumberFormatter; //TODO: See if needed or not...
 
 class EnrollmentType extends AbstractType
 {
@@ -24,7 +25,8 @@ class EnrollmentType extends AbstractType
 
         $servicechoices = array();
         foreach ($options['school_unit']->getSchoolservices() as $schoolService) {
-          $label = $schoolService->getServicename();
+          $formatter = new \NumberFormatter(\Locale::getDefault(), \NumberFormatter::CURRENCY);
+          $label = $schoolService->getServicename().' -- '.$formatter->formatCurrency($schoolService->getServiceprice(), 'RON');
           $servicechoices[$label] = $schoolService;
         }
 

@@ -1,0 +1,99 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Datele Mele{% endblock %}
+
+{% block body %}
+
+  <div class="myaccount-settings-wrapper">
+
+    <h1 class="coinyFont"><i class="fas fa-user fa-fw"></i> Modifică date personale</h1>
+
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+
+    {{ form_start(form) }}
+      <div class="row">
+        <div class="col-12 col-sm-6">
+          <div class="form-group">
+          {{ form_label(form.lastName) }}
+          {{ form_widget(form.lastName) }}
+          <code>{{ form_errors(form.lastName) }}</code>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="form-group">
+          {{ form_label(form.firstName) }}
+          {{ form_widget(form.firstName) }}
+          <code>{{ form_errors(form.firstName) }}</code>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="form-group">
+          {{ form_label(form.email) }}
+          {{ form_widget(form.email) }}
+          <code>{{ form_errors(form.email) }}</code>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="form-group">
+          {{ form_label(form.phoneNo) }}
+          {{ form_widget(form.phoneNo) }}
+          <code>{{ form_errors(form.phoneNo) }}</code>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6" id="firstPass" onclick="ShowFunction('');return false;">
+          <div class="form-group">
+          {{ form_label(form.password.first) }}
+          {{ form_widget(form.password.first) }}
+          <code>{{ form_errors(form.password.first) }}</code>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <!-- leave this div empty -->
+        </div>
+        <div class="col-12 col-sm-6" id="secondPass">
+          {{ form_label(form.password.second) }}
+          {{ form_widget(form.password.second) }}
+        </div>
+    </div>
+  <br>
+  <button class="btn btn-success mt-3"><i class="fas fa-angle-double-up"></i> Actualizează</button>
+
+  {{ form_end(form) }}
+  </div>
+
+  <hr>
+  {% include('home/myaccount.terms.cond.html.twig') %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  ScrollReveal({ reset: true }).reveal('.myaccount-settings-wrapper', { duration:800, delay:0 });
+  ScrollReveal({ reset: true }).reveal('.indexParentHolder2', { duration:1500, delay:0 });
+
+  document.getElementById('user_myaccount_password_first').disabled = true;
+  document.getElementById('user_myaccount_password_second').disabled = true;
+
+  function ShowFunction() {
+    if (document.getElementById('secondPass').style.maxHeight == 0) {
+      document.getElementById('secondPass').style.maxHeight = "100px";
+      document.getElementById('user_myaccount_password_first').disabled = false;
+      document.getElementById('user_myaccount_password_second').disabled = false;
+      console.log('it\'s OK!');
+    } else {
+      //document.getElementById('secondPass').hidden = true;
+      //console.log('it\'s OK Combo!');
+      //Do nothing!
+    }
+  }
+</script>
+{% endblock %}

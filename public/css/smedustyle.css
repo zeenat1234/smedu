@@ -3,6 +3,9 @@
 body {
     font-family: 'Poppins', sans-serif;
     background: #fafafa;
+    background-image: url("../img/myaccount.background.jpg");
+    background-repeat: repeat;
+    overflow: visible;
 }
 
 p {
@@ -23,6 +26,26 @@ a:focus {
 
 select {
   font-family: 'FontAwesome', sans-serif;
+}
+
+@font-face {
+  font-family: 'Coiny';
+  src: url('coiny.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+   url('coiny.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}
+
+@font-face {
+  font-family: 'Kurale';
+  src: /*url('beatrix.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+   url('kurale.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}
+
+.coinyFont {
+  font-family: 'Coiny';
+}
+
+.kuraleFont {
+  font-family: 'Kurale';
 }
 
 .wrapper {
@@ -47,6 +70,10 @@ select {
     /* list-style-type:none; */
 }
 
+.enrollment-wrapper h2 {
+  visibility: hidden;
+}
+
 .show-links a {
     text-decoration: underline;
 }
@@ -55,14 +82,6 @@ select {
   padding: 0px 8px 0px 8px;
 }
 
-/* #class_optional_enroll_students {
-  display: flex;
-  flex-flow: row wrap;
-  width: 20%;
-}
-#class_optional_enroll_students > .checkbox {
-  width: 45%;
-} */
 
 /* Using this in order to make Checkbox bigger */
 .double {
@@ -79,15 +98,98 @@ select {
   -o-transform-origin: 150% 70%;
   -moz-transform-origin: 150% 70%;
   -webkit-transform-origin: 150% 70%;
+
+  margin-left:7px;
 }
 
-
-/* .users {
-  table-layout: fixed;
+.btn-sm {
+  padding: 2px 6px 2px 6px;
 }
 
-.users th, td {
-  border-radius: 1px;
-  border-style: inset;
-  padding:2.5px 10px 2.5px 10px;
-} */
+.btn-max-width {
+  max-width:220px;
+}
+
+.indexParentHolder {
+  visibility: hidden;
+  width:100%;
+  display: block;
+  padding:15px 15px 15px 15px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0px 0px 10px 3px rgba(16, 16, 32, 0.3);
+  /* text-align:center; */
+}
+
+.indexParentHolder2 {
+  visibility: hidden;
+  width:100%;
+  display: block;
+  font-size:10px;
+  padding:15px 15px 5px 15px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  background-color: rgba(250, 250, 250, 0.8);
+  box-shadow: 0px 0px 10px 3px rgba(16, 16, 32, 0.2);
+  /* text-align:center; */
+}
+
+.holderBlue {
+  background-color: rgba(125, 144, 213, 0.7);
+}
+
+.holderYellow {
+  background-color: rgba(213, 213, 125, 0.7);
+}
+
+.holderRed {
+  background-color: rgba(213, 125, 144, 0.7);
+}
+
+.holderGreen {
+  background-color: rgba(144, 213, 125, 0.7);
+}
+
+.holderGray {
+  background-color: rgba(213, 213, 213, 0.7);
+}
+
+.holderWhite {
+  background-color: rgba(250, 250, 250, 0.65);
+}
+
+.myaccount-settings-wrapper {
+  visibility: hidden;
+}
+
+.form_button_margin {
+  margin: 0px 5px 0px 5px;
+}
+
+#secondPass {
+  max-height: 0px;
+  overflow: hidden;
+
+  -webkit-transition: max-height 0.8s;
+	-moz-transition: max-height 0.8s;
+	transition: max-height 0.8s;
+}
+
+#users, .enrollmentsTable, .classOptTable {
+  visibility: hidden;
+}
+
+#users_row, #enrollments_row, #class_opt_row {
+  visibility: hidden;
+}
+
+#users_row td, #enrollments_row td, #class_opt_row td {
+  padding: 3px;
+}
+
+#classgroup_holder {
+  margin-bottom:20px;
+}
+#classgroup_holder td {
+  padding:5px;
+}

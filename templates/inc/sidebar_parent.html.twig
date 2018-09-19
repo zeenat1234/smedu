@@ -1,0 +1,76 @@
+<nav id="sidebarParent">
+  <div id="sidebar">
+    <div class="sidebar-header">
+        <h3>iTeachSmart</h3>
+        <strong>iTS</strong>
+    </div>
+
+    <ul class="list-unstyled components">
+        <li class="active">
+            <a href="{{ path('myaccount') }}">
+                <span style="align:center"><i class="fas fa-home fa-fw"></i></span>
+                <span style="align:center">Pagina Principală</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ path('myaccount_settings') }}">
+                <span style="align:center"><i class="fas fa-user fa-fw"></i></span>
+                <span style="align:center">Contul Meu</span>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <span style="align:center"><i class="fas fa-users fa-fw"></i></span>
+                {% if app.user.getGuardianacc.getChildren|length == 1 %}
+                Informații Elev
+                {% else %}
+                Informații Elevi
+                {% endif %}
+            </a>
+        </li>
+        <br>
+        <li>
+            <a href="{{ path('myaccount_optionals') }}">
+                <span style="align:center"><i class="fas fa-book-reader fa-fw"></i></span>
+                Opționale
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <span style="align:center"><i class="fas fa-user-graduate fa-fw"></i></span>
+                <span style="align:center">Note</span>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <span style="align:center"><i class="far fa-object-group fa-fw"></i></span>
+                Prezențe
+            </a>
+        </li>
+        <br>
+        <li>
+            <a href="#">
+                <span style="align:center"><i class="fas fa-truck fa-fw"></i></span>
+                Transport
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <span style="align:center"><i class="fas fa-coins fa-fw"></i></span>
+                Facturi
+            </a>
+        </li>
+
+    </ul>
+
+    <ul class="list-unstyled CTAs">
+        <li>
+            <a href="#" class="download">Termeni de Utilizare</a>
+        </li>
+        <li>
+            <a href="#" class="article">Asistență Tehnică</a>
+        </li>
+    </ul>
+
+  </div>
+</nav>

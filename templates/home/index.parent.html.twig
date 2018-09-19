@@ -1,0 +1,150 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Pagina de Start{% endblock %}
+
+{% block body %}
+
+
+
+    <div class="row">
+      <div class="col-auto">
+
+        <img src="/img/logo.planeta.copiilor.png" alt="" width="200px" height="auto">
+
+      </div>
+      <div class="col show-links">
+        <h3 class="coinyFont">Bine ați revenit!</h3>
+        <p>Detaliile contului dumneavoastră sunt următoarele:</p>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <b>Nume și Prenume: </b>
+              </td>
+              <td>
+                {{ app.user.getRoName }}
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Email: </b>
+              </td>
+              <td>
+                {{ app.user.getEmail }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br>
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <b>Ultima factură emisă: </b>
+              </td>
+              <!-- <td>
+                <a href="#">Octombrie</a>, emisă 10.10.2018
+              </td> -->
+              <td>
+                <code>în construcție</code>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b>Ultima factură achitată: </b>
+              </td>
+              <!-- <td>
+                <a href="#">Septembrie</a>, achitată 10.10.2018
+              </td> -->
+              <td>
+                <code>în construcție</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <hr>
+    <div class="row justify-content-center">
+      {% set kids = app.user.getGuardianacc.getChildren %}
+      {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
+      {% set i = 0 %}
+      {% if kids|length > 0 %}
+        {% for kid in kids %}
+          {% if kid.getChildLatestEnroll.getId is not null %}
+            <div class="col-12 col-sm-6">
+              <div class="indexParentHolder {{ holderColors[i] }}">
+                <h4 class="coinyFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h4>
+                <hr>
+                <p><b>Unitate școlară: </b>{{ kid.getChildLatestEnroll.getIdUnit.getUnitname }}</p>
+                <p><b>Serviciu: </b>{{ kid.getChildLatestEnroll.getIdService.getServicename }}</p>
+                <p><b>Opționale: </b>
+                  {% set optionalsString = '' %}
+                  {% for optional in kid.getChildLatestEnroll.getStudent.getClassOptionals %}
+                    {% set optionalsString = optionalsString ~ optional.getOptionalName ~ ', ' %}
+                  {% endfor %}
+                  {% if optionalsString is not empty %}
+                    {{ optionalsString|trim(', ') }}
+                  {% else %}
+                    <code>NICIUNUL</code>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            {# SUPPORTS UP TO 4 CHILDREN #}
+            {% set i = i + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% if i == 0 %}
+          <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+    <hr>
+    <div class="row justify-content-center">
+      <div class="col-12">
+        <div class="indexParentHolder holderGray">
+          <h4 class="kuraleFont"><i class="fas fa-coins fa-fw"></i> Ultima factură:</h4>
+          <hr>
+          <div class="row">
+            {% if latest_invoice == false %}
+            <div class="col">
+              Nu a fost emisă nicio factură pentru acest cont.
+            </div>
+            {% else %}
+            <div class="col">
+              <p><strong>Suma: </strong>{{ latest_invoice.invoiceTotal|localizedcurrency('RON') }}</p>
+              <p><strong>Data emiterii: </strong>{{ latest_invoice.getMonthAccount.getAccYearMonth|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</p>
+            </div>
+            <div class="col">
+              {% if latest_invoice.isPaid and latest_invoice.invoiceTotal == latest_invoice.invoicePaid %}
+                <p><strong>Status: </strong>Achitată</p>
+                <p><strong>Data achitării: </strong> <code>în construcție</code></p>
+              {% elseif latest_invoice.isPaid and latest_invoice.invoiceTotal > latest_invoice.invoicePaid %}
+                <p><strong>Status: </strong>Achitată parțial</p>
+                <p><strong>Rest de plată: </strong>{{ (latest_invoice.invoiceTotal - latest_invoice.invoicePaid)|localizedcurrency('RON') }}</p>
+                <p><strong>Efectuare Plată:</strong> <code>în construcție</code></p>
+              {% elseif latest_invoice.invoicePaid == 0 %}
+                <p><strong>Status: </strong>Neachitată</p>
+                <p><strong>Data scadentă: </strong> <code>în construcție</code></p>
+                <p><strong>Efectuare Plată:</strong> <code>în construcție</code></p>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+    {% include('home/myaccount.terms.cond.html.twig') %}
+
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder', { duration:1500, delay:50 });
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder2', { duration:1500, delay:50 });
+  </script>
+{% endblock %}

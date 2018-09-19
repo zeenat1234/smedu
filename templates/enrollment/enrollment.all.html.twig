@@ -5,41 +5,46 @@
 {% block body %}
 
 <div class="enrollment-wrapper">
-  <h1>Înscrieri {{ current_year.getYearlabel|lower }}</h1>
+  <h1 class="coinyFont">Înscrieri {{ current_year.getYearlabel|lower }}</h1>
   <br>
   {% if current_units is not empty %}
     {% for schoolunit in current_units %}
-      <h2>Înscrieri {{ schoolunit.unitname|lower }} </h2>
+      <h2 class="reveal kuraleFont">Înscrieri {{ schoolunit.unitname|lower }} </h2>
       {% if schoolunit.getEnrollments is not empty %}
-        <table id="enrollments-{{ schoolunit.id }}" class="table table-striped table-hover">
+        <table id="enrollments-{{ schoolunit.id }}" class="table table-striped table-hover enrollmentsTable">
 
-          <thead>
+          <thead id="enroll_table_head">
             <tr>
               <th>Nume Elev</th>
               <th>Nume Părinte</th>
               <th>Serviciu</th>
+              <th>Preț</th>
               <th>Data Înscrierii</th>
               <th>Activ</th>
               <th></th>
             </tr>
           </thead>
 
-          <tbody>
-            {% for enrollment in schoolunit.getEnrollments %}
-              <tr>
-                <td>{{ enrollment.getIdChild.getFullName(1) }}</td>
-                <td>{{ enrollment.getIdParent.getFullName(1) }}</td>
-                <td>{{ enrollment.getIdService.servicename }}</td>
-                <td>{{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro') }}</td>
-                {% if enrollment.isActive == 0 %}
-                  <td style='color:#f00'><i class="fas fa-times"></i></td>
-                {% else %}
-                  <td style='color:#0f0'><i class="fas fa-check"></i></td>
-                {% endif %}
-                <td>
-                  <a href="{{ path('edit_enrollment', {'enrollId':enrollment.id}) }}"><button type="button" class="btn btn-primary">Modifică</button></a>
-                </td>
-              </tr>
+          <tbody id="enrollments_table">
+            {% set unitEnrollments = schoolunit.getEnrollments %}
+            {% for enrollment in enrollments %}
+              {% if enrollment in unitEnrollments %}
+                <tr id="enrollments_row">
+                  <td>{{ enrollment.getIdChild.getFullName(1) }}</td>
+                  <td>{{ enrollment.getIdParent.getFullName(1) }}</td>
+                  <td>{{ enrollment.getIdService.servicename }}</td>
+                  <td>{{ enrollment.getIdService.serviceprice|localizedcurrency('RON') }}</td>
+                  <td>{{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro') }}</td>
+                  {% if enrollment.isActive == 0 %}
+                    <td style='color:#f00'><i class="fas fa-times"></i></td>
+                  {% else %}
+                    <td style='color:#0f0'><i class="fas fa-check"></i></td>
+                  {% endif %}
+                  <td>
+                    <a href="{{ path('edit_enrollment', {'enrollId':enrollment.id}) }}"><button type="button" class="btn-sm btn-primary">Modifică</button></a>
+                  </td>
+                </tr>
+              {% endif %}
             {% endfor %}
           </tbody>
 
@@ -57,4 +62,13 @@
 
 </div>
 
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+  ScrollReveal({ reset: true }).reveal('.reveal', { duration:600, delay:0 });
+    ScrollReveal({ reset: true }).reveal('.enrollmentsTable', { duration:2000, delay:0 });
+    ScrollReveal({ reset: true }).reveal('#enroll_table_head', { duration:800, delay:0 });
+    ScrollReveal({ reset: true }).reveal('#enrollments_row', { duration:1000, delay:0 });
+  </script>
 {% endblock %}

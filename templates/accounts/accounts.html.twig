@@ -32,15 +32,15 @@
                 <td><code>for all year</code></td>
                 <td><code>expiră la / alertă / achitat</code></td>
                 <td>{{ student.getClassOptionals|length }}</td>
-                <td>
+                <td><center>
                   <a href="{{ path('accounts_stud_month', {'monthYear':(date('-1 month')|localizeddate('none','none','ro', null, 'yyyy-MM')), 'studId':student.id}) }}">
-                    <button type="button" class="btn btn-primary">{{ (date('-1 month')|localizeddate('none','none','ro', null, 'MMMM'))|capitalize }}</button>
+                    <button type="button" class="btn-sm btn-primary">{{ (date('-1 month')|localizeddate('none','none','ro', null, 'MMMM'))|capitalize }}</button>
                   </a>
                   <a href="{{ path('accounts_stud_month', {'monthYear':(date('now')|localizeddate('none','none','ro', null, 'yyyy-MM')), 'studId':student.id}) }}">
-                    <button type="button" class="btn btn-warning">{{ (date()|localizeddate('none','none','ro', null, 'MMMM'))|capitalize }}</button>
+                    <button type="button" class="btn-sm btn-warning">{{ (date()|localizeddate('none','none','ro', null, 'MMMM'))|capitalize }}</button>
                   </a>
-                  <a href="{{ path('accounts') }}"><button type="button" class="btn btn-success">TOATE</button></a>
-                </td>
+                  <a href="{{ path('accounts') }}"><button type="button" class="btn-sm btn-success">TOATE</button></a>
+                </center></td>
                 <td>
                   <i class="far fa-envelope"></i>
                 </td>

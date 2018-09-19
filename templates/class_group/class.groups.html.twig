@@ -4,17 +4,17 @@
 
 {% block body %}
 
-    <h2>Grupe Școlare - {{ school_year.yearname }}</h2>
+    <h2 class="coinyFont">Grupe Școlare - {{ school_year.yearname }}</h2>
     <br>
     {% for schoolunit in school_units %}
       <div class="row">
         <div class="col-auto">
-          <h3>Grupe {{ schoolunit.unitname|lower }}</h3>
+          <a href="{{ path('class_groups_new', {'unitId':schoolunit.id }) }}">
+            <button class="btn-sm btn-success"><i class="fas fa-plus"></i></button>
+          </a>
         </div>
-        <div class="col">
-        <a href="{{ path('class_groups_new', {'unitId':schoolunit.id }) }}">
-          <button class="btn btn-success"><i class="fas fa-plus"></i></button>
-        </a>
+        <div class="col-auto">
+          <h3 class="coinyFont">Grupe {{ schoolunit.unitname|lower }}</h3>
         </div>
       </div>
       {% if schoolunit.getClassGroups is empty %}
@@ -23,15 +23,46 @@
       {% else %}
         <div class="row">
         {% for classgroup in schoolunit.getClassGroups %}
-          <div class="col-12 col-md-6 col-lg-4">
-            <h1>{{ classgroup.getGroupName }}</h1>
-            <p>{{ classgroup.getProfessor.getFullName(1) }}</p>
-            <a href="{{ path('class_group_view', {'groupId':classgroup.id }) }}">
-              <button class="btn btn-success">Detalii</button>
-            </a>
-            <a href="{{ path('class_group_enroll', {'groupId':classgroup.id }) }}">
-              <button class="btn btn-primary">Înscrieri</button>
-            </a>
+          <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+            <div class="indexParentHolder holderWhite">
+              <h2 class="kuraleFont">{{ classgroup.getGroupName }}</h2>
+              <hr>
+              <table id="classgroup_holder">
+                <tbody>
+                  <tr>
+                    <td>
+                      <strong><i class="fas fa-chalkboard-teacher fa-fw"></i></strong>
+                    </td>
+                    <td>
+                      {{ classgroup.getProfessor.getFullName(1) }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong><i class="fas fa-users fa-fw"></i></i></strong>
+                    </td>
+                    <td class="kuraleFont">
+                      <h3>{{ classgroup.getStudents|length }} <small>elevi</small></h3>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <!-- <div class="row"> -->
+                <!-- <div class="col-6"> -->
+                <center>
+                <a href="{{ path('class_group_view', {'groupId':classgroup.id }) }}">
+                  <button class="btn-sm btn-block btn-success btn-max-width">Detalii</button>
+                </a>
+                <!-- </div> -->
+                <div style="height:3px"></div>
+                <!-- <div class="col-6"> -->
+                <a href="{{ path('class_group_enroll', {'groupId':classgroup.id }) }}">
+                  <button class="btn-sm btn-block btn-primary btn-max-width">Înscrieri</button>
+                </a>
+                </center>
+                <!-- </div> -->
+              <!-- </div> -->
+            </div>
           </div>
         {% endfor %}
         </div>
@@ -41,4 +72,10 @@
 
     {% endfor %}
 
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder', { duration:1500, delay:50 });
+  </script>
 {% endblock %}

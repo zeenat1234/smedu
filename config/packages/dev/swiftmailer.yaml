@@ -2,3 +2,5 @@
 swiftmailer:
     # send all emails to a specific address
     #delivery_addresses: ['me@example.com']
+    url: '%env(MAILER_URL)%'
+    #spool: { type: 'memory' }

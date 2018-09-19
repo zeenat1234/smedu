@@ -169,7 +169,7 @@ class UserController extends Controller
         //TODO find a way to maybe have this logic inside UserType.php
         $form->add('password', RepeatedType::class, array(
             'type' => PasswordType::class,
-            'invalid_message' => 'The password fields must match.',
+            'invalid_message' => 'Cele două câmpuri trebuie să coincidă!',
             'options' => array('attr' => array('class' => 'form-control')),
             'required' => false,
             'empty_data' => '',
@@ -227,7 +227,6 @@ class UserController extends Controller
      * @Route("/user/delete/{id}", name="user_delete")
      * @Method({"DELETE"})
      */
-
     public function delete(Request $request, $id)
     {
       $user = $this->getDoctrine()->getRepository
@@ -244,6 +243,56 @@ class UserController extends Controller
       $response->send();
 
       //return $this->redirectToRoute('users');
+    }
+
+    /**
+     * @Route("/user/reset/{id}", name="user_reset")
+     * @Method({"GET", "POST"})
+     */
+    public function reset_mail(Request $request, $id, \Swift_Mailer $mailer)
+    {
+      $user = $this->getDoctrine()->getRepository
+      (User::class)->find($id);
+
+      $plainpass = $this->randomPassword();
+
+      $user->setPassword(
+        $this->encoder->encodePassword($user, $plainpass)
+      );
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->flush();
+
+      $message = (new \Swift_Message('Hello Email'))
+        ->setFrom('no-reply@iteachsmart.ro')
+        ->setTo($user->getEmail())
+        ->setBody(
+            $this->renderView(
+                // templates/emails/registration.html.twig
+                'user/email.user.reset.html.twig',
+                array('user' => $user, 'plainpass' => $plainpass)
+            ),
+            'text/html'
+        )
+        /*
+         * If you also want to include a plaintext version of the message
+        ->addPart(
+            $this->renderView(
+                'emails/registration.txt.twig',
+                array('name' => $name)
+            ),
+            'text/plain'
+        )
+        */
+      ;
+
+      $mailer->send($message);
+
+      //console.log('A mers!');
+      $response = new Response();
+      $response->send();
+
+      #return $this->redirectToRoute('users');
     }
 
     /**
@@ -372,4 +421,19 @@ class UserController extends Controller
             'formData' => $formData,
       	));
   	}
+
+    private function randomPassword() {
+
+      $alphabet = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
+      $pass = array(); //remember to declare $pass as an array
+      $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+
+      for ($i = 0; $i < 8; $i++) {
+          $n = rand(0, $alphaLength);
+          $pass[] = $alphabet[$n];
+      }
+
+      return implode($pass); //turn the array into a string
+    }
+
 }

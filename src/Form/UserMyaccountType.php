@@ -17,14 +17,34 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 # Symfony4 best practice is to not use a submit type in the formType or Controller
 #use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-class UserType extends AbstractType
+class UserMyaccountType extends AbstractType
 {
+
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public static function getSubscribedEvents()
+    // {
+    //     return [FormEvents::PRE_SUBMIT => 'preSubmit'];
+    // }
+    //
+    // public function preSubmit(FormEvent $event)
+    // {
+    //     if ($event->getForm()->getConfig()->getType()->getName() !== 'repeated') {
+    //         throw new \UnexpectedValueException(sprintf(
+    //             'Expected FormType of type "repeated", "%s" given',
+    //             $event->getForm()->getConfig()->getType()->getName()
+    //         ));
+    //     }
+    //
+    //     if (!is_array($event->getData())) {
+    //         $event->setData(['first' => $event->getData(), 'second' => null]);
+    //     }
+    // }
+
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('username', TextType::class, array(
-              'attr' => array('class' => 'form-control')
-            ))
             ->add('lastName', TextType::class, array(
               'label' => 'Nume',
               'attr' => array('class' => 'form-control')
@@ -42,24 +62,17 @@ class UserType extends AbstractType
               'attr' => array('class' => 'form-control')
             ))
             ->add('password', RepeatedType::class, array(
-              'type' => PasswordType::class,
-              'invalid_message' => 'Cele două câmpuri trebuie să coincidă!',
-              'options' => array('attr' => array('class' => 'form-control')),
-              'required' => true,
-              'first_options'  => array('label' => 'Parolă'),
-              'second_options' => array('label' => 'Repetă Parola')
-            ))
-            ->add('usertype', ChoiceType::class, array(
-              'choices'  => array(
-                'Profesor' => 'ROLE_PROF',
-                'Administrator' => 'ROLE_ADMIN',
-                //The following 2x roles can only be created using EnrollWizard
-                //'Părinte' => 'ROLE_PARENT',
-                //'Elev' => 'ROLE_PUPIL'
-              ),
-              'label' => 'Tip Utilizator',
-              'attr' => array('class' => 'form-control')
-            ))
+                'type' => PasswordType::class,
+                'invalid_message' => 'Cele două câmpuri trebuie să coincidă!',
+                'options' => array('attr' => array('class' => 'form-control')),
+                'required' => true,
+                'empty_data' => '',
+                'first_options'  => array('label' => 'Parolă'),
+                'second_options' => array('label' => 'Repetă Parola'),
+                'error_mapping' => array(
+                    '.' => 'first',
+                ),
+            ));
         ;
     }
 
@@ -67,6 +80,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+
         ]);
     }
 }

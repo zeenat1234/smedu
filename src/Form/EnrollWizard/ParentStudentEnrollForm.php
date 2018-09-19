@@ -51,6 +51,9 @@ class ParentStudentEnrollForm extends AbstractType {
 				            ->orderBy('u.lastName', 'ASC');
 				    },
 				    'choice_label' => 'getRoName',
+						'attr' => array(
+							'class' => 'form-control',
+						),
 				))
 				;
 				break;
@@ -88,7 +91,7 @@ class ParentStudentEnrollForm extends AbstractType {
 					$theGuardian = $options['guardian'];
 
 					$builder->add('student', EntityType::class, array(
-							'label' => 'Elev existent',
+							'label' => 'Vă rugăm selectați elevul din următoarea listă:',
 					    'class' => User::class,
 					    'query_builder' => function (EntityRepository $er) use ($theGuardian) {
 					        return $er->createQueryBuilder('u')
@@ -99,6 +102,9 @@ class ParentStudentEnrollForm extends AbstractType {
 					            ->orderBy('u.firstName', 'ASC');
 					    },
 					    'choice_label' => 'getRoName',
+							'attr' => array(
+								'class' => 'form-control',
+							),
 					));
 				}
 				break;
@@ -137,7 +143,8 @@ class ParentStudentEnrollForm extends AbstractType {
 				$servicesChoice = array();
 
 				foreach ($options['school_services'] as $schoolservice) {
-					$label = $schoolservice->getServicename();
+					$formatter = new \NumberFormatter(\Locale::getDefault(), \NumberFormatter::CURRENCY);
+					$label = $schoolservice->getServicename().' -- '.$formatter->formatCurrency($schoolservice->getServiceprice(), 'RON');
 					$servicesChoice[$label] = $schoolservice;
 				}
 

@@ -198,6 +198,18 @@ class Student
         return $this->monthAccounts;
     }
 
+    public function getLatestMonthAccount(): ?MonthAccount
+    {
+        $criteria = Criteria::create()
+          ->where(Criteria::expr()->eq("student", $this))
+          ->orderBy(array('accYearMonth' => Criteria::DESC))
+          ->setFirstResult(0)
+          ->setMaxResults(1)
+        ;
+
+        return $this->monthAccounts->matching($criteria)[0];
+    }
+
     public function addMonthAccount(MonthAccount $monthAccount): self
     {
         if (!$this->monthAccounts->contains($monthAccount)) {

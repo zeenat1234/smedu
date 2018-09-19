@@ -25,6 +25,24 @@ class SecurityController extends Controller
     }
 
     /**
+     * @Route("/login_success", name="login_success")
+     */
+    public function postLoginRedirectAction()
+    {
+        // This logic is also implemented as a backup
+        // method in HomeController. This method is
+        // defined in the security.yaml file
+
+        if ($this->getUser()->getUsertype() === 'ROLE_PARENT') {
+            return $this->redirectToRoute("myaccount");
+        //} else if (/* user needs to see location B */) {
+        //    return $this->redirectToRoute("location_b");
+        } else {
+            return $this->redirectToRoute("index");
+        }
+    }
+
+    /**
      * @Route("/logout", name="logout")
      */
     public function logout()

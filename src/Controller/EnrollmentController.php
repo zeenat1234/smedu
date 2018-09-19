@@ -233,7 +233,9 @@ class EnrollmentController extends AbstractController
             $student = $this->getDoctrine()->getRepository
             (Student::class)->find($studId);
             return $this->redirectToRoute('class_group_view', ['groupId' => $student->getClassGroup()->getId()]);
-          } 
+          } else {
+            return $this->redirectToRoute('all_enrollments_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));
+          }
         }
 
 
