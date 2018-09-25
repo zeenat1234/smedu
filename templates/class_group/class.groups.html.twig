@@ -25,7 +25,7 @@
         {% for classgroup in schoolunit.getClassGroups %}
           <div class="col-12 col-md-6 col-lg-4 col-xl-3">
             <div class="indexParentHolder holderWhite">
-              <h2 class="kuraleFont">{{ classgroup.getGroupName }}</h2>
+              <a href="{{ path('class_group_edit', {'id':classgroup.id}) }}"><i class="far fa-edit"></i></a> <h2 style="display:inline;" class="kuraleFont">{{ classgroup.getGroupName }}</h2>
               <hr>
               <table id="classgroup_holder">
                 <tbody>

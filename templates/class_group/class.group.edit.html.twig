@@ -1,0 +1,10 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Grupe Școlare -> Modifică Grupă{% endblock %}
+
+{% block body %}
+  {{ form_start(form) }}
+  {{ form_widget(form) }}
+    <input type="submit" class="btn btn-success mt-3" value="Modifică">
+  {{ form_end(form) }}
+{% endblock %}

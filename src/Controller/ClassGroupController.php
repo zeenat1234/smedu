@@ -40,22 +40,6 @@ class ClassGroupController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/class/groups/{id}", name="class_groups_by_year")
-     * @Method({"GET"})
-     */
-    public function index_year($id)
-    {
-        $schoolYear = $this->getDoctrine()->getRepository
-        (SchoolYear::class)->find($id);
-
-        $schoolUnits = $schoolYear->getSchoolunits();
-
-        return $this->render('class_group/class.groups.html.twig', [
-            'school_year' => $schoolYear,
-            'school_units' => $schoolUnits,
-        ]);
-    }
 
     /**
      * @Route("/class/groups/new/{unitId}", name="class_groups_new")
@@ -94,6 +78,60 @@ class ClassGroupController extends AbstractController
         return $this->render('class_group/add.to.unit.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    /**
+     * @Route("/class/groups/edit/{id}", name="class_group_edit")
+     * @Method({"GET", "POST"})
+     */
+    public function class_group_edit(Request $request, $id)
+    {
+        $classGroup = $this->getDoctrine()->getRepository
+        (ClassGroup::class)->find($id);
+
+        $currentUnit = $classGroup->getSchoolUnit();
+
+        $profChoice = array();
+        $profChoice = $this->getDoctrine()->getRepository
+        (User::class)->findAllProfs();
+
+        $form = $this->createForm(ClassGroupType::Class, $classGroup, array(
+          'school_unit' => $currentUnit,
+          'prof_choice' => $profChoice,
+        ));
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+           $classGroup = $form->getData();
+
+           $entityManager = $this->getDoctrine()->getManager();
+           $entityManager->flush();
+
+           return $this->redirectToRoute('class_groups_by_year', array('id' => $currentUnit->getSchoolyear()->getId()) );
+        }
+
+        return $this->render('class_group/class.group.edit.html.twig', [
+            'form' => $form->createView(),
+        ]);
+
+    }
+
+    /**
+     * @Route("/class/groups/{id}", name="class_groups_by_year")
+     * @Method({"GET"})
+     */
+    public function index_year($id)
+    {
+      $schoolYear = $this->getDoctrine()->getRepository
+      (SchoolYear::class)->find($id);
+
+      $schoolUnits = $schoolYear->getSchoolunits();
+
+      return $this->render('class_group/class.groups.html.twig', [
+        'school_year' => $schoolYear,
+        'school_units' => $schoolUnits,
+      ]);
     }
 
     /**
