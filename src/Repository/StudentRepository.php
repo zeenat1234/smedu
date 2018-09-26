@@ -19,6 +19,23 @@ class StudentRepository extends ServiceEntityRepository
         parent::__construct($registry, Student::class);
     }
 
+    /**
+     * @return Student[] Returns an array of Student objects
+     */
+
+     public function findAllYear($yearId)
+     {
+        return $this->createQueryBuilder('s')
+             ->leftJoin('s.User', 'usr')
+             ->leftJoin('s.schoolUnit', 'unit')
+             ->andWhere('unit.schoolyear = :val')
+             ->setParameter('val', $yearId)
+             ->addOrderBy('usr.lastName', 'ASC')
+             ->getQuery()
+             ->getResult()
+        ;
+      }
+
 //    /**
 //     * @return Student[] Returns an array of Student objects
 //     */
