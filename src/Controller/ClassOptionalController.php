@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\ClassOptional;
 use App\Entity\SchoolUnit;
 use App\Entity\SchoolYear;
+use App\Entity\Student;
 use App\Entity\User;
 
 use Symfony\Component\Routing\Annotation\Route;
@@ -159,12 +160,19 @@ class ClassOptionalController extends AbstractController
           $optional = $this->getDoctrine()->getRepository
           (ClassOptional::class)->find($id);
 
+          $currentSchoolYear = $optional->getSchoolUnit()->getSchoolyear();
+
+          $allStudents = $this->getDoctrine()->getRepository
+          (Student::class)->findAllYear($currentSchoolYear);
+
           //getavailablestudents
           $availableStudents = $optional->getSchoolUnit()->getStudents();
-          foreach ($availableStudents as $student) {
+          foreach ($allStudents as $student) {
+            if ($availableStudents->contains($student)) {
               if ($student->getEnrollment()->getIsActive() == 1) {
                 $students[]=$student;
               }
+            }
           }
 
           $form = $this->createForm(ClassOptionalEnrollType::Class, $optional, array(
