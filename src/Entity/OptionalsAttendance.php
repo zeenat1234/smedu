@@ -41,9 +41,9 @@ class OptionalsAttendance
     private $student;
 
     /**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="boolean", nullable=false)
      */
-    private $hasAttended;
+    private $hasAttended = false;
 
     public function getId()
     {

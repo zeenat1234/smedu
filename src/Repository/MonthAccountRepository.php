@@ -19,6 +19,21 @@ class MonthAccountRepository extends ServiceEntityRepository
         parent::__construct($registry, MonthAccount::class);
     }
 
+    /**
+     * @return MonthAccount[] Returns an array of MonthAccount objects
+     */
+
+     public function findByStudent($studId)
+     {
+        return $this->createQueryBuilder('acc')
+             ->andWhere('acc.student = :val')
+             ->setParameter('val', $studId)
+             ->addOrderBy('acc.accYearMonth', 'ASC')
+             ->getQuery()
+             ->getResult()
+        ;
+      }
+
 //    /**
 //     * @return MonthAccount[] Returns an array of MonthAccount objects
 //     */

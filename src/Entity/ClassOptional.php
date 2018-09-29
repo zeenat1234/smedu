@@ -273,6 +273,7 @@ class ClassOptional
           ->setFirstResult(0)
           //->setMaxResults(1)
         ;
+        $all_schedules = $this->optionalSchedules->getValues();
         $sync_schedules = $this->optionalSchedules->matching($criteria)->getValues();
 
         $sync_students = $this->students->getValues();
@@ -287,8 +288,12 @@ class ClassOptional
         }
 
         //if there are no schedules or students defined, consider the optional not syncd
-        if ((count($sync_schedules) == 0) || (count($sync_students) == 0)) {
+        if ((count($sync_schedules) == 0 && count($all_schedules) == 0) || (count($sync_students) == 0)) {
           return false;
+        }
+
+        if (count($sync_schedules) == 0 && count($all_schedules) > 0 && count($all_attendances) > 0) {
+          return true;
         }
 
         //create attendance list and schedule list to verify students and schedules

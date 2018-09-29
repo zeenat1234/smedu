@@ -30,7 +30,7 @@ class OptionalSchedule
     private $scheduledDateTime;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\OptionalsAttendance", mappedBy="optionalSchedule", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\OptionalsAttendance", mappedBy="optionalSchedule", cascade={"remove"}, orphanRemoval=true)
      */
     private $optionalsAttendances;
 

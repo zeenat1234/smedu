@@ -14,6 +14,7 @@ use App\Entity\PaymentItem;
 use App\Entity\SchoolUnit;
 use App\Entity\SchoolYear;
 use App\Entity\User;
+use App\Entity\Enrollment;
 use App\Entity\Student;
 use App\Entity\OptionalsAttendance;
 use App\Entity\AccountInvoice;
@@ -37,9 +38,13 @@ class AccountsController extends AbstractController
 
         $currentUnits = $currentSchoolYear->getSchoolunits();
 
+        $allStudents = $this->getDoctrine()->getRepository
+        (Student::class)->findAllYear($currentSchoolYear);
+
         return $this->render('accounts/accounts.html.twig', [
             'current_year' => $currentSchoolYear,
             'current_units' => $currentUnits,
+            'sorted_students' => $allStudents,
         ]);
     }
 
@@ -229,6 +234,24 @@ class AccountsController extends AbstractController
           'form' => $form->createView(),
         ]);
     }
+
+    /**
+     * @Route("/accounts/stud/{studId}", name="accounts_stud")
+     * @Method({"GET" , "POST"})
+     */
+     public function accounts_stud($studId)
+     {
+        $accounts = $this->getDoctrine()->getRepository
+        (MonthAccount::class)->findByStudent($studId);
+
+        $student = $this->getDoctrine()->getRepository
+        (Student::class)->find($studId);
+
+        return $this->render('accounts/accounts.stud.html.twig', [
+            'student' => $student,
+            'all_accounts' => $accounts,
+        ]);
+     }
 
     /**
      * @Route("/accounts/{accId}/reset", name="accounts_stud_month_reset")

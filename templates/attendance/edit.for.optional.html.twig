@@ -1,0 +1,94 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Catalog prezențe -> {{ optional.getOptionalName }}{% endblock %}
+
+{% block body %}
+    <h2 class="coinyFont"><i class="fas fa-book-reader fa-fw"></i> Prezențe -> {{ optional.getOptionalName }}</h2>
+    <br>
+    <strong>Instrucțiuni: </strong> Apăsați pe ziua pe care doriți să o modificați, iar apoi faceți click pe butonul <strong><i class="fas fa-angle-double-up"></i> Actualizează</strong>.
+    <br><br>
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+    <br>
+    {% if optional.getOptionalsAttendances is empty %}
+      <p>Catalogul nu a fost generat!</p>
+    {% else %}
+      {% set i = 0 %}
+      {% for schedule in optional.getOptionalSchedules|reverse %}
+        {% if (schedule.getScheduledDateTime <= date()) and (schedule.getOptionalsAttendances.count != 0) %}
+          <a href="#" onclick="RevealFunction('.attendance_row_{{i}}');return false;">
+            <h4 class="kuraleFont">
+              {{ schedule.getScheduledDateTime|localizeddate('long','none','ro') }},
+              <small>{{ schedule.getScheduledDateTime|localizeddate('none','short','ro') }}</small>
+            </h4>
+          </a>
+          {{ form_start(forms[i]) }}
+          <div class="row le_row attendance_row_{{i}}">
+            {% for f in forms[i].attends %}
+              {% set index = f.vars.value %}
+              <div class="col-6 col-sm-4 col-md-4 col-lg-3 col-xl-2">
+                <div class="attendanceHolder">
+              <span class="kuraleFont">{{ f.vars.value.student.getUser.getRoName|title }}</span>
+              <hr style="margin:3px">
+              {{ form_widget(f.hasAttended[0]) }} <i class="fas fa-check fa-fw" style='color:#0f0'></i> {{ form_label(f.hasAttended[0]) }}<br>
+              {{ form_widget(f.hasAttended[1]) }} <i class="fas fa-times fa-fw" style='color:#f00'></i> {{ form_label(f.hasAttended[1]) }}<br>
+              </div></div>
+            {% endfor %}
+            <div class="col-12">
+              {{ form_widget(forms[i].update) }}
+              <br><br>
+            </div>
+          </div>
+          {{ form_end(forms[i]) }}
+          <br>
+          {% set i = i + 1 %}
+        {% endif %}
+      {% endfor %}
+      {% if i == 0 %}
+        <p>Nu există nicio prezență editabilă. <strong>NOTĂ: </strong>Nu pot fii editate prezențe pentru programele din viitor.</p>
+      {% endif %}
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  function RevealFunction(attendance) {
+    $('.le_row').each(function(){
+      if ($(this).is(attendance)) {
+        if ($(this).css('max-height') == '0px') {
+          $(this).css('max-height', '1080px');
+          $(this).css('overflow', 'visible');
+          $(this).css('visibility', 'visible');
+        } else {
+          $(this).css('max-height', '0px');
+          $(this).css('overflow', 'hidden');
+          $(this).css('visibility', 'hidden');
+        }
+      } else {
+        $(this).css('max-height', '0px');
+        $(this).css('overflow', 'hidden');
+        $(this).css('visibility', 'hidden');
+      }
+    });
+    //
+    // if ($(attendance).css('max-height') == '0px') {
+    //   $(attendance).css('max-height', '500px');
+    //   $(attendance).css('visibility', 'visible');
+    //   console.log('am dat click pe '+attendance);
+    // } else {
+    //   $(attendance).css('max-height', '0px');
+    //   $(attendance).css('visibility', 'hidden');
+    //
+    // }
+  }
+</script>
+{% endblock %}

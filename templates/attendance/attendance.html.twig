@@ -70,14 +70,24 @@
                         {% if optional.isSyncd == true %}
                           {# View or Edit attenandance #}
                           <a href="{{ path('view_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-success">Vizualizează</button></a>
-                          <a href="#{# path('optional_schedule', {'id':optional.id }) #}"><button type="button" class="btn-sm btn-secondary">Modifică</button></a>
+                          <a href="{{ path('edit_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-primary">Modifică</button></a>
                         {% else %}
                           {% if optional.isModified == true %}
                             {# Update attenandance #}
                             <a href="{{ path('update_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-warning">Actualizează</button></a>
                           {% else %}
                             {# Generate attenandance #}
-                            <a href="{{ path('generate_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-primary">Catalog NOU</button></a>
+                            {% set canCreate = false %}
+                            {% for schedule in optional.getOptionalSchedules %}
+                              {% if schedule.getScheduledDateTime > date() %}
+                                {% set canCreate = true %}
+                              {% endif %}
+                            {% endfor %}
+                            {% if canCreate == true %}
+                              <a href="{{ path('generate_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-primary">Catalog NOU</button></a>
+                            {% else %}
+                              <p>Program creeat pentru trecut</p>
+                            {% endif %}
                           {% endif %}
                         {% endif %}
                       {% endif %}

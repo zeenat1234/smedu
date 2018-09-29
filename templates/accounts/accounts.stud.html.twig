@@ -1,0 +1,109 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block extrastylesheets %}
+  <script src="{{ asset('js/bootstrap-year-calendar.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ asset('css/bootstrap-year-calendar.min.css') }}">
+{% endblock %}
+
+{% block title %}Conturi {{ student.getUser.getRoName }}{% endblock %}
+
+{% block body %}
+
+    <h2 class="coinyFont">Calendar Conturi - {{ student.getUser.getRoName }}</h2>
+
+    <div id="the-dates"
+    data-min-date="{{ student.getSchoolUnit.getStartDate|localizeddate('none','none','ro', null, 'yyyy-MM-dd') }}"
+    data-max-date="{{ student.getSchoolUnit.getEndDate|localizeddate('none','none','ro', null, 'yyyy-MM-dd') }}"
+    />
+
+    <div class="calendar"></div>
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+
+  var minDate = new Date($('#the-dates').data('minDate'));
+  var maxDate = new Date($('#the-dates').data('maxDate'));
+
+  var studId = $(location).attr("href").substr($(location).attr("href").lastIndexOf('/') + 1);
+
+  $(function() {
+    var currentYear = new Date().getFullYear();
+
+    // var redDateTime = new Date(currentYear, 2, 13).getTime();
+    // var circleDateTime = new Date(currentYear, 1, 20).getTime();
+    // var borderDateTime = new Date(currentYear, 0, 12).getTime();
+
+    // var minDate = new Date($('#min-date').data('minDate'));
+    // var maxDate = new Date($('#max-date').data('maxDate'));
+
+    // var circleDateTime = minDate;
+
+    $('.calendar').calendar({
+        // customDayRenderer: function(element, date) {
+        //     if(date.getTime() == redDateTime) {
+        //         $(element).css('font-weight', 'bold');
+        //         $(element).css('font-size', '15px');
+        //         $(element).css('color', 'green');
+        //     }
+        //     else if(date.getTime() == circleDateTime) {
+        //         $(element).css('background-color', 'red');
+        //         $(element).css('color', 'white');
+        //         $(element).css('border-radius', '15px');
+        //     }
+        //     else if(date.getTime() == borderDateTime) {
+        //         $(element).css('border', '2px solid blue');
+        //     }
+        // },
+        minDate: minDate,
+        maxDate: maxDate,
+        renderEnd: function(e) {
+          $('th.month-title').each(function(){
+            $(this).addLinks(e.currentYear);
+          });
+        }
+    });
+  });
+
+  $.fn.addLinks = function(year){
+    var dateHash = {
+      January : '01',
+      February: '02',
+      March: '03',
+      April: '04',
+      May: '05',
+      June: '06',
+      July: '07',
+      August: '08',
+      September: '09',
+      October: '10',
+      November: '11',
+      December: '12'
+    };
+
+    var month = dateHash[$(this).html()];
+
+    if (month == '01' || month == '03' || month == '05' || month == '07' || month == '08' || month == '10' || month =='12') {
+      var lastDoM = new Date(year+'-'+month+'-31');
+    } else if (month == '04' || month == '06' || month == '09' || month == '11') {
+      var lastDoM = new Date(year+'-'+month+'-30');
+    } else if (month == '02') {
+      // can do another if statement for years directly dividable by 4 to get either 29 or 28
+      // however this doesn't feel necessary, as school NEVER starts of the last day of February
+      var lastDoM = new Date(year+'-'+month+'-28');
+    }
+    firstDoM = new Date(year+'-'+month+'-01');
+
+    if (lastDoM > minDate && firstDoM < maxDate) {
+      // console.log('ADDING HREF FOR: '+year+'-'+month);
+      $(this).wrapInner('<a href="/accounts/'+year+'-'+month+'/'+studId+'"></a>');
+    } else {
+      // console.log('OUTSIDE RANGE!!! YEAR:'+year+' == MONTH:'+month);
+      // console.log(firstDoM);
+      // console.log(lastDoM);
+    }
+  }
+
+  </script>
+{% endblock %}

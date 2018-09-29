@@ -13,7 +13,7 @@
         <div class="col-6 col-md-4">
         <h5>{{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }}</h5>
         <table>
-
+        <!-- TODO Check if no attendances and display differently or not at all -->
         {% for attendance in schedule.getOptionalsAttendances %}
           <tr>
             <td>
