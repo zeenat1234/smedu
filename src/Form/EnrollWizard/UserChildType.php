@@ -32,24 +32,24 @@ class UserChildType extends AbstractType
             ->add('username', HiddenType::class, array(
               'mapped' => true,
               'data' => 'temporary.username',
-              'error_mapping' => array(
-                  '.' => 'email',
-              ),
+              // 'error_mapping' => array(
+              //     '.' => 'lastName',
+              // ),
             ))
             ->add('email', HiddenType::class, array(
               'mapped' => true,
               'data' => 'temp.email@iteachsmart.ro',
-              'error_mapping' => array(
-                  '.' => 'email',
-              ),
+              // 'error_mapping' => array(
+              //     '.' => 'lastName',
+              // ),
             ))
             //TODO: generate random P@ssword
             ->add('password', HiddenType::class, array(
               'mapped' => true,
               'data' => '73mPa@$$Sm3dU',
-              'error_mapping' => array(
-                  '.' => 'email',
-              ),
+              // 'error_mapping' => array(
+              //     '.' => 'lastName',
+              // ),
             ))
         ;
     }
@@ -59,6 +59,9 @@ class UserChildType extends AbstractType
         $resolver->setDefaults([
             'data_class' => User::class,
             'validation_groups' => array('Default'),
+            'error_mapping' => array(
+                '.' => 'firstName',
+            ),
         ]);
     }
 }

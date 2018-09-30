@@ -4,14 +4,14 @@
 
 {% block body %}
 
-    <h2>Prezențe {{ optional.getOptionalName|lower }}</h2>
-    <h4>Profesor {{ optional.getProfessor.getFullName(1)|title }}</h4>
+    <h2 class="kuraleFont">Prezențe {{ optional.getOptionalName|lower }}</h2>
+    <h4 class="kuraleFont">Profesor {{ optional.getProfessor.getFullName(1)|title }}</h4>
     <hr>
     <br>
     <div class="row">
     {% for schedule in optional.getOptionalSchedules %}
         <div class="col-6 col-md-4">
-        <h5>{{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }}</h5>
+        <h5 class="kuraleFont">{{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }}</h5>
         <table>
         <!-- TODO Check if no attendances and display differently or not at all -->
         {% for attendance in schedule.getOptionalsAttendances %}

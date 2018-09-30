@@ -14,7 +14,7 @@
 	<div class="col-12 col-md-8">
 	<!-- <br> -->
 	{{ form_start(form) }}
-		{{ form_errors(form) }}
+		<!-- <code>{# form_errors(form) #}</code> -->
 
 		{% if flow.getCurrentStepNumber() == 1 %}
 			<div>
@@ -34,7 +34,20 @@
 		{% if flow.getCurrentStepNumber() == 2 %}
 			<div>
 				<h3 class="kuraleFont">Adaugă cont părinte:</h3>
-				{{ form_row(form.newGuardian) }}
+				{# form_row(form.newGuardian) #}
+				{{ form_label(form.newGuardian.lastName)}}
+				{{ form_widget(form.newGuardian.lastName) }}
+				<code>{{ form_errors(form.newGuardian.lastName) }}</code>
+				{{ form_label(form.newGuardian.firstName)}}
+				{{ form_widget(form.newGuardian.firstName) }}
+				<code>{{ form_errors(form.newGuardian.firstName) }}</code>
+				{{ form_label(form.newGuardian.email)}}
+				{{ form_widget(form.newGuardian.email) }}
+				<code>{{ form_errors(form.newGuardian.email) }}</code>
+				{{ form_label(form.newGuardian.phoneNo)}}
+				{{ form_widget(form.newGuardian.phoneNo) }}
+				<code>{{ form_errors(form.newGuardian.phoneNo) }}</code>
+				<code>{{ form_errors(form) }}</code>
 			</div>
 		{% endif %}
 
@@ -57,8 +70,14 @@
 		{% if flow.getCurrentStepNumber() == 4 and flow.formData.addGuardian == false %}
 			<div>
 				{% if flow.formData.addStudent == true %}
-					Adaugă cont elev pentru {{ flow.formData.guardian.getFullName(1) }} <br>
-					{{ form_row(form.newStudent) }}
+					Adaugă cont elev pentru {{ flow.formData.guardian.getFullName(1) }} <br><br>
+					{{ form_label(form.newStudent.lastName)}}
+					{{ form_widget(form.newStudent.lastName) }}
+					<code>{{ form_errors(form.newStudent.lastName) }}</code>
+					{{ form_label(form.newStudent.firstName)}}
+					{{ form_widget(form.newStudent.firstName) }}
+					<code>{{ form_errors(form.newStudent.firstName) }}</code>
+					<code>{{ form_errors(form) }}</code>
 				{% else %}
 					<h3 class="kuraleFont">Alegeți elevul:</h3>
 					<br>
@@ -111,6 +130,7 @@
 				{% else %}
 					{{ flow.formData.student.getRoName }}
 				{% endif %}
+				<code class="kuraleFont">{{ form_errors(form) }}</code>
 				<hr>
 				<table>
 					<tbody>
