@@ -2,6 +2,7 @@ const guardians = document.getElementById('users');
 
 if (guardians) {
   guardians.addEventListener('click', (e) => {
+    e.preventDefault();
     if(e.target.className === 'far fa-envelope reset-user') {
       if(confirm('Ești sigur că vrei să trimiți un e-mail cu resetarea parolei acestui utilizator?\n(Parola veche va fii suprascrisă)')) {
         const id = e.target.getAttribute('data-id');
@@ -10,7 +11,7 @@ if (guardians) {
           //credentials tag is required to avoid redirect to login page
           credentials: 'same-origin',
           method: 'POST'
-        }).then(res => { alert('Contul a fost resetat cu succes!'); window.location.reload(); } );
+        }).then(res => { alert('Contul a fost resetat cu succes!'); } );
         //alert('Contul a fost resetat cu succes!');
         //console.log(`RESET e-mail sent to id :: ${id}`);
       }
