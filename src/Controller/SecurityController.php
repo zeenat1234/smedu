@@ -18,6 +18,10 @@ class SecurityController extends Controller
         $error = $utils->getLastAuthenticationError();
         $lastUsername = $utils->getLastUsername();
 
+        if ($error) {
+          $error = 'Informațiile introduse sunt greșite!';
+        }
+
         return $this->render('security/login.html.twig', [
             'error'           => $error,
             'last_username'   => $lastUsername

@@ -13,7 +13,7 @@
         <h1 class="kuraleFont">iTeachSmart</h1>
         <br>
         {% if error %}
-          <span class="error">{{ error.messageKey }}</span>
+          <span class="error"><code>{{ error }}</code></span>
         {% endif %}
         <form action="{{ path('login') }}" method="POST">
           <center>
