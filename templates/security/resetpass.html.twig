@@ -15,7 +15,12 @@
         <div class="forgotPasswordHolder">
           {{ form_start(form) }}
             {{ form_label(form.email) }} <br>
-            {{ form_widget(form.email) }} <br>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-at fa-fw"></i></span>
+              </div>
+              {{ form_widget(form.email) }} <br>
+            </div>
             <code>{{ form_errors(form.email) }}</code>
             <center><button class="btn btn-success" type="submit">Resetează</button></center>
             <br>
