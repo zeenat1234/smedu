@@ -7,6 +7,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 #can instantiate the entity
 use App\Entity\User;
+use App\Entity\ClassOptional;
+use App\Entity\OptionalsAttendance;
 
 #can use entity's form
 use App\Form\UserMyaccountType;
@@ -172,12 +174,35 @@ class HomeController extends Controller
                     }
                     $entityManager = $this->getDoctrine()->getManager();
                     $entityManager->flush();
+
+                    if (!$optional->isSyncd()) {
+                      if ($optional->isModified()) {
+                        $this->home_update_optional_attendance($optional);
+                      } else {
+                        $canCreate = false;
+                        if ($optional->getStudents()->count() > 0) {
+                          foreach($optional->getOptionalSchedules() as $schedule) {
+                            if ($schedule->getScheduledDateTime() > new \DateTime('now')) {
+                              $canCreate = true;
+                            }
+                          }
+                        }
+                        if ($canCreate == true) {
+                          $this->home_generate_optional_attendance($optional);
+                        } else {
+                          //return $this->redirectToRoute('myaccount_optionals');
+                        }
+                      }
+                    } else {
+                      //return $this->redirectToRoute('myaccount_optionals');
+                    }
                   }
 
                   $this->get('session')->getFlashBag()->add(
-                      'notice',
-                      'Informația a fost salvată cu succes!'
+                    'notice',
+                    'Informația a fost salvată cu succes!'
                   );
+
 
                   return $this->redirectToRoute('myaccount_optionals');
 
@@ -190,5 +215,66 @@ class HomeController extends Controller
             'forms' => $views,
           ]);
         }
+    }
+
+    public function home_update_optional_attendance($currentOptional) { // MUST MATCH CODE FROM ATTENDANCE CONTROLLER!!!!
+      //the following checks for new schedules or students and adds them accordingly
+      foreach ($currentOptional->getOptionalSchedules() as $sched) {
+          foreach ($currentOptional->getStudents() as $stud) {
+              $result = $this->getDoctrine()->getRepository(OptionalsAttendance::class)->findOneBy(
+                  array('optionalSchedule' => $sched, 'student' => $stud)
+              );
+              if (!$result && ($sched->getScheduledDateTime() > (new \DateTime('now'))) ) {
+                  $attendanceRecord = new OptionalsAttendance();
+                  $attendanceRecord->setClassOptional($currentOptional);
+                  $attendanceRecord->setOptionalSchedule($sched);
+                  $attendanceRecord->setStudent($stud);
+                  $attendanceRecord->setHasAttended(0);
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($attendanceRecord);
+                  $entityManager->flush();
+              } else {
+                  //do nothing
+              }
+          }
+      }
+
+      //the following checks for removed students and removes attendance entries accordingly
+      $currentAttendances = $currentOptional->getOptionalsAttendances();
+      //orphan removal should work for schedules, otherwise create logic here
+      foreach ($currentAttendances as $attendance) {
+          $student = $attendance->getStudent();
+
+          if (!$currentOptional->getStudents()->contains($student)) {
+              if ($attendance->getOptionalSchedule()->getScheduledDateTime() > (new \DateTime('now'))) {
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->remove($attendance);
+                  $entityManager->flush();
+              }
+          } else {
+              //do nothing
+          }
+      }
+    }
+
+    public function home_generate_optional_attendance($currentOptional) { // MUST MATCH CODE FROM ATTENDANCE CONTROLLER!!!!
+      if (count($currentOptional->getOptionalsAttendances()) == 0) {
+        foreach ($currentOptional->getOptionalSchedules() as $sched) {
+          if ($sched->getScheduledDateTime() > (new \DateTime('now'))) {
+            foreach ($currentOptional->getStudents() as $stud) {
+                $attendanceRecord = new OptionalsAttendance();
+                $attendanceRecord->setClassOptional($currentOptional);
+                $attendanceRecord->setOptionalSchedule($sched);
+                $attendanceRecord->setStudent($stud);
+                $attendanceRecord->setHasAttended(0);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($attendanceRecord);
+                $entityManager->flush();
+            }
+          }
+        }
+      }
     }
 }

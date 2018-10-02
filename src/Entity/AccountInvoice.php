@@ -6,6 +6,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\AccountInvoiceRepository")
  */
@@ -56,8 +58,28 @@ class AccountInvoice
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Assert\NotBlank(message="Vă rugăm atașați fișierul care conține dovada plății.")
+     * @Assert\File(
+     *     maxSize = "10M",
+     *     mimeTypes = {"application/pdf", "application/x-pdf"},
+     *     mimeTypesMessage = "Formatele suportate sunt următoarele: PDF")
      */
     private $payProof;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $invoiceDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $invoiceSentDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $invoicePaidDate;
 
     public function __construct()
     {
@@ -180,6 +202,42 @@ class AccountInvoice
     public function setPayProof(?string $payProof): self
     {
         $this->payProof = $payProof;
+
+        return $this;
+    }
+
+    public function getInvoiceDate(): ?\DateTimeInterface
+    {
+        return $this->invoiceDate;
+    }
+
+    public function setInvoiceDate(\DateTimeInterface $invoiceDate): self
+    {
+        $this->invoiceDate = $invoiceDate;
+
+        return $this;
+    }
+
+    public function getInvoiceSentDate(): ?\DateTimeInterface
+    {
+        return $this->invoiceSentDate;
+    }
+
+    public function setInvoiceSentDate(?\DateTimeInterface $invoiceSentDate): self
+    {
+        $this->invoiceSentDate = $invoiceSentDate;
+
+        return $this;
+    }
+
+    public function getInvoicePaidDate(): ?\DateTimeInterface
+    {
+        return $this->invoicePaidDate;
+    }
+
+    public function setInvoicePaidDate(?\DateTimeInterface $invoicePaidDate): self
+    {
+        $this->invoicePaidDate = $invoicePaidDate;
 
         return $this;
     }

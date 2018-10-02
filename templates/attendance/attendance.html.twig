@@ -74,7 +74,7 @@
                         {% else %}
                           {% if optional.isModified == true %}
                             {# Update attenandance #}
-                            <a href="{{ path('update_optional_attendance', {'optId':optional.id }) }}"><button type="button" class="btn-sm btn-warning">Actualizează</button></a>
+                            <a href="{{ path('update_optional_attendance', {'optId':optional.id, 'redirect':'attendance' }) }}"><button type="button" class="btn-sm btn-warning">Actualizează</button></a>
                           {% else %}
                             {# Generate attenandance #}
                             {% set canCreate = false %}

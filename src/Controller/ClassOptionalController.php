@@ -182,13 +182,35 @@ class ClassOptionalController extends AbstractController
           $form->handleRequest($request);
 
           if($form->isSubmitted() && $form->isValid()) {
-             $optional = $form->getData();
+            $optional = $form->getData();
 
-             $entityManager = $this->getDoctrine()->getManager();
-             $entityManager->persist($optional);
-             $entityManager->flush();
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($optional);
+            $entityManager->flush();
 
-             return $this->redirectToRoute('class_optional_students', array('id' => $optional->getId()) );
+            if (!$optional->isSyncd()) {
+              if ($optional->isModified()) {
+                return $this->redirectToRoute('update_optional_attendance', array('optId' => $optional->getId(), 'redirect' => 'optional_enroll') );
+              } else {
+                $canCreate = false;
+                if ($optional->getStudents()->count() > 0) {
+                  foreach($optional->getOptionalSchedules() as $schedule) {
+                    if ($schedule->getScheduledDateTime() > new \DateTime('now')) {
+                      $canCreate = true;
+                    }
+                  }
+                }
+                if ($canCreate == true) {
+                  return $this->redirectToRoute('generate_optional_attendance', array('optId' => $optional->getId(), 'redirect' => 'optional_enroll') );
+                } else {
+                  return $this->redirectToRoute('class_optional_students', array('id' => $optional->getId()) );
+                }
+              }
+            } else {
+              return $this->redirectToRoute('class_optional_students', array('id' => $optional->getId()) );
+            }
+
+            //return $this->redirectToRoute('update_optional_attendance', array('optId' => $optional->getId(), 'redirect' => 'optional_enroll') );
           }
 
           return $this->render('class_optional/class.optional.enroll.html.twig', [

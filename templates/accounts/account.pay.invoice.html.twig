@@ -8,12 +8,37 @@
     <h2>{{ student.getUser.getFullName(1)|title }}</h2>
     <h4>{{ month_year|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</h4>
     <br>
-    <p>Total de plată: {{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</p>
+    <p>Total de plată: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}</p>
+    <p>Total achitat: {{ invoice.getInvoicePaid|localizedcurrency('RON') }} </p>
+    <p>Rest de plată: {{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</p>
+
     {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <br>
-    <p>Atașare Document (<code>În construcție</code>)</p>
-      <input type="submit" class="btn btn-success mt-3" value="Plătește">
+
+    <table>
+      <tbody>
+        <tr>
+          <td valign="top">
+            {{ form_label(form.invoicePaid) }}
+            {{ form_widget(form.invoicePaid) }}
+            <code>{{ form_errors(form.invoicePaid) }}</code>
+            {# form_row(form.invoicePaid) #}
+          </td>
+          <td valign="top">
+            {{ form_label(form.payProof) }} <br>
+            {{ form_widget(form.payProof) }}
+            <code>{{ form_errors(form.payProof) }}</code>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <button type="submit" class="btn btn-success mt-3">
+              <i class="far fa-credit-card"></i> Plătește
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
     {{ form_end(form) }}
 
 

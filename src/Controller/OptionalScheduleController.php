@@ -127,7 +127,30 @@ class OptionalScheduleController extends AbstractController
 
                 }
             }
-            return $this->redirectToRoute('optional_schedule', array('id' => $theOptional->getId()) );
+
+            if (!$theOptional->isSyncd()) {
+              if ($theOptional->isModified()) {
+                return $this->redirectToRoute('update_optional_attendance', array('optId' => $id, 'redirect' => 'optional_schedule') );
+              } else {
+                $canCreate = false;
+                if ($theOptional->getStudents()->count() > 0) {
+                  foreach($theOptional->getOptionalSchedules() as $schedule) {
+                    if ($schedule->getScheduledDateTime() > new \DateTime('now')) {
+                      $canCreate = true;
+                    }
+                  }
+                }
+                if ($canCreate == true) {
+                  return $this->redirectToRoute('generate_optional_attendance', array('optId' => $id, 'redirect' => 'optional_schedule') );
+                } else {
+                  return $this->redirectToRoute('optional_schedule', array('id' => $id) );
+                }
+              }
+            } else {
+              return $this->redirectToRoute('optional_schedule', array('id' => $id) );
+            }
+
+            //return $this->redirectToRoute('optional_schedule', array('id' => $theOptional->getId()) );
         }
 
         return $this->render('optional_schedule/optional.schedule.add.html.twig', [

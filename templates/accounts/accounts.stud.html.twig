@@ -10,7 +10,7 @@
 {% block body %}
 
     <h2 class="coinyFont">Calendar Conturi - {{ student.getUser.getRoName }}</h2>
-
+    <p>Alege luna pentru care vrei să verifici conturile și facturile facând click pe numele lunii dorite:</p>
     <div id="the-dates"
     data-min-date="{{ student.getSchoolUnit.getStartDate|localizeddate('none','none','ro', null, 'yyyy-MM-dd') }}"
     data-max-date="{{ student.getSchoolUnit.getEndDate|localizeddate('none','none','ro', null, 'yyyy-MM-dd') }}"
@@ -97,7 +97,7 @@
 
     if (lastDoM > minDate && firstDoM < maxDate) {
       // console.log('ADDING HREF FOR: '+year+'-'+month);
-      $(this).wrapInner('<a href="/accounts/'+year+'-'+month+'/'+studId+'"></a>');
+      $(this).wrapInner('<a href="/accounts/'+year+'-'+month+'/'+studId+'" style="color:blue"></a>');
     } else {
       // console.log('OUTSIDE RANGE!!! YEAR:'+year+' == MONTH:'+month);
       // console.log(firstDoM);

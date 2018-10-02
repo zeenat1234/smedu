@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello! {% endblock %}
+
+{% block body %}
+
+<div class="login-wrapper">
+  <div class="d-flex justify-content-center">
+    <div class="d-flex flex-column">
+
+        <!-- ✅ -->
+        <center><img src="/img/logo.planeta.copiilor.png" alt="" width="200px" height="auto"></center>
+        <h1 class="kuraleFont" style="text-align:center;">iTeachSmart</h1>
+        <br>
+        <div class="forgotPasswordHolder">
+          {{ form_start(form) }}
+            {{ form_label(form.email) }} <br>
+            {{ form_widget(form.email) }} <br>
+            <code>{{ form_errors(form.email) }}</code>
+            <center><button class="btn btn-success" type="submit">Resetează</button></center>
+            <br>
+          {{ form_end(form) }}
+        </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

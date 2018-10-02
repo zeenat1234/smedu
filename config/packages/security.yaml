@@ -45,6 +45,7 @@ security:
         # - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/logout$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/resetpass$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login_success$, roles: [ROLE_PARENT, ROLE_ADMIN] }
         - { path: ^/account$, roles: [ROLE_PARENT, ROLE_ADMIN] }
         - { path: ^/account/, roles: [ROLE_PARENT, ROLE_ADMIN] }

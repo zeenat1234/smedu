@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 #allows us to restrict methods like get and post
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -25,8 +25,11 @@ use App\Form\AccountInvoiceType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class AccountsController extends AbstractController
+class AccountsController extends Controller
 {
     /**
      * @Route("/accounts", name="accounts")
@@ -200,7 +203,8 @@ class AccountsController extends AbstractController
      * @Route("/accounts/payinvoice/{invId}", name="accounts_pay_invoice")
      * @Method({"GET" , "DELETE", "POST"})
      */
-    public function accounts_pay_invoice(Request $request, $invId) {
+    public function accounts_pay_invoice(Request $request, $invId)
+    {
 
         $invoice = $this->getDoctrine()->getRepository
         (AccountInvoice::class)->find($invId);
@@ -209,6 +213,12 @@ class AccountsController extends AbstractController
 
         $monthYear = $invoice->getMonthAccount()->getAccYearMonth();
 
+        // $invoice->setPayProof(
+        //     new File($this->getParameter('invoice_directory').'/'.$invoice->getPayProof())
+        // );
+
+        $invoice->setPayProof(null);
+
         $form = $this->createForm(AccountInvoiceType::Class, $invoice);
         $form->handleRequest($request);
 
@@ -216,7 +226,30 @@ class AccountsController extends AbstractController
           $invoice = $form->getData();
 
           $invoice->setIsPaid(true);
-          $invoice->setPayProof('Temporary Pay Proof');
+          $invoice->setInvoicePaidDate(new \DateTime('now'));
+
+          // $file stores the uploaded PDF file
+          /** @var Symfony\Component\HttpFoundation\File\UploadedFile $file */
+          $file = $form->get('payProof')->getData();
+
+          // $fileName = $this->generateUniqueFileName().'.'.$file->guessExtension();
+          //TODO Change invoice number logic
+          $fileName = 'dovada_factura_'.$invoice->getMonthAccount()->getId().'-'.$invoice->getId().'.'.$file->guessExtension();
+
+          // Move the file to the directory where brochures are stored
+          try {
+              $file->move(
+                  $this->getParameter('invoice_directory'),
+                  $fileName
+              );
+          } catch (FileException $e) {
+              // ... handle exception if something happens during file upload
+          }
+
+          // updates the 'brochure' property to store the PDF file name
+          // instead of its contents
+          $invoice->setPayProof($fileName);
+
 
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->persist($invoice);
@@ -233,6 +266,116 @@ class AccountsController extends AbstractController
           'invoice' => $invoice,
           'form' => $form->createView(),
         ]);
+    }
+
+    /**
+     * @Route("/accounts/invoice_proof/{invId}/{action}", name="invoice_proof")
+     * @Method({"GET", "POST"})
+     */
+    public function viewOrDownloadAction($invId, $action)
+    {
+        $invoice = $this->getDoctrine()->getRepository
+        (AccountInvoice::class)->find($invId);
+
+        $fileName = $invoice->getPayProof();
+        $filePath = $this->getParameter('invoice_directory').'/'.$fileName;
+
+        if ($action=='download') {
+          return $this->file($filePath);
+        } else if ($action=='view') {
+          return $this->file($filePath, $fileName, ResponseHeaderBag::DISPOSITION_INLINE);
+        } else {
+
+        }
+
+    }
+
+    /**
+     * @Route("/accounts/invoice_pdf/{invId}", name="invoice_pdf")
+     * @Method({"GET", "POST"})
+     */
+    public function invoice_pdf(Request $request, $invId)
+    {
+      $invoice = $this->getDoctrine()->getRepository
+      (AccountInvoice::class)->find($invId);
+
+      $snappy = $this->get('knp_snappy.pdf');
+      $html = $this->renderView('accounts/invoice_pdf.html.twig',
+        array(
+            'invoice'  => $invoice
+        ));
+
+      //TODO Change invoice number logic
+      $fileName = 'factura_'.$invoice->getMonthAccount()->getId().'-'.$invoice->getId().'.pdf';
+
+      // save PDF to server
+      // $snappy->generateFromHtml(
+      //     $html,
+      //     $this->getParameter('pdf_directory').'/'.$fileName
+      // );
+
+      return new Response(
+        $snappy->getOutputFromHtml($html),
+        //ok status code
+        200,
+        array(
+          'Content-Type' => 'application/pdf',
+          'Content-Disposition' => 'inline; filename="'.$fileName.'.pdf"'
+        )
+      );
+      //console.log('A mers!');
+      // $response = new Response();
+      // $response->send();
+
+      #return $this->redirectToRoute('users');
+    }
+
+    /**
+     * @Route("/accounts/invoice_notify/{invId}", name="invoice_notify")
+     * @Method({"GET", "POST"})
+     */
+    public function invoice_notify(Request $request, $invId, \Swift_Mailer $mailer)
+    {
+      $invoice = $this->getDoctrine()->getRepository
+      (AccountInvoice::class)->find($invId);
+
+      $invoice->setInvoiceSentDate(new \DateTime('now'));
+      $invoice->setSentCount($invoice->getSentCount()+1);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->flush();
+
+      $message = (new \Swift_Message('Hello Email'))
+        ->setFrom('no-reply@iteachsmart.ro')
+        //TODO - put actual email in and test!
+        //->setTo($invoice->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser()->getEmail())
+        ->setTo('dj.diablo.x+smedu@gmail.com')
+        ->setBody(
+            $this->renderView(
+                'accounts/invoice_email.html.twig',
+                array('invoice' => $invoice)
+            ),
+            'text/html'
+        )
+        /*
+         * If you also want to include a plaintext version of the message
+        ->addPart(
+            $this->renderView(
+                'emails/registration.txt.twig',
+                array('name' => $name)
+            ),
+            'text/plain'
+        )
+        */
+      ;
+
+      $mailer->send($message);
+
+      //console.log('A mers!');
+      $response = new Response();
+      $response->send();
+
+      #return $this->redirectToRoute('users');
     }
 
     /**
@@ -335,17 +478,18 @@ class AccountsController extends AbstractController
     }
 
     /**
-     * @Route("/accounts/{accId}/invoiceall/{itemCount}", name="account_invoice_all")
+     * @Route("/accounts/{accId}/invoiceall", name="account_invoice_all")
      * @Method({"GET","POST"})
      */
-    public function account_invoice_all($accId, $itemCount)
+    public function account_invoice_all($accId)
     {
         $account = $this->getDoctrine()->getRepository
         (MonthAccount::class)->find($accId);
 
         $newInvoice = new AccountInvoice();
         $newInvoice->setMonthAccount($account);
-        $newInvoice->setInvoiceName('Factură Nr: '.$itemCount);
+        $newInvoice->setInvoiceDate(new \DateTime('now'));
+        $newInvoice->setInvoiceName('Factură Nr: 0');
 
         $total = 0;
 
@@ -367,10 +511,61 @@ class AccountsController extends AbstractController
         $entityManager->persist($newInvoice);
         $entityManager->flush();
 
+        //TODO Change invoice number logic
+        $newInvoice->setInvoiceName('Factură Nr: '.$newInvoice->getMonthAccount()->getId().$newInvoice->getId());
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->flush();
+
         return $this->redirectToRoute('account_invoices', array(
           'accId' => $account->getId(),
         ) );
     }
+
+    /**
+     * @Route("/accounts/{accId}/invoiceselect/", name="account_invoice_selected")
+     * @Method({"GET","POST"})
+     */
+    public function account_invoice_selected($accId)
+    {
+        $account = $this->getDoctrine()->getRepository
+        (MonthAccount::class)->find($accId);
+
+        $newInvoice = new AccountInvoice();
+        $newInvoice->setMonthAccount($account);
+        $newInvoice->setInvoiceDate(new \DateTime('now'));
+        $newInvoice->setInvoiceName('Factură Nr: 0');
+
+        $total = 0;
+
+        foreach ($account->getPaymentItems() as $payItem) {
+          //TODO: if payment item is in array <- get array from javascript
+            if ($payItem->getIsInvoiced() == false) {
+                $payItem->setIsInvoiced(true);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($payItem);
+                $entityManager->flush();
+
+                $newInvoice->addPaymentItem($payItem);
+                $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+                $newInvoice->setInvoiceTotal($total);
+            }
+        }
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($newInvoice);
+        $entityManager->flush();
+
+        //TODO Change invoice number logic
+        $newInvoice->setInvoiceName('Factură Nr: '.$newInvoice->getId());
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->flush();
+
+        return $this->redirectToRoute('account_invoices', array(
+          'accId' => $account->getId(),
+        ) );
+    }
+
     /**
      * @Route("/accounts/{monthYear}/{studId}/generate", name="accounts_stud_month_generate")
      * @Method({"GET" , "POST"})

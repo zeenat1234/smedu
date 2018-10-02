@@ -13,8 +13,8 @@
 
       </div>
       <div class="col show-links">
-        <h3 class="coinyFont">Bine ați revenit!</h3>
-        <p>Detaliile contului dumneavoastră sunt următoarele:</p>
+        <h3 class="coinyFont">Bine ai revenit!</h3>
+        <p>Detaliile contului tău sunt următoarele:</p>
         <table>
           <tbody>
             <tr>
@@ -40,24 +40,30 @@
           <tbody>
             <tr>
               <td>
-                <b>Ultima factură emisă: </b>
+                <strong>Ultima factură emisă: </strong>
               </td>
-              <!-- <td>
-                <a href="#">Octombrie</a>, emisă 10.10.2018
-              </td> -->
               <td>
-                <code>în construcție</code>
+                {% if latest_invoice == false %}
+                  0 facutri
+                {% else %}
+                  {{ latest_invoice.getInvoiceDate|localizeddate('long','none','RO') }}
+                {% endif %}
               </td>
             </tr>
             <tr>
               <td>
-                <b>Ultima factură achitată: </b>
+                <strong>Ultima factură achitată: </strong>
               </td>
-              <!-- <td>
-                <a href="#">Septembrie</a>, achitată 10.10.2018
-              </td> -->
               <td>
-                <code>în construcție</code>
+                {% if latest_invoice == false %}
+                  -
+                {% else %}
+                  {% if latest_invoice.getIsPaid == true %}
+                    Da, pe {{ latest_invoice.getInvoicePaidDate|localizeddate('long','none','RO') }}
+                  {% else %}
+                    Nu
+                  {% endif %}
+                {% endif %}
               </td>
             </tr>
           </tbody>
@@ -96,7 +102,7 @@
           {% endif %}
         {% endfor %}
         {% if i == 0 %}
-          <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+          <p>Nu ai niciun elev înscris! Te rugăm să ne contactezi telefonic pentru mai multe detalii.</p>
         {% endif %}
       {% endif %}
     </div>
@@ -114,20 +120,21 @@
             {% else %}
             <div class="col">
               <p><strong>Suma: </strong>{{ latest_invoice.invoiceTotal|localizedcurrency('RON') }}</p>
-              <p><strong>Data emiterii: </strong>{{ latest_invoice.getMonthAccount.getAccYearMonth|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</p>
+              <p><strong>Data emiterii: </strong>{{ latest_invoice.getInvoiceDate|localizeddate('medium','none','RO') }}</p>
+              <p><strong>Termen de plată: </strong> {{ latest_invoice.getInvoiceDate|date_modify("+4 weeks")|localizeddate('medium','none','RO') }}</p>
             </div>
             <div class="col">
               {% if latest_invoice.isPaid and latest_invoice.invoiceTotal == latest_invoice.invoicePaid %}
                 <p><strong>Status: </strong>Achitată</p>
-                <p><strong>Data achitării: </strong> <code>în construcție</code></p>
+                <p><strong>Data achitării: </strong> {{ latest_invoice.getInvoicePaidDate|localizeddate('medium','none','RO') }}</p>
               {% elseif latest_invoice.isPaid and latest_invoice.invoiceTotal > latest_invoice.invoicePaid %}
                 <p><strong>Status: </strong>Achitată parțial</p>
+                <p><strong>Data ultimei plăți: </strong> {{ latest_invoice.getInvoicePaidDate|localizeddate('medium','none','RO') }}</p>
                 <p><strong>Rest de plată: </strong>{{ (latest_invoice.invoiceTotal - latest_invoice.invoicePaid)|localizedcurrency('RON') }}</p>
-                <p><strong>Efectuare Plată:</strong> <code>în construcție</code></p>
+                <p><strong>Efectuare Plată:</strong> <button disabled><i class="fas fa-coins"></i> Achită</button></p>
               {% elseif latest_invoice.invoicePaid == 0 %}
                 <p><strong>Status: </strong>Neachitată</p>
-                <p><strong>Data scadentă: </strong> <code>în construcție</code></p>
-                <p><strong>Efectuare Plată:</strong> <code>în construcție</code></p>
+                <p><strong>Efectuare Plată: </strong> <button disabled><i class="fas fa-coins"></i> Achită</button></p>
               {% endif %}
             </div>
             {% endif %}

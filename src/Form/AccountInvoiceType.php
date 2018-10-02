@@ -9,6 +9,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #this is used for forms
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 class AccountInvoiceType extends AbstractType
 {
@@ -19,7 +20,12 @@ class AccountInvoiceType extends AbstractType
               'label'    => 'Total Achitat',
               'currency' => 'RON',
               'scale' => 2,
-              'attr' => array('class' => 'col-3 form-control'),
+              'attr' => array('class' => 'form-control'),
+            ))
+            ->add('payProof', FileType::class, array(
+              //'data'  => null,
+              'label' => 'Dovadă de plată (PDF file)',
+              'data_class' => null
             ))
         ;
     }

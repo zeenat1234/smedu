@@ -48,10 +48,10 @@ class AttendanceController extends AbstractController
     }
 
     /**
-     * @Route("/attendance/generate/opt/{optId}", name="generate_optional_attendance")
+     * @Route("/attendance/generate/opt/{optId}/{redirect?'redirect'}", name="generate_optional_attendance")
      * @Method({"GET" , "POST"})
      */
-    public function generate_optional_attendance(Request $request, $optId) {
+    public function generate_optional_attendance(Request $request, $optId, $redirect) {
 
         $currentOptional = $this->getDoctrine()->getRepository
         (ClassOptional::class)->find($optId);
@@ -74,14 +74,24 @@ class AttendanceController extends AbstractController
           }
         }
 
-        return $this->redirectToRoute('attendance');
+        if ($redirect == 'attendance') {
+          return $this->redirectToRoute('attendance');
+        } else if ($redirect == 'optional_enroll') {
+          return $this->redirectToRoute('class_optional_students', array('id' => $optId) );
+        } else if ($redirect == 'optional_schedule') {
+          return $this->redirectToRoute('optional_schedule', array('id' => $optId) );
+        } else {
+          $redirect = '/';
+        }
+
+        //return $this->redirectToRoute('attendance');
     }
 
     /**
-     * @Route("/attendance/update/opt/{optId}", name="update_optional_attendance")
-     * @Method({"GET" , "POST", "DELETE"})
+     * @Route("/attendance/update/opt/{optId}/{redirect?'redirect'}", name="update_optional_attendance")
+     * @Method({"GET", "POST", "DELETE"})
      */
-    public function update_optional_attendance(Request $request, $optId) {
+    public function update_optional_attendance(Request $request, $optId, $redirect) {
 
         $currentOptional = $this->getDoctrine()->getRepository
         (ClassOptional::class)->find($optId);
@@ -125,7 +135,16 @@ class AttendanceController extends AbstractController
             }
         }
 
-        return $this->redirectToRoute('attendance');
+        if ($redirect == 'attendance') {
+          return $this->redirectToRoute('attendance');
+        } else if ($redirect == 'optional_enroll') {
+          return $this->redirectToRoute('class_optional_students', array('id' => $optId) );
+        } else if ($redirect == 'optional_schedule') {
+          return $this->redirectToRoute('optional_schedule', array('id' => $optId) );
+        } else {
+          $redirect = '/';
+        }
+
     }
 
     /**

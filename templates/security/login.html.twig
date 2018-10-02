@@ -11,20 +11,53 @@
         <!-- ✅ -->
         <center><img src="/img/logo.planeta.copiilor.png" alt="" width="200px" height="auto"></center>
         <h1 class="kuraleFont" style="text-align:center;">iTeachSmart</h1>
+        {% for flashMessage in app.session.flashbag.get('notice') %}
+        <div id="message">
+        <div style="padding: 5px; min-width:320px; max-width:420px;">
+            <div id="inner-message" class="alert alert-success fade show">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ flashMessage }}
+            </div>
+        </div>
+        </div>
+        {% endfor %}
+        {% for flashMessage in app.session.flashbag.get('error') %}
+        <div id="message">
+        <div style="padding: 5px; min-width:320px; max-width:420px;">
+            <div id="inner-message" class="alert alert-danger fade show">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                {{ flashMessage }}
+            </div>
+        </div>
+        </div>
+        {% endfor %}
         <br>
         {% if error %}
           <span class="error"><code>{{ error }}</code></span>
         {% endif %}
+        <div style="min-width:320px; max-width:420px;">
         <form action="{{ path('login') }}" method="POST">
           <center>
-            <input type="text" name="_username" class="form-control" value="{{ last_username }}" placeholder="User...">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-user fa-fw"></i></span>
+              </div>
+              <input type="text" name="_username" class="form-control" value="{{ last_username }}" placeholder="User...">
+            </div>
             <br>
-            <input type="password" name="_password" class="form-control" placeholder="Parolă...">
-            <br>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-at fa-fw"></i></span>
+              </div>
+              <input type="password" name="_password" class="form-control" placeholder="Parolă...">
+            </div>
             <br>
             <button type="submit" class="btn btn-success mt-1">Login</button>
+            <br><br>
+            <a href="{{ path('resetpass') }}" style="text-decoration:underline;">Am uitat parola...</a>
           </center>
         </form>
+        </div>
     </div>
   </div>
 </div>

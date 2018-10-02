@@ -24,35 +24,60 @@
         <div class="col-12 col-sm-6">
           <div class="form-group">
           {{ form_label(form.lastName) }}
-          {{ form_widget(form.lastName) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-user-tie fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.lastName) }}
+          </div>
           <code>{{ form_errors(form.lastName) }}</code>
           </div>
         </div>
         <div class="col-12 col-sm-6">
           <div class="form-group">
           {{ form_label(form.firstName) }}
-          {{ form_widget(form.firstName) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-user fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.firstName) }}
+          </div>
           <code>{{ form_errors(form.firstName) }}</code>
           </div>
         </div>
         <div class="col-12 col-sm-6">
           <div class="form-group">
           {{ form_label(form.email) }}
-          {{ form_widget(form.email) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-at fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.email) }}
+          </div>
           <code>{{ form_errors(form.email) }}</code>
           </div>
         </div>
         <div class="col-12 col-sm-6">
           <div class="form-group">
           {{ form_label(form.phoneNo) }}
-          {{ form_widget(form.phoneNo) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-phone fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.phoneNo) }}
+          </div>
           <code>{{ form_errors(form.phoneNo) }}</code>
           </div>
         </div>
         <div class="col-12 col-sm-6" id="firstPass" onclick="ShowFunction('');return false;">
           <div class="form-group">
           {{ form_label(form.password.first) }}
-          {{ form_widget(form.password.first) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-key fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.password.first) }}
+          </div>
           <code>{{ form_errors(form.password.first) }}</code>
           </div>
         </div>
@@ -61,7 +86,12 @@
         </div>
         <div class="col-12 col-sm-6" id="secondPass">
           {{ form_label(form.password.second) }}
-          {{ form_widget(form.password.second) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-key fa-flip-horizontal fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.password.second) }}
+          </div>
         </div>
     </div>
   <br>
