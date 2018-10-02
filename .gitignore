@@ -61,5 +61,11 @@ Thumbs.db
 # Ctags file - think it's used for atom, so will ignore in commit
 /.tags1
 
+# Public uploads
+/public/uploads/
+
 # Create different User fixtures for each environment
 /src/DataFixtures/UserFixture.php
+
+# Using different export paths for Windows and Linux - needs a different production version
+/config/packages/knp_snappy.yaml
