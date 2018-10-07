@@ -198,6 +198,14 @@ class AccountsController extends Controller
           $invoice = $payItem->getAccountInvoice();
           $invoiceTotal = $invoice->getInvoiceTotal() - $removePrice*$removeCount;
           if ($invoiceTotal == 0) {
+            //TODO implement
+            if ($invoice->getTrueAccountInvoice()) {
+              $parentInvoice = $invoice->getTrueAccountInvoice();
+              $parentInvoice->setTrueInvoice(null);
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($parentInvoice);
+              $entityManager->flush();
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($invoice);
             $entityManager->flush();
@@ -439,20 +447,25 @@ class AccountsController extends Controller
       $invoice = $this->getDoctrine()->getRepository
       (AccountInvoice::class)->find($invId);
 
-      $iserial = $invoice->getInvoiceSerial();
+      $iserial = $invoice->getMonthAccount()->getStudent()->getSchoolUnit()->getFirstInvoiceSerial();
 
       $newInvoice = new AccountInvoice();
 
       $newInvoice->setMonthAccount($invoice->getMonthAccount());
       $newInvoice->setInvoiceDate(new \DateTime('now'));
       $newInvoice->setTrueAccountInvoice($invoice);
-      $newInvoice->setIsLocked(true);
+      $newInvoice->setIsLocked(false);
 
       /* INVOICE NUMBER LOGIC STARTS HERE */
       $latestInvoice = $this->getDoctrine()->getRepository
       (AccountInvoice::class)->findLatestBySerial($iserial);
 
-      $newNumber = $latestInvoice->getInvoiceNumber()+1;
+      if ($latestInvoice) {
+        $newNumber = $latestInvoice->getInvoiceNumber()+1;
+      } else {
+        $newNumber = $invoice->getMonthAccount()->getStudent()->getSchoolUnit()->getFirstInvoiceNumber();
+      }
+
       $newInvoice->setInvoiceSerial($iserial);
       $newInvoice->setInvoiceNumber($newNumber);
       $newInvoice->setInvoiceTotal(0);
@@ -641,6 +654,14 @@ class AccountsController extends Controller
         $invoice->setInvoiceTotal($invoice->getInvoiceTotal() - $payItem->getItemPrice() * $payItem->getItemCount());
 
         if (count($invoice->getPaymentItems()) == 0) {
+            if ($invoice->getTrueAccountInvoice()) {
+              $parentInvoice = $invoice->getTrueAccountInvoice();
+              $parentInvoice->setTrueInvoice(null);
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($parentInvoice);
+              $entityManager->flush();
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($invoice);
             $entityManager->flush();
@@ -650,10 +671,17 @@ class AccountsController extends Controller
             $entityManager->flush();
         }
 
-        $payItem->setIsInvoiced(false);
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($payItem);
-        $entityManager->flush();
+        //if the item is a duplication from proforma, remove alltogether
+        if (strpos($payItem->getItemName(), '(***)') !== false) {
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->remove($payItem);
+          $entityManager->flush();
+        } else {
+          $payItem->setIsInvoiced(false);
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($payItem);
+          $entityManager->flush();
+        }
 
         return $this->redirectToRoute('account_invoices', array(
           'accId' => $invoice->getMonthAccount()->getId(),
@@ -802,10 +830,10 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/accounts/{accId}/invoiceall", name="account_invoice_all")
+     * @Route("/accounts/{accId}/invoiceall/{type?'true'}", name="account_invoice_all")
      * @Method({"GET","POST"})
      */
-    public function account_invoice_all($accId)
+    public function account_invoice_all($accId, $type)
     {
         $account = $this->getDoctrine()->getRepository
         (MonthAccount::class)->find($accId);
@@ -813,12 +841,20 @@ class AccountsController extends Controller
         $newInvoice = new AccountInvoice();
         $newInvoice->setMonthAccount($account);
         $newInvoice->setInvoiceDate(new \DateTime('now'));
-        $newInvoice->setInvoiceName('Factură Nr: x');
 
         /* INVOICE NUMBER LOGIC STARTS HERE */
         $theUnit = $account->getStudent()->getSchoolUnit();
-        $iserial = $theUnit->getFirstInvoiceSerial();
-        $inumber = $theUnit->getFirstInvoiceNumber();
+
+        if ($type == 'proforma') {
+          $newInvoice->setIsProforma(true);
+          $iserial = 'PRFM';
+          $inumber = 100;
+          $ititle = 'Factură Proforma Nr: ';
+        } else {
+          $iserial = $theUnit->getFirstInvoiceSerial();
+          $inumber = $theUnit->getFirstInvoiceNumber();
+          $ititle = 'Factură Fiscală Nr: ';
+        }
 
         $latestInvoice = $this->getDoctrine()->getRepository
         (AccountInvoice::class)->findLatestBySerial($iserial);
@@ -828,13 +864,13 @@ class AccountsController extends Controller
           $newInvoice->setInvoiceSerial($iserial);
           $newInvoice->setInvoiceNumber($inumber);
 
-          $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$iserial.'-'.$inumber);
+          $newInvoice->setInvoiceName($ititle.$iserial.'-'.$inumber);
         } else {
           $newNumber = $latestInvoice->getInvoiceNumber()+1;
           $newInvoice->setInvoiceSerial($iserial);
           $newInvoice->setInvoiceNumber($newNumber);
 
-          $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$iserial.'-'.$newNumber);
+          $newInvoice->setInvoiceName($ititle.$iserial.'-'.$newNumber);
         }
         /* INVOICE NUMBER LOGIC ENDS HERE */
 

@@ -28,7 +28,10 @@
     {% if invoices is empty %}
       <h5><code>Nu există nici o factură generată în această lună!</code></h5>
       <a href="{{ path('account_invoice_all', {'accId':account.id}) }}">
-        <button>Facturează TOT</button>
+        <button>Factură Fiscală</button>
+      </a>
+      <a href="{{ path('account_invoice_all', {'accId':account.id, 'type':'proforma'}) }}">
+        <button>Factură Proforma</button>
       </a>
       <br>
       <hr>
@@ -309,7 +312,10 @@
             <td></td>
             <td colspan="4">
               <a href="{{ path('account_invoice_all', {'accId':account.id}) }}">
-                <button>Facturează Rămase</button>
+                <button>Factură Fiscală Rămase</button>
+              </a>
+              <a href="{{ path('account_invoice_all', {'accId':account.id, 'type':'proforma'}) }}">
+                <button>Factură Proforma Rămase</button>
               </a>
               <a href="#">
                 <button disabled>Facturează Selecție</button>

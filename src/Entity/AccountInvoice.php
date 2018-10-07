@@ -125,19 +125,19 @@ class AccountInvoice
     private $isLocked = false;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\AccountInvoice", mappedBy="trueInvoice", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\AccountInvoice", mappedBy="trueInvoice", cascade={"persist"})
      */
     private $trueAccountInvoice; //child reference to the parent PROFORMA INVOICE
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\AccountInvoice", inversedBy="trueAccountInvoice", cascade={"persist", "remove"})
      */
-    private $trueInvoice;
+    private $trueInvoice; //gets the value of the FISCAL INVOICE -- used on proforma when creating actual invoice
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\AccountReceipt", mappedBy="accountInvoice", cascade={"persist", "remove"})
      */
-    private $accountReceipt; //gets the value of the FISCAL INVOICE -- used on proforma when creating actual invoice
+    private $accountReceipt;
 
     public function __construct()
     {
@@ -375,11 +375,11 @@ class AccountInvoice
     {
         $this->trueInvoice = $trueInvoice;
 
-        // set (or unset) the owning side of the relation if necessary
-        $newTrueAccountInvoice = $trueInvoice === null ? null : $this;
-        if ($newTrueAccountInvoice !== $trueInvoice->getTrueAccountInvoice()) {
-            $trueInvoice->setTrueAccountInvoice($newTrueAccountInvoice);
-        }
+        // set (or unset) the owning side of the relation if necessary - DO MANUALLY!!!
+        // $newTrueAccountInvoice = $trueInvoice === null ? null : $this;
+        // if ($newTrueAccountInvoice !== $trueInvoice->getTrueAccountInvoice()) {
+        //     $trueInvoice->setTrueAccountInvoice($newTrueAccountInvoice);
+        // }
 
         return $this;
     }
