@@ -53,6 +53,22 @@ class SchoolUnitType extends AbstractType
               'label' => 'Locuri disponibile',
               'attr' => array('class' => 'col-4 form-control'),
             ))
+            ->add('firstInvoiceSerial', TextType::class, array(
+              'label' => 'Serie Facturare',
+              'attr' => array('class' => 'col-4 form-control'),
+            ))
+            ->add('firstInvoiceNumber', NumberType::class, array(
+              'label' => 'Număr pentru prima Factură',
+              'attr' => array('class' => 'col-4 form-control'),
+            ))
+            ->add('firstReceiptSerial', TextType::class, array(
+              'label' => 'Serie Chitanțe',
+              'attr' => array('class' => 'col-4 form-control'),
+            ))
+            ->add('firstReceiptNumber', NumberType::class, array(
+              'label' => 'Număr pentru prima Chitanță',
+              'attr' => array('class' => 'col-4 form-control'),
+            ))
             ->add('description', TextareaType::class, array(
               'label' => 'Descriere',
               'attr' => array('class' => 'col-4 form-control'),

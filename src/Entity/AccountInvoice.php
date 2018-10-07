@@ -7,9 +7,15 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\AccountInvoiceRepository")
+ * @UniqueEntity(
+ *     fields={"invoiceSerial", "invoiceNumber"},
+ *     message="Combinația serie/număr pentru această factură există deja!",
+ *     groups = {"invoiceDetails"}
+ * )
  */
 class AccountInvoice
 {
@@ -80,6 +86,58 @@ class AccountInvoice
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $invoicePaidDate;
+
+    /**
+     * @ORM\Column(type="string", length=10)
+     * @Assert\NotBlank(message = "Acest câmp (Serie Factură) nu poate fii gol", groups = {"invoiceDetails"})
+     * @Assert\Length(
+     *     min=1, minMessage = "Seria pentru factură trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=10, maxMessage = "Seria pentru factură NU poate să conțină mai mult de '{{ limit }}' caractere",
+     *     groups = {"invoiceDetails"}
+     * )
+     * @Assert\Type(
+     *     type="alnum",
+     *     message="Seria {{ value }} nu este validă. Aceasta poate să conțină doar litere și cifre!",
+     *     groups = {"invoiceDetails"}
+     * )
+     */
+    private $invoiceSerial;
+
+    /**
+     * @ORM\Column(type="integer")
+     * @Assert\NotBlank(message = "Acest câmp (Număr Factură) nu poate fii gol", groups = {"invoiceDetails"})
+     * @Assert\Length(
+     *     min=1, minMessage = "Numărul facturii trebuie să conțină cel puțin '{{ limit }}' cifre",
+     *     max=9, maxMessage = "Numărul facturii NU poate să conțină mai mult de '{{ limit }}' cifre",
+     *     groups = {"invoiceDetails"}
+     * )
+     */
+    private $invoiceNumber;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isProforma = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isLocked = false;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\AccountInvoice", mappedBy="trueInvoice", cascade={"persist", "remove"})
+     */
+    private $trueAccountInvoice; //child reference to the parent PROFORMA INVOICE
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\AccountInvoice", inversedBy="trueAccountInvoice", cascade={"persist", "remove"})
+     */
+    private $trueInvoice;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\AccountReceipt", mappedBy="accountInvoice", cascade={"persist", "remove"})
+     */
+    private $accountReceipt; //gets the value of the FISCAL INVOICE -- used on proforma when creating actual invoice
 
     public function __construct()
     {
@@ -238,6 +296,107 @@ class AccountInvoice
     public function setInvoicePaidDate(?\DateTimeInterface $invoicePaidDate): self
     {
         $this->invoicePaidDate = $invoicePaidDate;
+
+        return $this;
+    }
+
+    public function getInvoiceSerial(): ?string
+    {
+        return $this->invoiceSerial;
+    }
+
+    public function setInvoiceSerial(string $invoiceSerial): self
+    {
+        $this->invoiceSerial = $invoiceSerial;
+
+        return $this;
+    }
+
+    public function getInvoiceNumber(): ?int
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function setInvoiceNumber(int $invoiceNumber): self
+    {
+        $this->invoiceNumber = $invoiceNumber;
+
+        return $this;
+    }
+
+    public function getIsProforma(): ?bool
+    {
+        return $this->isProforma;
+    }
+
+    public function setIsProforma(bool $isProforma): self
+    {
+        $this->isProforma = $isProforma;
+
+        return $this;
+    }
+
+    public function getIsLocked(): ?bool
+    {
+        return $this->isLocked;
+    }
+
+    public function setIsLocked(bool $isLocked): self
+    {
+        $this->isLocked = $isLocked;
+
+        return $this;
+    }
+
+    public function getTrueAccountInvoice(): ?self
+    {
+        return $this->trueAccountInvoice;
+    }
+
+    public function setTrueAccountInvoice(?self $trueAccountInvoice): self
+    {
+        $this->trueAccountInvoice = $trueAccountInvoice;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newTrueInvoice = $trueAccountInvoice === null ? null : $this;
+        if ($newTrueInvoice !== $trueAccountInvoice->getTrueInvoice()) {
+            $trueAccountInvoice->setTrueInvoice($newTrueInvoice);
+        }
+
+        return $this;
+    }
+
+    public function getTrueInvoice(): ?self
+    {
+        return $this->trueInvoice;
+    }
+
+    public function setTrueInvoice(?self $trueInvoice): self
+    {
+        $this->trueInvoice = $trueInvoice;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newTrueAccountInvoice = $trueInvoice === null ? null : $this;
+        if ($newTrueAccountInvoice !== $trueInvoice->getTrueAccountInvoice()) {
+            $trueInvoice->setTrueAccountInvoice($newTrueAccountInvoice);
+        }
+
+        return $this;
+    }
+
+    public function getAccountReceipt(): ?AccountReceipt
+    {
+        return $this->accountReceipt;
+    }
+
+    public function setAccountReceipt(AccountReceipt $accountReceipt): self
+    {
+        $this->accountReceipt = $accountReceipt;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $accountReceipt->getAccountInvoice()) {
+            $accountReceipt->setAccountInvoice($this);
+        }
 
         return $this;
     }

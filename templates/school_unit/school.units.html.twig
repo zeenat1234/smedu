@@ -13,6 +13,7 @@
         <tr>
           <th>Nume Unitate</th>
           <th>Data de început / sfârșit</th>
+          <th>Serie Facturi / Chitanțe</th>
           <th>Descriere</th>
           <th></th>
         </tr>
@@ -23,6 +24,7 @@
           <tr>
             <td>{{ schoolunit.unitname }}</td>
             <td>{{ schoolunit.startDate|localizeddate('medium', 'none', 'ro') }} / {{ schoolunit.endDate|localizeddate('medium', 'none', 'ro') }}</td>
+            <td>{{ schoolunit.firstInvoiceSerial }} / {{ schoolunit.firstReceiptSerial }}</td>
             <td>{{ schoolunit.description }}</td>
             <td>
               <a href="{{ path('school_unit_edit', {'id':schoolunit.id}) }}"><button type="button" class="btn btn-primary">Editează</button></a>

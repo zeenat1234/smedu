@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>Chitanță Nr. {{ receipt.getReceiptSerial ~ '-' ~ receipt.getReceiptNumber }}</title>
+
+    <link rel="stylesheet" href="{{ app.request.scheme ~ '://' ~ app.request.host }}{{ asset('css/receipt_pdf.css') }}">
+</head>
+
+<body>
+    <div class="invoice-box">
+        <table cellpadding="0" cellspacing="0">
+            <tr class="top">
+
+                <td style="vertical-align:bottom; width:50%;">
+                  <strong>CHATERING PLANETA COPIILOR SRL</strong><br>
+                  CIF: RO37363307<br>
+                  Reg. com: J40/4955/2017 <br>
+                  Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                  Cont: RO10INGB0000111101234587 <br>
+                  Banca: ING BANK NV <br>
+                  Capital Social: 100
+                </td>
+
+                <td>
+                    <img src="{{ app.request.scheme ~ '://' ~ app.request.host }}{{ asset('img/logo.planeta.copiilor.png') }}" style="height:100%; max-height:200px;">
+                </td>
+
+                <td style="vertical-align:top;">
+                    <h2><strong>CHITANȚĂ</strong></h2>
+                    <hr>
+                    Seria {{ receipt.getReceiptSerial }} nr {{ receipt.getReceiptNumber }} <br>
+                    Data emiterii: {{ receipt.getReceiptDate|localizeddate('short', 'none') }}<br>
+                    <hr>
+                </td>
+            </tr>
+
+            <tr class="information">
+
+                <td colspan="3">
+                    <span>Am primit de la </span>
+                    <span class="grow">{{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getRoName }}</span>
+                    <span> E-mail: </span>
+                    <span class="grow"> {{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getEmail }}</span>
+                    <span> Tel: </span>
+                    <span class="grow"> {{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getPhoneNo }}</span>
+                    <br>
+                    <span> Pentru elevul: </span>
+                    <span class="grow">{{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getRoName }}</span>
+                    <br>
+                    <span> Suma de: </span>
+                    <span class="grow">{{ receipt.getAccountInvoice.getInvoicePaid|localizedcurrency('RON') }}</span>
+                    <br>
+                    {% if receipt.getAccountInvoice.getIsProforma %}
+                      {% set invoicetype = 'proforme' %}
+                    {% else %}
+                      {% set invoicetype = 'fiscale' %}
+                    {% endif %}
+                    <span> reprezentând contravaloarea facturii {{ invoicetype }} seria </span>
+                    <span class="grow">{{ receipt.getAccountInvoice.getInvoiceSerial }} </span>
+                    <span> nr </span>
+                    <span class="grow" style="font-style:italic;">{{ receipt.getAccountInvoice.getInvoiceNumber }} </span>
+                    <span> din data de </span>
+                    <span class="grow">{{ receipt.getAccountInvoice.getInvoiceDate|localizeddate('short','none','RO') }}</span>
+                </td>
+            </tr>
+
+            <tr>
+              <td colspan="2"></td>
+              <td><strong>Casier,</strong></td>
+            </tr>
+
+          </table>
+
+          <br>
+
+    </div>
+</body>

@@ -19,6 +19,20 @@ class AccountInvoiceRepository extends ServiceEntityRepository
         parent::__construct($registry, AccountInvoice::class);
     }
 
+
+    public function findLatestBySerial($serial): ?AccountInvoice
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.invoiceSerial = :val')
+            ->setParameter('val', $serial)
+            ->orderBy('a.invoiceNumber', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+
 //    /**
 //     * @return AccountInvoice[] Returns an array of AccountInvoice objects
 //     */
@@ -36,15 +50,5 @@ class AccountInvoiceRepository extends ServiceEntityRepository
     }
     */
 
-    /*
-    public function findOneBySomeField($value): ?AccountInvoice
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
+
 }

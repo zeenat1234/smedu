@@ -263,7 +263,7 @@ class UserController extends Controller
       $entityManager = $this->getDoctrine()->getManager();
       $entityManager->flush();
 
-      $message = (new \Swift_Message('E-mail Activare Cont - Planeta Copiilor'))
+      $message = (new \Swift_Message('E-mail Resetare Parolă - Planeta Copiilor'))
         ->setFrom('no-reply@iteachsmart.ro')
         ->setTo($user->getEmail())
         ->setBody(

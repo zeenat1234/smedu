@@ -6,6 +6,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\SchoolUnitRepository")
  */
@@ -78,6 +80,54 @@ class SchoolUnit
      * @ORM\OneToMany(targetEntity="App\Entity\Student", mappedBy="schoolUnit")
      */
     private $students;
+
+    /**
+     * @ORM\Column(type="string", length=10)
+     * @Assert\NotBlank(message = "Acest câmp (Serie Factură) nu poate fii gol")
+     * @Assert\Length(
+     *     min=1, minMessage = "Seria pentru factură trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=10, maxMessage = "Seria pentru factură NU poate să conțină mai mult de '{{ limit }}' caractere"
+     * )
+     * @Assert\Type(
+     *     type="alnum",
+     *     message="Seria {{ value }} nu este validă. Aceasta poate să conțină doar litere și cifre!"
+     * )
+     */
+    private $firstInvoiceSerial;
+
+    /**
+     * @ORM\Column(type="integer")
+     * @Assert\NotBlank(message = "Acest câmp (Număr Factură) nu poate fii gol")
+     * @Assert\Length(
+     *     min=1, minMessage = "Numărul facturii trebuie să conțină cel puțin '{{ limit }}' cifre",
+     *     max=9, maxMessage = "Numărul facturii NU poate să conțină mai mult de '{{ limit }}' cifre"
+     * )
+     */
+    private $firstInvoiceNumber;
+
+    /**
+     * @ORM\Column(type="string", length=10)
+     * @Assert\NotBlank(message = "Acest câmp (Serie Chitanță) nu poate fii gol")
+     * @Assert\Length(
+     *     min=1, minMessage = "Seria pentru chitanță trebuie să conțină cel puțin '{{ limit }}' caractere",
+     *     max=10, maxMessage = "Seria pentru chitanță NU poate să conțină mai mult de '{{ limit }}' caractere"
+     * )
+     * @Assert\Type(
+     *     type="alnum",
+     *     message="Seria {{ value }} nu este validă. Aceasta poate să conțină doar litere și cifre!"
+     * )
+     */
+    private $firstReceiptSerial;
+
+    /**
+     * @ORM\Column(type="integer")
+     * @Assert\NotBlank(message = "Acest câmp (Număr Chitanță) nu poate fii gol")
+     * @Assert\Length(
+     *     min=1, minMessage = "Numărul chitanței trebuie să conțină cel puțin '{{ limit }}' cifre",
+     *     max=9, maxMessage = "Numărul chitanței NU poate să conțină mai mult de '{{ limit }}' cifre"
+     * )
+     */
+    private $firstReceiptNumber;
 
     public function __construct()
     {
@@ -348,6 +398,54 @@ class SchoolUnit
                 $student->setSchoolUnit(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getFirstInvoiceSerial(): ?string
+    {
+        return $this->firstInvoiceSerial;
+    }
+
+    public function setFirstInvoiceSerial(string $firstInvoiceSerial): self
+    {
+        $this->firstInvoiceSerial = $firstInvoiceSerial;
+
+        return $this;
+    }
+
+    public function getFirstInvoiceNumber(): ?int
+    {
+        return $this->firstInvoiceNumber;
+    }
+
+    public function setFirstInvoiceNumber(int $firstInvoiceNumber): self
+    {
+        $this->firstInvoiceNumber = $firstInvoiceNumber;
+
+        return $this;
+    }
+
+    public function getFirstReceiptSerial(): ?string
+    {
+        return $this->firstReceiptSerial;
+    }
+
+    public function setFirstReceiptSerial(string $firstReceiptSerial): self
+    {
+        $this->firstReceiptSerial = $firstReceiptSerial;
+
+        return $this;
+    }
+
+    public function getFirstReceiptNumber(): ?int
+    {
+        return $this->firstReceiptNumber;
+    }
+
+    public function setFirstReceiptNumber(int $firstReceiptNumber): self
+    {
+        $this->firstReceiptNumber = $firstReceiptNumber;
 
         return $this;
     }

@@ -52,8 +52,9 @@
 # Env template
 /.env
 
-# Composer Lock File
+# Composer and Symfony Lock Files
 /composer.lock
+/symfony.lock
 
 # Windows
 Thumbs.db

@@ -78,6 +78,9 @@ class SchoolUnitController extends AbstractController
         if($form->isSubmitted() && $form->isValid()) {
           $schoolunit = $form->getData();
 
+          $schoolunit->setFirstInvoiceSerial(strtoupper($schoolunit->getFirstInvoiceSerial()));
+          $schoolunit->setFirstReceiptSerial(strtoupper($schoolunit->getFirstReceiptSerial()));
+
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->persist($schoolunit);
           $entityManager->flush();
@@ -111,6 +114,10 @@ class SchoolUnitController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
+
+          $schoolunit = $form->getData();
+          $schoolunit->setFirstInvoiceSerial(strtoupper($schoolunit->getFirstInvoiceSerial()));
+          $schoolunit->setFirstReceiptSerial(strtoupper($schoolunit->getFirstReceiptSerial()));
 
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->flush();

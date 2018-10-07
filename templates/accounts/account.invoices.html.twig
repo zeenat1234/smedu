@@ -4,9 +4,26 @@
 
 {% block body %}
 
+
+
   <div class="enrollment-wrapper">
     <h2>{{ student.getUser.getFullName(1)|title }}</h2>
     <h4>{{ month_year|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</h4>
+    <a href="{{ path('accounts_stud_month', {'monthYear':month_year|localizeddate('none','none','ro', null, 'yyyy-MM'), 'studId':student.id}) }}">
+      <i class="fas fa-chevron-circle-left"></i> Înapoi la contul lunar
+    </a>
+    <br>
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <br>
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-danger fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
     <br>
     {% if invoices is empty %}
       <h5><code>Nu există nici o factură generată în această lună!</code></h5>
@@ -17,17 +34,19 @@
       <hr>
     {% else %}
     <div id="invoices">
+      {% set index = 0 %}
       {% for invoice in invoices %}
-        <h4><code>{{ invoice.getInvoiceName }}, <small>{{ invoice.getInvoiceDate|localizeddate('long','none','RO')}}</small></code></h4>
+        <h4><code>{{ invoice.getInvoiceName }}</code></h4>
+        <h4><code><small>{{ invoice.getInvoiceDate|localizeddate('long','none','RO')}}</small></code></h4>
         <table class="table table-striped table-hover">
           <thead>
             <tr>
               <th width="5%">Nr.</th>
-              <th width="40%">Prod.</th>
-              <th>Cant.</th>
-              <th style="text-align:right;">Preț</th>
-              <th>Mod.</th>
-              <th></th>
+              <th>Prod.</th>
+              <th width="5%">Cant.</th>
+              <th width="10%" style="text-align:right;">Preț</th>
+              <th width="10%">Mod.</th>
+              <th width="5%"></th>
             </tr>
           </thead>
           <tbody>
@@ -40,14 +59,14 @@
                 <td>x{{ payItem.getItemCount }}</td>
                 <td style="text-align:right;">{{ payItem.getItemPrice|localizedcurrency('RON') }}</td>
                 <td>
-                  {% if invoice.getSentCount == 0 and invoice.getInvoicePaid == 0 %}
-                    <a href="{{ path('accounts_item_modify', {'itemId':payItem.id}) }}"><button>Modifică</button></a>
+                  {% if invoice.isLocked == false %}
+                    <a href="{{ path('accounts_item_modify', {'itemId':payItem.id, 'redirect':'invoicing'}) }}"><button>Modifică</button></a>
                   {% else %}
-                    <a href="#"><button disabled>Modifică</button></a>
+                    <button disabled>Modifică</button>
                   {% endif %}
                 </td>
                 <td>
-                  {% if invoice.getSentCount == 0 and invoice.getInvoicePaid == 0 %}
+                  {% if invoice.isLocked == false %}
                     <a href="{{ path('remove_item_from_invoice', {'itemId':payItem.getId}) }}">
                     <button type="button" class="delete-account-item" data-id="{{ payItem.getId }}">
                       <i class="fas fa-trash-alt"></i>
@@ -75,7 +94,6 @@
                 {{ invoice.getInvoicePaid|localizedcurrency('RON') }}<br>
                 {% if invoice.getInvoicePaid >= invoice.getInvoiceTotal %}
                   <p style='color:#060; font-weight:bold'>Achitat<br>{{ invoice.getInvoicePaidDate|localizeddate('medium','none','RO') }}</p>
-                  <a href="#">Vizualizează</a> <a href="#">Descarcă</a>
                 {% else %}
                   {% if invoice.getInvoicePaid == 0 %}
                     <p style='color:#600; font-weight:bold'>Neachitat</p>
@@ -83,7 +101,9 @@
                     <p style='color:#660; font-weight:bold'>Achitat parțial<br>{{ invoice.getInvoicePaidDate|localizeddate('medium','none','RO') }}</p>
                   {% endif %}
                 {% endif %}
-                <a href=""><button class="notify_button" data-id="{{ invoice.getId }}"><i class="fas fa-envelope"></i> Notifică</button></a>
+                {% if invoice.isLocked %}
+                  <a href=""><button class="notify_button" data-id="{{ invoice.getId }}"><i class="fas fa-envelope"></i> Notifică</button></a>
+                {% endif %}
               </td>
               <td colspan="2"></td>
             </tr>
@@ -98,9 +118,137 @@
                   <button><i class="fas fa-plus"></i> Plată Manuală</button>
                 </a>
                 {% endif %}
-                <a href="{{ path('invoice_pdf',{'invId':invoice.id}) }}">
-                  <button><i class="far fa-file-pdf"></i> Generează PDF</button>
+                <a href="{{ path('invoice_pdf',{'invId':invoice.id}) }}" target="_blank">
+                  <button><i class="far fa-file-pdf"></i> Vizualizează PDF</button>
                 </a>
+                {% if invoice.isProforma %}
+                  {% if invoice.trueInvoice %}
+                    <button disabled><i class="fas fa-file-invoice-dollar"></i> Factură fiscală generată</button>
+                  {% else %}
+                    {% if invoice.accountReceipt == null %}
+                      <a href="{{ path('invoice_from_proforma',{'invId':invoice.id}) }}">
+                        <button><i class="fas fa-file-invoice-dollar"></i> Generează factură fiscală</button>
+                      </a>
+                      <br><br>
+                      <!-- Button to Open the Receipt Modal -->
+                      <button type="button" data-toggle="modal" data-target="#receiptModal-{{ invoice.id }}">
+                        <i class="fas fa-file-invoice-dollar"></i> Creează Chitanță
+                      </button>
+                    {% else %}
+                      <button disabled><i class="fas fa-file-invoice-dollar"></i> Generează factură fiscală</button>
+                      <br><br>
+                      <!-- TODO Add Link -->
+                      <a href="{{ path('receipt_pdf',{'recId':invoice.getAccountReceipt.getId}) }}" target="_blank">
+                        <button><i class="fas fa-eye"></i> Chitanță {{ invoice.accountReceipt.receiptSerial ~ '-' ~ invoice.accountReceipt.receiptNumber }}</button>
+                      </a>
+                      <a href="{{ path('combo_pdf',{'recId':invoice.getAccountReceipt.getId}) }}" target="_blank">
+                        <button><i class="fas fa-eye"></i> Combo Chitanță/Factură</button>
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                {% else %}
+                  {% if invoice.trueAccountInvoice %}
+                    <button disabled><i class="fas fa-file-invoice-dollar"></i> {{ invoice.trueAccountInvoice.invoiceName }}</button>
+                  {% else %}
+                    {% if invoice.accountReceipt == null %}
+                      <a href="{{ path('invoice_to_proforma',{'invId':invoice.id}) }}">
+                        <button><i class="fas fa-file-invoice-dollar"></i> Convertește în proformă</button>
+                      </a>
+                    {% endif %}
+                  {% endif %}
+                  {% if invoice.accountReceipt == null %}
+                    <br><br>
+                    <!-- Button to Open the Receipt Modal -->
+                    <button type="button" data-toggle="modal" data-target="#receiptModal-{{ invoice.id }}">
+                      <i class="fas fa-file-invoice-dollar"></i> Creează Chitanță
+                    </button>
+                  {% else %}
+                    <br><br>
+                    <!-- TODO Add Link -->
+                    <a href="{{ path('receipt_pdf',{'recId':invoice.getAccountReceipt.getId}) }}" target="_blank">
+                      <button><i class="fas fa-eye"></i> Chitanță {{ invoice.accountReceipt.receiptSerial ~ '-' ~ invoice.accountReceipt.receiptNumber }}</button>
+                    </a>
+                    <a href="{{ path('combo_pdf',{'recId':invoice.getAccountReceipt.getId}) }}" target="_blank">
+                      <button><i class="fas fa-eye"></i> Combo Chitanță/Factură</button>
+                    </a>
+                  {% endif %}
+                {% endif %}
+                <br><br>
+
+                <!-- Button to Open the Modal -->
+                <button type="button" data-toggle="modal" data-target="#myModal-{{ invoice.id }}">
+                  <i class="far fa-edit"></i> Modifică Serie/Număr
+                </button>
+
+                <!-- The Modal for Invoice Edit START -->
+                <div class="modal fade" id="myModal-{{ invoice.id }}">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      {{ form_start(forms[index]) }}
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h4 class="modal-title">Modifică Serie/Număr Factură</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      </div>
+
+                      <!-- Modal body -->
+                      <div class="modal-body">
+                        <code><small>{{ form_errors(forms[index]) }}</small></code>
+                        {{ form_row(forms[index].invoiceSerial) }}
+                        {{ form_row(forms[index].invoiceNumber) }}
+                      </div>
+
+                      <!-- Modal footer -->
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-success test">Salvează</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+                      </div>
+                      {{ form_end(forms[index]) }}
+
+                    </div>
+                  </div>
+                </div>
+                <!-- The Modal for Invoice Edit END -->
+
+                <!-- The Modal for Receipt Creation START -->
+                <div class="modal fade" id="receiptModal-{{ invoice.id }}">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      {{ form_start(forms2[index]) }}
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h4 class="modal-title">Creează Chitanță</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      </div>
+
+                      <!-- Modal body -->
+                      <div class="modal-body">
+                        <code><small>{{ form_errors(forms2[index]) }}</small></code>
+                        {{ form_row(forms2[index].receiptDate) }}
+                        {{ form_row(forms2[index].receiptSerial) }}
+                        {{ form_row(forms2[index].receiptNumber) }}
+                      </div>
+
+                      <!-- Modal footer -->
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-success test">Salvează</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+                      </div>
+                      {{ form_end(forms2[index]) }}
+
+                    </div>
+                  </div>
+                </div>
+                <!-- The Modal for Receipt Creation END -->
+
+                {% if invoice.isLocked %}
+                  <button disabled><i class="far fa-save"></i> Salvată</button>
+                {% else %}
+                  <a href="{{ path('invoice_lock',{'invId':invoice.id}) }}">
+                    <button><i class="far fa-save"></i> Salvează</button>
+                  </a>
+                {% endif %}
+
               </td>
               <td colspan="3">
                 {% if invoice.getPayProof is not empty %}
@@ -116,6 +264,7 @@
             </tr>
           </tbody>
         </table>
+        {% set index = index + 1 %}
       {% endfor %}
       <br>
     </div>
@@ -151,7 +300,7 @@
                 <td>x{{ payItem.getItemCount }}</td>
                 <td style="text-align:right;">{{ payItem.getItemPrice|localizedcurrency('RON') }}</td>
                 <td>
-                  <a href="#"><button>Modifică</button></a>
+                  <a href="{{ path('accounts_item_modify', {'itemId':payItem.getId, 'redirect':'invoicing'}) }}"><button>Modifică</button></a>
                 </td>
               </tr>
             {% endif %}
@@ -170,7 +319,7 @@
         </tbody>
       </table>
     {% endif %}
-    <a href="{{ path ('accounts_item_add', {'monthAccId':account.id}) }}">
+    <a href="{{ path ('accounts_item_add', {'monthAccId':account.id, 'redirect':'invoicing'}) }}">
       <button><i class="fas fa-plus"></i> Adaugă Produs</button>
     </a>
   </div>
@@ -188,8 +337,11 @@
         $(this).addClass('marked');
       }
     }
-
   });
+
+  $('[id^="myModal"]').appendTo("body");
+  $('[id^="receiptModal"]').appendTo("body");
+
 </script>
 <script src="/js/invoice_notify.js"></script>
 {% endblock %}
