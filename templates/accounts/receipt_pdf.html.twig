@@ -13,14 +13,32 @@
         <table cellpadding="0" cellspacing="0">
             <tr class="top">
 
-                <td style="vertical-align:bottom; width:50%;">
-                  <strong>CHATERING PLANETA COPIILOR SRL</strong><br>
-                  CIF: RO37363307<br>
-                  Reg. com: J40/4955/2017 <br>
-                  Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
-                  Cont: RO10INGB0000111101234587 <br>
-                  Banca: ING BANK NV <br>
-                  Capital Social: 100
+                <td style="vertical-align:bottom; width:50%;"><!-- TODO Add logic to schoolunit invoicing variables which have yet to be created when writing this logic -->
+                  {% if 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                    <strong>Grădinița „Planeta Copiilor”</strong><br>
+                    CIF: RO32066470<br>
+                    Nr. Ord. Reg. Com.: <br>
+                    Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                    Cont: RO56 BTRL RONC RT04 1362 7601 <br>
+                    Banca: TRANSILVANIA <br>
+                    Capital Social:
+                  {% elseif 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                    <strong>Școala Gimnazială „Planeta Copiilor”</strong><br>
+                    CIF: RO35271177<br>
+                    Nr. Ord. Reg. Com.: <br>
+                    Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                    Cont: RO11 BTRL RONC RT03 3357 1401 <br>
+                    Banca: TRANSILVANIA <br>
+                    Capital Social: 200 RON
+                  {% else %}
+                    <strong>„Planeta Copiilor”</strong><br>
+                    CIF: RO32066470<br>
+                    Nr. Ord. Reg. Com.: <br>
+                    Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                    Cont: RO56 BTRL RONC RT04 1362 7601 <br>
+                    Banca: TRANSILVANIA <br>
+                    Capital Social:
+                  {% endif %}
                 </td>
 
                 <td>

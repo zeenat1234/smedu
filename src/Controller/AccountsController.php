@@ -233,6 +233,8 @@ class AccountsController extends Controller
         $invoice = $this->getDoctrine()->getRepository
         (AccountInvoice::class)->find($invId);
 
+        $oldPaidPrice = $invoice->getInvoicePaid();
+
         $student = $invoice->getMonthAccount()->getStudent();
 
         $monthYear = $invoice->getMonthAccount()->getAccYearMonth();
@@ -268,13 +270,19 @@ class AccountsController extends Controller
               // ... handle exception if something happens during file upload
           }
 
-          // updates the 'brochure' property to store the PDF file name
+          // updates the 'pay proof' property to store the PDF file name
           // instead of its contents
           $invoice->setPayProof($fileName);
 
-
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->persist($invoice);
+          $entityManager->flush();
+
+          $account = $invoice->getMonthAccount();
+          $account->setTotalPaid($account->getTotalPaid() - $oldPaidPrice + $invoice->getInvoicePaid());
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($account);
           $entityManager->flush();
 
           return $this->redirectToRoute('account_invoices', array(
@@ -986,7 +994,8 @@ class AccountsController extends Controller
                 $serviceTaxItem->setMonthAccount($newMonthAccount);
                 //NOTE: The following should be used instead to show inAdvance status on invoice!!!!
                 //$serviceTaxItem->setItemName($schoolService->getServicename().' (avans '.$formatter->format($mY).')');
-                $serviceTaxItem->setItemName($schoolService->getServicename().' ('.$formatter->format($mY).')');
+                //$serviceTaxItem->setItemName($schoolService->getServicename().' ('.$formatter->format($mY).')');
+                $serviceTaxItem->setItemName($schoolService->getServicename());
                 $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
 
                 $entityManager = $this->getDoctrine()->getManager();
