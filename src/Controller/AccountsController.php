@@ -797,7 +797,7 @@ class AccountsController extends Controller
                   $entityManager->flush();
 
                   $invoice = $newReceipt->getAccountInvoice();
-
+                  $oldInvoicePrice = $invoice->getInvoicePaid();
                   $invoice->setIsLocked(true);
                   //when generating a receipt, set invoice to isPaid and update totalPaid
                   $invoice->setIsPaid(true);
@@ -808,7 +808,7 @@ class AccountsController extends Controller
                   $entityManager->persist($invoice);
                   $entityManager->flush();
 
-                  $account->setTotalPaid($account->getTotalPaid() + $invoice->getInvoicePaid());
+                  $account->setTotalPaid($account->getTotalPaid() - $oldInvoicePrice + $invoice->getInvoicePaid());
 
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->persist($account);
