@@ -14,6 +14,7 @@ use App\Entity\Student;
 use App\Entity\Guardian;
 use App\Entity\Enrollment;
 use App\Entity\SchoolYear;
+use App\Entity\AccountPermission;
 
 #form flow
 use Craue\FormFlowBundle\Form\FormFlowInterface;
@@ -21,6 +22,7 @@ use App\Form\EnrollWizard\ParentStudentEnroll;
 
 #can use entity's form
 use App\Form\UserType;
+use App\Form\AccountPermissionType;
 
 #can overwrite form fields from type
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -44,78 +46,82 @@ class UserController extends Controller
 
 
     /**
-     * @Route("/users", name="users")
-     * @Method({"GET"})
+     * @Route("/users/{type?'all'}", name="users")
+     * @Method({"GET", "POST"})
      */
-    public function users()
+    public function users(Request $request, $type)
     {
-        $users = $this->getDoctrine()->getRepository
-        //(User::class)->findAll();
-        (User::class)->findBy([], ['lastName' => 'ASC']);
+        if ($type == 'students') {
+          $users = $this->getDoctrine()->getRepository
+          (User::class)->findBy(['usertype' => 'ROLE_PUPIL'], ['lastName' => 'ASC']);
+          $theRole = 'Elevi';
+        } elseif ($type == 'parents') {
+          $users = $this->getDoctrine()->getRepository
+          (User::class)->findBy(['usertype' => 'ROLE_PARENT'], ['lastName' => 'ASC']);
+          $theRole = 'Părinți';
+        } elseif ($type == 'professors') {
+          $users = $this->getDoctrine()->getRepository
+          (User::class)->findBy(['usertype' => 'ROLE_PROF'], ['lastName' => 'ASC']);
+          $theRole = 'Profesori';
+        } elseif ($type == 'admins') {
+          $users = $this->getDoctrine()->getRepository
+          (User::class)->findBy(['usertype' => 'ROLE_ADMIN'], ['lastName' => 'ASC']);
+          $theRole = 'Administratori';
+        } elseif ($type == 'managers') {
+          $users = $this->getDoctrine()->getRepository
+          (User::class)->findBy(['usertype' => 'ROLE_CUSTOM'], ['lastName' => 'ASC']);
+          $theRole = 'Manageri';
+        } else {
+          $users = $this->getDoctrine()->getRepository
+          (User::class)->findBy([], ['lastName' => 'ASC']);
+          $theRole = 'Toți utilizatorii';
+        }
+
+        $views = array(); //required in case there are no views available
+
+        foreach ($users as $user) {
+          if ($user->getUsertype() == 'ROLE_CUSTOM') {
+            $form = $this->createForm(AccountPermissionType::Class, $user);
+
+            $forms[] = $form;
+            $views[] = $form->createView();
+          }
+        }
+
+        if ($request->isMethod('POST')) {
+
+            foreach ($forms as $form) {
+              $form->handleRequest($request);
+            }
+
+            $allPermissions = $this->getDoctrine()->getRepository
+            (AccountPermission::class)->findAll();
+
+            foreach ($forms as $form) {
+              if ($form->isSubmitted()) {
+                if ($form->isValid()) {
+                  $user = $form->getData();
+
+                  foreach ($allPermissions as $permission) {
+                    if ($user->getAccountPermissions()->contains($permission)) {
+                      $permission->AddUser($user);
+                    } else {
+                      $permission->RemoveUser($user);
+                    }
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->flush();
+                  }
+
+                  return $this->redirectToRoute('users', array('type' => 'managers'));
+                }
+              }
+            }
+          }
 
         return $this->render('user/users.html.twig', array(
           'users' => $users,
-          'role' => 'Utilizatori',
-        ));
-    }
-
-    /**
-     * @Route("/users/students", name="users_students")
-     * @Method({"GET"})
-     */
-    public function users_students()
-    {
-        $users = $this->getDoctrine()->getRepository
-        (User::class)->findBy(['usertype' => 'ROLE_PUPIL'], ['lastName' => 'ASC']);
-
-        return $this->render('user/users.html.twig', array(
-          'users' => $users,
-          'role' => 'Elevi',
-        ));
-    }
-
-    /**
-     * @Route("/users/parents", name="users_parents")
-     * @Method({"GET"})
-     */
-    public function users_parents()
-    {
-        $users = $this->getDoctrine()->getRepository
-        (User::class)->findBy(['usertype' => 'ROLE_PARENT'], ['lastName' => 'ASC']);
-
-        return $this->render('user/users.html.twig', array(
-          'users' => $users,
-          'role' => 'Părinți',
-        ));
-    }
-
-    /**
-     * @Route("/users/professors", name="users_profs")
-     * @Method({"GET"})
-     */
-    public function users_profs()
-    {
-        $users = $this->getDoctrine()->getRepository
-        (User::class)->findBy(['usertype' => 'ROLE_PROF'], ['lastName' => 'ASC']);
-
-        return $this->render('user/users.html.twig', array(
-          'users' => $users,
-          'role' => 'Profesori',
-        ));
-    }
-
-    /**
-     * @Route("/users/admins", name="users_admins")
-     * @Method({"GET"})
-     */
-    public function users_admins()
-    {
-        $users = $this->getDoctrine()->getRepository
-        (User::class)->findBy(['usertype' => 'ROLE_ADMIN'], ['lastName' => 'ASC']);
-
-        return $this->render('user/users.html.twig', array(
-          'users' => $users,
-          'role' => 'Administratori',
+          'role' => $theRole,
+          'forms' => $views,
         ));
     }
 
@@ -181,6 +187,7 @@ class UserController extends Controller
               'choices'  => array(
                 'Profesor' => 'ROLE_PROF',
                 'Administrator' => 'ROLE_ADMIN',
+                'Manager' => 'ROLE_CUSTOM',
                 //The following 2x roles can only be used when editing entries
                 'Părinte' => 'ROLE_PARENT',
                 'Elev' => 'ROLE_PUPIL'

@@ -13,6 +13,66 @@
             </a>
         </li>
         <br>
+
+        <!-- Permission variable declare -->
+        {% set showUsers = true %}
+        {% set showEnrolls = true %}
+        {% set showClassGroups = true %}
+        {% set showClassModules = true %}
+        {% set showClassOptionals = true %}
+        {% set showCatalogue = true %}
+        {% set showMonthAccounts = true %}
+        {% set showTransport = true %}
+        {% set showSchoolYear = true %}
+
+
+        <!-- permissions set for custom permissions -->
+        {% if app.user.getUsertype == 'ROLE_CUSTOM' %}
+
+          <!-- Custom Permission variable declare -->
+          {% set showUsers = false %}
+          {% set showEnrolls = false %}
+          {% set showClassGroups = false %}
+          {% set showClassModules = false %}
+          {% set showClassOptionals = false %}
+          {% set showCatalogue = false %}
+          {% set showMonthAccounts = false %}
+          {% set showTransport = false %}
+          {% set showSchoolYear = false %}
+
+          {% for permission in app.user.getAccountPermissions %}
+            {% if permission.name == 'users' %}
+              {% set showUsers = true %}
+            {% endif %}
+            {% if permission.name == 'enrolls' %}
+              {% set showEnrolls = true %}
+            {% endif %}
+            {% if permission.name == 'classGroups' %}
+              {% set showClassGroups = true %}
+            {% endif %}
+            {% if permission.name == 'classModules' %}
+              {% set showClassModules = true %}
+            {% endif %}
+            {% if permission.name == 'classOptionals' %}
+              {% set showClassOptionals = true %}
+            {% endif %}
+            {% if permission.name == 'catalogue' %}
+              {% set showCatalogue = true %}
+            {% endif %}
+            {% if permission.name == 'monthAccounts' %}
+              {% set showMonthAccounts = true %}
+            {% endif %}
+            {% if permission.name == 'transport' %}
+              {% set showTransport = true %}
+            {% endif %}
+            {% if permission.name == 'schoolYear' %}
+              {% set showSchoolYear = false %}
+            {% endif %}
+
+          {% endfor %}
+        {% endif %}
+
+        {% if showUsers %}
         <li>
             <a href="#userSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-users-cog fa-fw"></i></span>
@@ -23,16 +83,19 @@
                   <a href="{{ path('users') }}">Toți Utilizatorii</a>
               </li>
               <li>
-                  <a href="{{ path('users_students') }}">Elevi</a>
+                  <a href="{{ path('users', {type:'students'}) }}">Elevi</a>
               </li>
               <li>
-                  <a href="{{ path('users_parents') }}">Părinți</a>
+                  <a href="{{ path('users', {type:'parents'}) }}">Părinți</a>
               </li>
               <li>
-                  <a href="{{ path('users_profs') }}">Profesori</a>
+                  <a href="{{ path('users', {type:'professors'}) }}">Profesori</a>
               </li>
               <li>
-                  <a href="{{ path('users_admins') }}">Administratori</a>
+                <a href="{{ path('users', {type:'managers'}) }}">Manageri</a>
+              </li>
+              <li>
+                  <a href="{{ path('users', {type:'admins'}) }}">Administratori</a>
               </li>
               <li>
                   <a href="{{ path('user_new') }}">Adaugă Utilizator</a>
@@ -42,6 +105,8 @@
               </li> -->
             </ul>
         </li>
+        {% endif %}
+        {% if showEnrolls %}
         <li>
           <a href="#enrollSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
               <span style="align:center"><i class="fas fa-address-card fa-fw"></i></span>
@@ -59,6 +124,8 @@
             </li>
           </ul>
         </li>
+        {% endif %}
+        {% if showClassGroups %}
         <li>
             <a href="#groupsSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-user-graduate fa-fw"></i></span>
@@ -73,6 +140,8 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
+        {% if showClassModules %}
         <li>
             <a href="#modulesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-book-open fa-fw"></i></span>
@@ -87,6 +156,8 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
+        {% if showClassOptionals %}
         <li>
             <a href="#optionalsSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-book-reader fa-fw"></i></span>
@@ -101,6 +172,8 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
+        {% if showCatalogue %}
         <li>
             <a href="#catalogueSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-file-alt fa-fw"></i></span>
@@ -118,7 +191,9 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
         <br>
+        {% if showMonthAccounts %}
         <li>
             <a href="#paySubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-coins fa-fw"></i></span>
@@ -142,6 +217,8 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
+        {% if showTransport %}
         <li>
             <a href="#transportSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <span style="align:center"><i class="fas fa-truck fa-fw"></i></span>
@@ -159,13 +236,16 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
         <br>
+        {% if showSchoolYear %}
         <li>
             <a href="{{ path('school_year') }}">
                 <span style="align:center"><i class="fas fa-cog fa-fw"></i></span>
                 Setări
             </a>
         </li>
+        {% endif %}
         <li>
             <a href="#">
                 <span style="align:center"><i class="fas fa-briefcase fa-fw"></i></span>

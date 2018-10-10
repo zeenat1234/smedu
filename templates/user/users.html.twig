@@ -24,6 +24,7 @@
       </thead>
 
       <tbody id="users_table">
+        {% set index = 0 %}
         {% for user in users %}
           {# DO NOT display root user if imported from fixtures (useful for prod)#}
           {% if user.getUsername != "root" %}
@@ -36,7 +37,48 @@
             {% else %}
             <td>{{ user.email }}</td>
             {% endif %}
-            <td>{{ user.getNormalized }}</td>
+            <td>
+              {{ user.getNormalized }}
+              {% if user.getUsertype == 'ROLE_CUSTOM' %}
+
+                <!-- Button to Open the Modal -->
+                <button class="btn-warning" type="button" data-toggle="modal" data-target="#permissionModal-{{ user.id }}">
+                  <i class="fas fa-lock"></i>
+                </button>
+
+                <!-- The Modal for Permissions START -->
+                <div class="modal fade" id="permissionModal-{{ user.id }}">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      {{ form_start(forms[index]) }}
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h4 class="modal-title">Modifică Permisiunile</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      </div>
+
+                      <!-- Modal body -->
+                      <div class="modal-body">
+                        <code><small>{{ form_errors(forms[index]) }}</small></code>
+                        {% for p in forms[index].accountPermissions %}
+                          {{ form_widget(p) }}{{ form_label(p) }} <br>
+                        {% endfor %}
+                      </div>
+
+                      <!-- Modal footer -->
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-success test">Salvează</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+                      </div>
+                      {{ form_end(forms[index]) }}
+
+                    </div>
+                  </div>
+                </div>
+                <!-- The Modal for Permissions END -->
+                {% set index = index + 1 %}
+              {% endif %}
+            </td>
             <td>
               <a href="{{ path('user_edit', {'id':user.id}) }}"><button type="button" class="btn-sm btn-primary">Editează</button></a>
               {% if app.user.username != user.username and user.usertype != 'ROLE_PUPIL' and user.usertype != 'ROLE_PARENT' %}
@@ -63,5 +105,6 @@
     ScrollReveal({ reset: true }).reveal('#users', { duration:2000, delay:0 });
     ScrollReveal({ reset: true }).reveal('#users_table_head', { duration:800, delay:0 });
     ScrollReveal({ reset: true }).reveal('#users_row', { duration:1000, delay:0 });
+    $('[id^="permissionModal"]').appendTo("body");
   </script>
 {% endblock %}

@@ -144,12 +144,18 @@ class User implements UserInterface, \Serializable
      */
     private $guardianacc;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\AccountPermission", mappedBy="users", cascade={"persist"})
+     */
+    private $accountPermissions;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
         $this->classGroups = new ArrayCollection();
         $this->students = new ArrayCollection();
         $this->classOptionals = new ArrayCollection();
+        $this->accountPermissions = new ArrayCollection();
     }
 
     public function getId()
@@ -215,6 +221,8 @@ class User implements UserInterface, \Serializable
         switch ($this->usertype) {
           case 'ROLE_ADMIN':
             return 'Administrator';
+          case 'ROLE_CUSTOM':
+            return 'Manager';
           case 'ROLE_PROF':
             return 'Profesor';
           case 'ROLE_PARENT':
@@ -506,6 +514,34 @@ class User implements UserInterface, \Serializable
         // set the owning side of the relation if necessary
         if ($this !== $guardianacc->getUser()) {
             $guardianacc->setUser($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AccountPermission[]
+     */
+    public function getAccountPermissions(): Collection
+    {
+        return $this->accountPermissions;
+    }
+
+    public function addAccountPermission(AccountPermission $accountPermission): self
+    {
+        if (!$this->accountPermissions->contains($accountPermission)) {
+            $this->accountPermissions[] = $accountPermission;
+            $accountPermission->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAccountPermission(AccountPermission $accountPermission): self
+    {
+        if ($this->accountPermissions->contains($accountPermission)) {
+            $this->accountPermissions->removeElement($accountPermission);
+            $accountPermission->removeUser($this);
         }
 
         return $this;

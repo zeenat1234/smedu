@@ -53,6 +53,7 @@ class UserType extends AbstractType
               'choices'  => array(
                 'Profesor' => 'ROLE_PROF',
                 'Administrator' => 'ROLE_ADMIN',
+                'Manager' => 'ROLE_CUSTOM',
                 //The following 2x roles can only be created using EnrollWizard
                 //'Părinte' => 'ROLE_PARENT',
                 //'Elev' => 'ROLE_PUPIL'
