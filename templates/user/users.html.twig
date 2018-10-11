@@ -11,7 +11,7 @@
       <thead id="users_table_head">
         <tr>
           <th>Nume, Prenume</th>
-          <th>Părinte</th>
+          <th>Detalii </th>
           <th>
             {% if role == 'Elevi' %}
               Clasă
@@ -34,10 +34,12 @@
             <td>
               {% if user.getUsertype == 'ROLE_PUPIL' %}
                 {% if user.getGuardian is not null %}
-                  {{ user.getGuardian.getUser.getRoName }}
+                  Părinte: {{ user.getGuardian.getUser.getRoName }}
                 {% else %}
-                  NU EXISTĂ!
+                  NU EXISTĂ PĂRINTE!
                 {% endif %}
+              {% elseif user.getUsertype == 'ROLE_PARENT' %}
+                {{ user.getGuardianacc.getChildren|length }} Copii
               {% else %}
                 -
               {% endif %}
