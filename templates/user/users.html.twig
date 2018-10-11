@@ -11,6 +11,7 @@
       <thead id="users_table_head">
         <tr>
           <th>Nume, Prenume</th>
+          <th>Părinte</th>
           <th>
             {% if role == 'Elevi' %}
               Clasă
@@ -29,7 +30,18 @@
           {# DO NOT display root user if imported from fixtures (useful for prod)#}
           {% if user.getUsername != "root" %}
           <tr id="users_row">
-            <td><a href="{{ path('user_show', {'id':user.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ user.getFullName(1) }}</a></td>
+            <td><a href="{{ path('user_show', {'id':user.id}) }}"><i class="fas fa-eye"></i>&nbsp{{ user.getRoName }}</a></td>
+            <td>
+              {% if user.getUsertype == 'ROLE_PUPIL' %}
+                {% if user.getGuardian is not null %}
+                  {{ user.getGuardian.getUser.getRoName }}
+                {% else %}
+                  NU EXISTĂ!
+                {% endif %}
+              {% else %}
+                -
+              {% endif %}
+            </td>
             {% if user.getUsertype == 'ROLE_PARENT' %}
             <td><a href="#"><i class="far fa-envelope reset-user" data-id="{{ user.id }}" style="font-size:25px"></i></a> {{ user.email }}</td>
             {% elseif user.getUsertype == 'ROLE_PUPIL' %}
