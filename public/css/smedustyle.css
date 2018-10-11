@@ -48,6 +48,13 @@ select {
   font-family: 'Kurale';
 }
 
+.row-eq-height {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
 .wrapper {
     /* margin-top: 50px; */
 }
@@ -192,6 +199,16 @@ select {
 }
 #classgroup_holder td {
   padding:5px;
+}
+
+.myAccInvoiceCol {
+  position:relative;
+}
+.myAccInvoiceCol hr {
+  position:absolute;
+  bottom:0;
+  width:90%;
+  text-align:center;
 }
 
 /*

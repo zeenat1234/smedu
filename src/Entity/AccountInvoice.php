@@ -67,8 +67,11 @@ class AccountInvoice
      * @Assert\NotBlank(message="Vă rugăm atașați fișierul care conține dovada plății.")
      * @Assert\File(
      *     maxSize = "10M",
-     *     mimeTypes = {"application/pdf", "application/x-pdf"},
-     *     mimeTypesMessage = "Formatele suportate sunt următoarele: PDF")
+     *     mimeTypes = {"application/pdf", "application/x-pdf", "image/png",
+     *          "image/jpeg", "image/jpg"},
+     *     mimeTypesMessage = "Formatele suportate sunt următoarele: PDF, PNG, JPG, JPEG",
+     *     groups = {"invoiceUpload"}
+     * )
      */
     private $payProof;
 

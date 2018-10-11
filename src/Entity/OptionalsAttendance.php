@@ -43,7 +43,7 @@ class OptionalsAttendance
     /**
      * @ORM\Column(type="boolean", nullable=false)
      */
-    private $hasAttended = false;
+    private $hasAttended = true;
 
     public function getId()
     {

@@ -402,7 +402,8 @@ class AccountsController extends Controller
       $snappy = $this->get('knp_snappy.pdf');
       $html = $this->renderView('accounts/receipt_pdf.html.twig',
         array(
-            'receipt'  => $receipt
+            'receipt'  => $receipt,
+            'invoice'  => $receipt->getAccountInvoice(),
         ));
 
       $fileName = 'chitanta_'.$receipt->getReceiptSerial().'-'.$receipt->getReceiptNumber().'.pdf';

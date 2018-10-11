@@ -1,0 +1,157 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Facturile Mele{% endblock %}
+
+{% block body %}
+
+  <div class="myaccount-settings-wrapper">
+
+    <h1 class="coinyFont"><i class="fas fa-coins fa-fw"></i> Administrare facturi</h1>
+
+    {% set kids = app.user.getGuardianacc.getChildren %}
+    {% set count = 0 %}
+    {% for kid in kids %}
+      {% if kid.getChildLatestEnroll.getId is not null %}
+        {% set count = count + 1 %}
+      {% endif %}
+    {% endfor %}
+
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-danger fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+
+    <div class="row">
+      {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
+      {% set i = 0 %}
+      {% set fi = 0 %}
+      {% if kids|length > 0 %}
+        {% for kid in kids %}
+          {% if kid.getChildLatestEnroll.getId is not null %}
+            <div class="col-12">
+              <div class="indexParentHolder {{ holderColors[i] }}">
+                <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
+                <hr>
+                <div class="row row-eq-height">
+                {% if all_accounts[kid.getUsername] is not empty %}
+                  {% for account in all_accounts[kid.getUsername] %}
+                    {% for invoice in account.getAccountInvoices %}
+
+                      {% if invoice.isLocked %}
+                      <div class="col-12 col-md-6 myAccInvoiceCol">
+                      <h5>Factură seria: <strong>{{ invoice.getInvoiceSerial }}</strong> nr <strong>{{ invoice.getInvoiceNumber }}</strong></h5>
+                      Total de plată: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }} <br>
+                      Emisă la data: {{ invoice.getInvoiceDate|localizeddate('medium','none') }} <br>
+                      {% if invoice.isPaid %}
+                        {% if invoice.getInvoiceTotal <= invoice.getInvoicePaid %}
+                        Achitat <strong style="color:#060">INTEGRAL</strong> la data de: {{ invoice.getInvoicePaidDate|localizeddate('medium','none') }} <br>
+                        {% else %}
+                        Achitat <strong style="color:#660">PARȚIAL</strong> suma de: {{ invoice.getInvoicePaid|localizedcurrency('RON') }}, la data de {{ invoice.getInvoicePaidDate|localizeddate('medium','none') }} <br>
+                        Rest de plată: <strong>{{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</strong> <br>
+                        {% endif %}
+                      {% endif %}
+                      <br>
+                      <a href="{{ path('myacc_invoice_pdf',{'invId':invoice.getId}) }}" target="_blank">
+                        <button class="btn btn-warning">
+                          <i class="fas fa-eye"></i> Factură PDF
+                        </button>
+                      </a>
+                      {% if invoice.getIsPaid %}
+                        {% if invoice.getAccountReceipt is not empty %}
+                        <a href="{{ path('myacc_receipt_pdf',{'recId':invoice.getAccountReceipt.getId}) }}" target="_blank">
+                          <button class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Chitanța PDF
+                          </button>
+                        </a>
+                        {% else %}
+                        <a href="{{ path('myacc_invoice_proof',{'invId':invoice.getId, 'action':'view'}) }}" target="_blank">
+                          <button class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Dovadă de Plată
+                          </button>
+                        </a>
+                        {% endif %}
+                      {% else %}
+                      <!-- Button to Open the Modal -->
+                      <button class="btn btn-success" type="button" data-toggle="modal" data-target="#invoiceModal-{{ invoice.getId }}">
+                        <i class="far fa-edit"></i> Plată nouă
+                      </button>
+                      {% endif %}
+
+                      <!-- The Modal for Invoice Edit START -->
+                      <div class="modal fade" id="invoiceModal-{{ invoice.getId }}">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            {{ form_start(forms[fi]) }}
+                            <!-- Modal Header -->
+                            <div class="modal-header">
+                              <h4 class="modal-title kuraleFont">Efectuează Plată</h4>
+                              <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+
+                            <!-- Modal body -->
+                            <div class="modal-body">
+                              Te rugăm să introduci suma exact așa cum apare ea în dovada de plată! <br>
+                              Total de achitat: <strong>{{ invoice.getInvoiceTotal|localizedcurrency('RON') }}</strong>
+                              <br><br>
+                              <code><small>{{ form_errors(forms[fi]) }}</small></code>
+                              {{ form_row(forms[fi].invoicePaid) }}
+                              <hr>
+                              {{ form_row(forms[fi].payProof) }}
+                            </div>
+
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-success test">Salvează</button>
+                              <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+                            </div>
+                            {{ form_end(forms[fi]) }}
+                            {% set fi = fi + 1 %}
+                          </div>
+                        </div>
+                      </div>
+                      <!-- The Modal for Invoice Edit END -->
+                      <br><br><hr>
+                      </div>
+                      {% endif %}
+
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+                {% else %}
+                  Nu există nicio factură generată pentru acest elev
+                {% endif %}
+              </div>
+            </div>
+            {% set i = i + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% if i == 0 %}
+          <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+
+
+  </div>
+
+  <hr>
+  {% include('home/myaccount.terms.cond.html.twig') %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  $('[id^="invoiceModal"]').appendTo("body");
+
+  ScrollReveal({ reset: true }).reveal('.myaccount-settings-wrapper', { duration:800, delay:0 });
+  ScrollReveal({ reset: true }).reveal('.indexParentHolder', { duration:1500, delay:0 });
+  ScrollReveal({ reset: true }).reveal('.indexParentHolder2', { duration:1500, delay:50 });
+
+</script>
+{% endblock %}

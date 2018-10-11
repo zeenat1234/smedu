@@ -6,6 +6,7 @@
 
     <h1 class="coinyFont"> Bine ați revenit! ✅</h1>
     <br>
+    {% if app.user.getUsertype == 'ROLE_ADMIN' %}
     Software-ul este încă în dezvoltare. Funcționalitate curentă:<br><br>
     <ul>
         <li>Modificare setări an școlar <code><a href="{{ path('school_year') }}">(Link)</a></code></li>
@@ -15,9 +16,8 @@
         <li>Efectuare/Modificare/Dezactivare înscrieri<code><a href="{{ path('all_enrollments') }}">(Link)</a></code></li>
         <li>Administrare Conturi<code><a href="{{ path('accounts') }}">(Link)</a></code></li>
         <li>Portal Părinte</li>
-
-
     </ul>
+    {% endif %}
 
     <br><br><br>
     <div class="row">

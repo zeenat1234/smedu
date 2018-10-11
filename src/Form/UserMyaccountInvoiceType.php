@@ -11,10 +11,24 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 
-class AccountInvoiceType extends AbstractType
+class UserMyaccountInvoiceType extends AbstractType
 {
+    private $formCount;
+
+    public function __construct()
+    {
+        $this->formCount = 0;
+    }
+
+    public function getBlockPrefix()
+    {
+        return parent::getBlockPrefix().'_'.$this->formCount;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        ++$this->formCount;
+
         $builder
             ->add('invoicePaid', MoneyType::class, array(
               'label'    => 'Total Achitat',
@@ -24,7 +38,7 @@ class AccountInvoiceType extends AbstractType
             ))
             ->add('payProof', FileType::class, array(
               //'data'  => null,
-              'label' => 'Dovadă de plată (PDF file)',
+              'label' => 'Dovadă de plată (format PDF, JPG, JPEG, PNG)',
               'data_class' => null
             ))
         ;
