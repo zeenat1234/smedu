@@ -81,7 +81,8 @@
             </td>
             <td>
               <a href="{{ path('user_edit', {'id':user.id}) }}"><button type="button" class="btn-sm btn-primary">Editează</button></a>
-              {% if app.user.username != user.username and user.usertype != 'ROLE_PUPIL' and user.usertype != 'ROLE_PARENT' %}
+              {# if app.user.username != user.username and user.usertype != 'ROLE_PUPIL' and user.usertype != 'ROLE_PARENT' #}
+              {% if app.user.username != user.username %}
                 <a href="#"><button type="button" class="btn-sm btn-danger delete-user" data-id="{{ user.id }}">Șterge</button></a>
               {% endif %}
             </td>

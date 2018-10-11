@@ -3,7 +3,7 @@ const users = document.getElementById('users');
 if (users) {
   users.addEventListener('click', (e) => {
     if(e.target.className === 'btn-sm btn-danger delete-user') {
-      if(confirm('Are you sure you want to delete?')) {
+      if(confirm('Ești sigur că vrei să ștergi acest utilizator din sistem?\nToate informațiile istorice și înscrierile vor fii șterse!')) {
         const id = e.target.getAttribute('data-id');
         //alert(`This is id :: ${id}`);
         fetch(`/user/delete/${id}`, {

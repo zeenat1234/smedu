@@ -239,9 +239,16 @@ class UserController extends Controller
       $user = $this->getDoctrine()->getRepository
       (User::class)->find($id);
 
+      if ($user->getUsertype() == 'ROLE_PARENT') {
+        
+        $guardAcc = $user->getGuardianacc();
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->remove($guardAcc);
+        $entityManager->flush();
+      }
 
       $entityManager = $this->getDoctrine()->getManager();
-
       $entityManager->remove($user);
       $entityManager->flush();
 
@@ -317,7 +324,7 @@ class UserController extends Controller
 
 
     /**
-     * @Route("/users/enrollwizard", name="enroll_wizard")
+     * @Route("/enrollwizard", name="enroll_wizard")
      * @Method({"GET", "POST"})
      */
     public function enrollWizard()

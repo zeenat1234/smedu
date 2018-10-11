@@ -4,7 +4,7 @@ if (guardians) {
   guardians.addEventListener('click', (e) => {
     if(e.target.className === 'far fa-envelope reset-user') {
       e.preventDefault();
-      if(confirm('Ești sigur că vrei să trimiți un e-mail cu resetarea parolei acestui utilizator?\n(Parola veche va fii suprascrisă)')) {
+      if(confirm('Ești sigur că vrei să trimiți un e-mail cu activarea contului acestui utilizator?\n(Parola veche va fii suprascrisă)')) {
         const id = e.target.getAttribute('data-id');
         //alert(`This is id :: ${id}`);
         fetch(`/user/reset/${id}`, {
