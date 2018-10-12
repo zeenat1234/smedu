@@ -573,9 +573,17 @@ class AccountsController extends Controller
         $messageTitle = 'Reminder Factură Emisă';
       }
 
+      $parentUser = $invoice->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser();
+
+      $secondaryEmail='';
+      if ($parentUser->getNotifySecond()) {
+        $secondaryEmail = $parentUser->getSecondaryEmail();
+      }
+
       $message = (new \Swift_Message($messageTitle.' - Planeta Copiilor'))
         ->setFrom('no-reply@iteachsmart.ro')
-        ->setTo($invoice->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser()->getEmail())
+        ->setTo($parentUser->getEmail())
+        ->setCc($secondaryEmail)
         ->setBody(
             $this->renderView(
                 'accounts/invoice_email.html.twig',

@@ -23,6 +23,7 @@ class UserType extends AbstractType
     {
         $builder
             ->add('username', TextType::class, array(
+              'label' => 'Username (Identificator unic platformă)',
               'attr' => array('class' => 'form-control')
             ))
             ->add('lastName', TextType::class, array(
@@ -61,6 +62,65 @@ class UserType extends AbstractType
               'label' => 'Tip Utilizator',
               'attr' => array('class' => 'form-control')
             ))
+            ->add('secondaryEmail', EmailType::class, array(
+              'label' => 'E-Mail Secundar',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('notifySecond', ChoiceType::class, array(
+              'label' => 'Trimite notificări și către e-mailul secundar?',
+              'choices' => array(
+                'NU Trimite' => false,
+                'Trimite' => true,
+              ),
+              'expanded' => true,
+              'multiple' => false,
+              'attr' => array('class' => '')
+            ))
+            ->add('customInvoicing', ChoiceType::class, array(
+              'label' => 'Informații pentru facturare',
+              'choices' => array(
+                'Nefurnizate' => false,
+                'Furnizate' => true,
+              ),
+              'expanded' => true,
+              'multiple' => false,
+            ))
+            ->add('isCompany', ChoiceType::class, array(
+              'label' => 'Tip factură',
+              'choices' => array(
+                'Persoană Fizică' => false,
+                'Firmă' => true,
+              ),
+              'expanded' => true,
+              'multiple' => false,
+            ))
+            ->add('invoicingName', TextType::class, array(
+              'label' => 'Nume persoană/firmă',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingAddress', TextType::class, array(
+              'label' => 'Adresă persoană/firmă',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingIdent', TextType::class, array(
+              'label' => 'CNP (Persoană fizică)',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingCompanyReg', TextType::class, array(
+              'label' => 'Reg. Com. (Firmă)',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingCompanyFiscal', TextType::class, array(
+              'label' => 'CIF (Firmă)',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+
         ;
     }
 

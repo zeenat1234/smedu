@@ -76,9 +76,15 @@ class SecurityController extends Controller
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->flush();
 
+            $secondaryEmail='';
+            if ($user->getNotifySecond()) {
+              $secondaryEmail = $user->getSecondaryEmail();
+            }
+
             $message = (new \Swift_Message('Resetare Parolă - Planeta Copiilor'))
             ->setFrom('no-reply@iteachsmart.ro')
             ->setTo($user->getEmail())
+            ->setCc($secondaryEmail)
             ->setBody(
               $this->renderView(
                 // templates/emails/registration.html.twig

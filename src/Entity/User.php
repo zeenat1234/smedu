@@ -149,6 +149,51 @@ class User implements UserInterface, \Serializable
      */
     private $accountPermissions;
 
+    /**
+     * @ORM\Column(type="string", length=128, nullable=true)
+     */
+    private $secondaryEmail;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $notifySecond;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $customInvoicing;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isCompany;
+
+    /**
+     * @ORM\Column(type="string", length=64, nullable=true)
+     */
+    private $invoicingName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $invoicingAddress;
+
+    /**
+     * @ORM\Column(type="string", length=16, nullable=true)
+     */
+    private $invoicingIdent;
+
+    /**
+     * @ORM\Column(type="string", length=32, nullable=true)
+     */
+    private $invoicingCompanyReg;
+
+    /**
+     * @ORM\Column(type="string", length=32, nullable=true)
+     */
+    private $invoicingCompanyFiscal;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -543,6 +588,114 @@ class User implements UserInterface, \Serializable
             $this->accountPermissions->removeElement($accountPermission);
             $accountPermission->removeUser($this);
         }
+
+        return $this;
+    }
+
+    public function getSecondaryEmail(): ?string
+    {
+        return $this->secondaryEmail;
+    }
+
+    public function setSecondaryEmail(?string $secondaryEmail): self
+    {
+        $this->secondaryEmail = $secondaryEmail;
+
+        return $this;
+    }
+
+    public function getNotifySecond(): ?bool
+    {
+        return $this->notifySecond;
+    }
+
+    public function setNotifySecond(bool $notifySecond): self
+    {
+        $this->notifySecond = $notifySecond;
+
+        return $this;
+    }
+
+    public function getCustomInvoicing(): ?bool
+    {
+        return $this->customInvoicing;
+    }
+
+    public function setCustomInvoicing(bool $customInvoicing): self
+    {
+        $this->customInvoicing = $customInvoicing;
+
+        return $this;
+    }
+
+    public function getIsCompany(): ?bool
+    {
+        return $this->isCompany;
+    }
+
+    public function setIsCompany(bool $isCompany): self
+    {
+        $this->isCompany = $isCompany;
+
+        return $this;
+    }
+
+    public function getInvoicingName(): ?string
+    {
+        return $this->invoicingName;
+    }
+
+    public function setInvoicingName(?string $invoicingName): self
+    {
+        $this->invoicingName = $invoicingName;
+
+        return $this;
+    }
+
+    public function getInvoicingAddress(): ?string
+    {
+        return $this->invoicingAddress;
+    }
+
+    public function setInvoicingAddress(?string $invoicingAddress): self
+    {
+        $this->invoicingAddress = $invoicingAddress;
+
+        return $this;
+    }
+
+    public function getInvoicingIdent(): ?string
+    {
+        return $this->invoicingIdent;
+    }
+
+    public function setInvoicingIdent(?string $invoicingIdent): self
+    {
+        $this->invoicingIdent = $invoicingIdent;
+
+        return $this;
+    }
+
+    public function getInvoicingCompanyReg(): ?string
+    {
+        return $this->invoicingCompanyReg;
+    }
+
+    public function setInvoicingCompanyReg(?string $invoicingCompanyReg): self
+    {
+        $this->invoicingCompanyReg = $invoicingCompanyReg;
+
+        return $this;
+    }
+
+    public function getInvoicingCompanyFiscal(): ?string
+    {
+        return $this->invoicingCompanyFiscal;
+    }
+
+    public function setInvoicingCompanyFiscal(?string $invoicingCompanyFiscal): self
+    {
+        $this->invoicingCompanyFiscal = $invoicingCompanyFiscal;
 
         return $this;
     }

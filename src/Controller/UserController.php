@@ -145,6 +145,65 @@ class UserController extends Controller
             $this->encoder->encodePassword($user, $user->getPassword())
           );
 
+          if (empty($user->getSecondaryEmail()) && $user->getNotifySecond() == true) {
+            $this->get('session')->getFlashBag()->add(
+              'error',
+              'Ai ales să trimiți notificări celui de-al doilea e-mail, dar nu ai specificat unul! Opțiunea nu a fost salvată.'
+            );
+            $user->setNotifySecond(false);
+          }
+
+          if ($user->getCustomInvoicing() == true) {
+            if ($user->getIsCompany() == false) {
+              if (empty($user->getInvoicingName()) ||
+              empty($user->getInvoicingAddress()) ||
+              empty($user->getInvoicingIdent()) )
+              {
+                $user->setCustomInvoicing(false);
+
+                $user->setInvoicingName(null);
+                $user->setInvoicingAddress(null);
+                $user->setInvoicingIdent(null);
+                $user->setInvoicingCompanyReg(null);
+                $user->setInvoicingCompanyFiscal(null);
+
+                $this->get('session')->getFlashBag()->add(
+                  'error',
+                  'Detaliile de facturare nu au fost salvate. Pentru Persoană fizică, te rugăm să introduci Nume, Adresă și CNP!'
+                );
+              }
+            } else {
+              if (empty($user->getInvoicingName()) ||
+              empty($user->getInvoicingAddress()) )
+              {
+                $user->setCustomInvoicing(false);
+
+                $user->setIsCompany(false);
+
+                $user->setInvoicingName(null);
+                $user->setInvoicingAddress(null);
+                $user->setInvoicingIdent(null);
+                $user->setInvoicingCompanyReg(null);
+                $user->setInvoicingCompanyFiscal(null);
+
+                $this->get('session')->getFlashBag()->add(
+                  'error',
+                  'Detaliile de facturare nu au fost salvate. Pentru Firmă, te rugăm să specifici cel puțin Numele firmei și Adresa!'
+                );
+              }
+            }
+          } else {
+            $user->setCustomInvoicing(false);
+
+            $user->setIsCompany(false);
+
+            $user->setInvoicingName(null);
+            $user->setInvoicingAddress(null);
+            $user->setInvoicingIdent(null);
+            $user->setInvoicingCompanyReg(null);
+            $user->setInvoicingCompanyFiscal(null);
+          }
+
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->persist($user);
           $entityManager->flush();
@@ -201,12 +260,69 @@ class UserController extends Controller
 
         if($form->isSubmitted() && $form->isValid()) {
 
-          if(!empty($user->getPassword())){
+          if (!empty($user->getPassword())) {
             $user->setPassword(
               $this->encoder->encodePassword($user, $user->getPassword())
             );
           } else {
             $user->setPassword($originalPassword);
+          }
+          if (empty($user->getSecondaryEmail()) && $user->getNotifySecond() == true) {
+            $this->get('session')->getFlashBag()->add(
+              'error',
+              'Ai ales să trimiți notificări celui de-al doilea e-mail, dar nu ai specificat unul! Opțiunea nu a fost salvată.'
+            );
+            $user->setNotifySecond(false);
+          }
+          if ($user->getCustomInvoicing() == true) {
+            if ($user->getIsCompany() == false) {
+              if (empty($user->getInvoicingName()) ||
+              empty($user->getInvoicingAddress()) ||
+              empty($user->getInvoicingIdent()) )
+              {
+                $user->setCustomInvoicing(false);
+
+                $user->setInvoicingName(null);
+                $user->setInvoicingAddress(null);
+                $user->setInvoicingIdent(null);
+                $user->setInvoicingCompanyReg(null);
+                $user->setInvoicingCompanyFiscal(null);
+
+                $this->get('session')->getFlashBag()->add(
+                  'error',
+                  'Detaliile de facturare nu au fost salvate. Pentru Persoană fizică, te rugăm să introduci Nume, Adresă și CNP!'
+                );
+              }
+            } else {
+              if (empty($user->getInvoicingName()) ||
+              empty($user->getInvoicingAddress()) )
+              {
+                $user->setCustomInvoicing(false);
+
+                $user->setIsCompany(false);
+
+                $user->setInvoicingName(null);
+                $user->setInvoicingAddress(null);
+                $user->setInvoicingIdent(null);
+                $user->setInvoicingCompanyReg(null);
+                $user->setInvoicingCompanyFiscal(null);
+
+                $this->get('session')->getFlashBag()->add(
+                  'error',
+                  'Detaliile de facturare nu au fost salvate. Pentru Firmă, te rugăm să specifici cel puțin Numele firmei și Adresa!'
+                );
+              }
+            }
+          } else {
+            $user->setCustomInvoicing(false);
+
+            $user->setIsCompany(false);
+
+            $user->setInvoicingName(null);
+            $user->setInvoicingAddress(null);
+            $user->setInvoicingIdent(null);
+            $user->setInvoicingCompanyReg(null);
+            $user->setInvoicingCompanyFiscal(null);
           }
           //NOTE: no need to persist when editing
           $entityManager = $this->getDoctrine()->getManager();
@@ -240,7 +356,7 @@ class UserController extends Controller
       (User::class)->find($id);
 
       if ($user->getUsertype() == 'ROLE_PARENT') {
-        
+
         $guardAcc = $user->getGuardianacc();
 
         $entityManager = $this->getDoctrine()->getManager();
@@ -263,7 +379,7 @@ class UserController extends Controller
      * @Route("/user/reset/{id}", name="user_reset")
      * @Method({"GET", "POST"})
      */
-    public function reset_mail(Request $request, $id, \Swift_Mailer $mailer)
+    public function reset_mail(Request $request, $id, \Swift_Mailer $mailer) //LOGIC SIMILAR FOR ANNONYMOUS USER RESET PASS
     {
       $user = $this->getDoctrine()->getRepository
       (User::class)->find($id);
@@ -277,9 +393,15 @@ class UserController extends Controller
       $entityManager = $this->getDoctrine()->getManager();
       $entityManager->flush();
 
+      $secondaryEmail='';
+      if ($user->getNotifySecond()) {
+        $secondaryEmail = $user->getSecondaryEmail();
+      }
+
       $message = (new \Swift_Message('E-mail Resetare Parolă - Planeta Copiilor'))
         ->setFrom('no-reply@iteachsmart.ro')
         ->setTo($user->getEmail())
+        ->setCc($secondaryEmail)
         ->setBody(
             $this->renderView(
                 // templates/emails/registration.html.twig
