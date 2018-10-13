@@ -157,17 +157,17 @@ class User implements UserInterface, \Serializable
     /**
      * @ORM\Column(type="boolean")
      */
-    private $notifySecond;
+    private $notifySecond = false;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $customInvoicing;
+    private $customInvoicing = false;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isCompany;
+    private $isCompany = false;
 
     /**
      * @ORM\Column(type="string", length=64, nullable=true)
