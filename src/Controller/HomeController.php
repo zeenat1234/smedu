@@ -122,6 +122,66 @@ class HomeController extends Controller
             } else {
               $user->setPassword($originalPassword);
             }
+
+            if (empty($user->getSecondaryEmail()) && $user->getNotifySecond() == true) {
+              $this->get('session')->getFlashBag()->add(
+                'error',
+                'Ai ales să trimiți notificări celui de-al doilea e-mail, dar nu ai specificat unul! Opțiunea nu a fost salvată.'
+              );
+              $user->setNotifySecond(false);
+            }
+
+            if ($user->getCustomInvoicing() == true) {
+              if ($user->getIsCompany() == false) {
+                if (empty($user->getInvoicingName()) ||
+                empty($user->getInvoicingAddress()) ||
+                empty($user->getInvoicingIdent()) )
+                {
+                  $user->setCustomInvoicing(false);
+
+                  $user->setInvoicingName(null);
+                  $user->setInvoicingAddress(null);
+                  $user->setInvoicingIdent(null);
+                  $user->setInvoicingCompanyReg(null);
+                  $user->setInvoicingCompanyFiscal(null);
+
+                  $this->get('session')->getFlashBag()->add(
+                    'error',
+                    'Detaliile de facturare nu au fost salvate. Pentru Persoană fizică, te rugăm să introduci Nume, Adresă și CNP!'
+                  );
+                }
+              } else {
+                if (empty($user->getInvoicingName()) ||
+                empty($user->getInvoicingAddress()) )
+                {
+                  $user->setCustomInvoicing(false);
+
+                  $user->setIsCompany(false);
+
+                  $user->setInvoicingName(null);
+                  $user->setInvoicingAddress(null);
+                  $user->setInvoicingIdent(null);
+                  $user->setInvoicingCompanyReg(null);
+                  $user->setInvoicingCompanyFiscal(null);
+
+                  $this->get('session')->getFlashBag()->add(
+                    'error',
+                    'Detaliile de facturare nu au fost salvate. Pentru Firmă, te rugăm să specifici cel puțin Numele firmei și Adresa!'
+                  );
+                }
+              }
+            } else {
+              $user->setCustomInvoicing(false);
+
+              $user->setIsCompany(false);
+
+              $user->setInvoicingName(null);
+              $user->setInvoicingAddress(null);
+              $user->setInvoicingIdent(null);
+              $user->setInvoicingCompanyReg(null);
+              $user->setInvoicingCompanyFiscal(null);
+            }
+
             //NOTE: no need to persist when editing
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->flush();
@@ -254,6 +314,8 @@ class HomeController extends Controller
                 foreach ($accounts as $account) {
                   foreach ($account->getAccountInvoices() as $invoice) {
 
+                    $invoice->setInvoicePaid($invoice->getInvoiceTotal());
+
                     $form = $this->createForm(UserMyaccountInvoiceType::Class, $invoice, array(
                       //'optionals' => $optionals,
                     ));
@@ -275,6 +337,17 @@ class HomeController extends Controller
                 if ($form->isSubmitted()) {
                   if ($form->isValid()) {
                     $invoice = $form->getData();
+
+                    if ($invoice->getInvoicePaid() > $invoice->getInvoiceTotal()) {
+                      $this->get('session')->getFlashBag()->add(
+                          'notice',
+                          'ATENȚIE: PLATA NU A FOST ÎNREGISTRATĂ! Nu poți achita mai mult decât suma totală a facturii. Dacă dorești să achiți în avans,
+                          atașează această dovada de plată celorlalte și celorlalte facturi cărora se aplică plata.
+                          Dacă nu au fost emise alte facturi, te rugăm să continui efectuarea plății când factura va deveni
+                          disponibilă.'
+                      );
+                      return $this->redirectToRoute('myaccount_invoices');
+                    }
 
                     $invoice->setIsPaid(true);
                     $invoice->setInvoicePaidDate(new \DateTime('now'));
@@ -311,12 +384,13 @@ class HomeController extends Controller
                     $entityManager->persist($account);
                     $entityManager->flush();
 
-                    //TODO send email to admin@iteachsmart.ro
+                    //Send email to notify - ie. admin@iteachsmart.ro
 
                     $message = (new \Swift_Message('NOTIFICARE Plată nouă - '.$invoice->getMonthAccount()->getStudent()->getUser()->getRoName()))
                       ->setFrom('no-reply@iteachsmart.ro')
-                      ->setTo('admin@iteachsmart.ro')
-                      //->setTo('dj.diablo.x+tt@gmail.com')
+                      ->setTo('georgeta_sotae@yahoo.com')
+                      ->setCc('nicoleta_sotae@yahoo.com')
+                      ->setBcc('admin@iteachsmart.ro')
                       ->setBody(
                           $this->renderView(
                               // templates/emails/registration.html.twig

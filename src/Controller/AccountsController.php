@@ -482,6 +482,20 @@ class AccountsController extends Controller
       $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$iserial.'-'.$newNumber);
       /* INVOICE NUMBER LOGIC ENDS HERE */
 
+      /* PAYEE DETAILS LOGIC STARTS HERE*/
+      $gUser = $invoice->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser();
+      if ($gUser->getCustomInvoicing()) {
+        $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
+        $newInvoice->setPayeeName($gUser->getInvoicingName());
+        $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
+        $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
+        $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+        $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+      } else {
+        $newInvoice->setPayeeName($gUser->getRoName());
+      }
+      /* PAYEE DETAILS LOGIC ENDS HERE*/
+
       $entityManager = $this->getDoctrine()->getManager();
       $entityManager->persist($newInvoice);
       $entityManager->flush();
@@ -891,6 +905,20 @@ class AccountsController extends Controller
         }
         /* INVOICE NUMBER LOGIC ENDS HERE */
 
+        /* PAYEE DETAILS LOGIC STARTS HERE*/
+        $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+        if ($gUser->getCustomInvoicing()) {
+          $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
+          $newInvoice->setPayeeName($gUser->getInvoicingName());
+          $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
+          $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
+          $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+          $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+        } else {
+          $newInvoice->setPayeeName($gUser->getRoName());
+        }
+        /* PAYEE DETAILS LOGIC ENDS HERE*/
+
         $total = 0;
 
         foreach ($account->getPaymentItems() as $payItem) {
@@ -951,8 +979,9 @@ class AccountsController extends Controller
         $entityManager->persist($newInvoice);
         $entityManager->flush();
 
-        //TODO Change invoice number logic
+        //TODO Change invoice number logic + ADD personal details logic (use comments)
         $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$newInvoice->getId());
+        //END TODO
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->flush();
 

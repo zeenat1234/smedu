@@ -142,6 +142,36 @@ class AccountInvoice
      */
     private $accountReceipt;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $payeeIsCompany = false;
+
+    /**
+     * @ORM\Column(type="string", length=64, nullable=true)
+     */
+    private $payeeName;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $payeeAddress;
+
+    /**
+     * @ORM\Column(type="string", length=16, nullable=true)
+     */
+    private $payeeIdent;
+
+    /**
+     * @ORM\Column(type="string", length=32, nullable=true)
+     */
+    private $payeeCompanyReg;
+
+    /**
+     * @ORM\Column(type="string", length=32, nullable=true)
+     */
+    private $payeeCompanyFiscal;
+
     public function __construct()
     {
         $this->paymentItems = new ArrayCollection();
@@ -400,6 +430,78 @@ class AccountInvoice
         if ($this !== $accountReceipt->getAccountInvoice()) {
             $accountReceipt->setAccountInvoice($this);
         }
+
+        return $this;
+    }
+
+    public function getPayeeIsCompany(): ?bool
+    {
+        return $this->payeeIsCompany;
+    }
+
+    public function setPayeeIsCompany(bool $payeeIsCompany): self
+    {
+        $this->payeeIsCompany = $payeeIsCompany;
+
+        return $this;
+    }
+
+    public function getPayeeName(): ?string
+    {
+        return $this->payeeName;
+    }
+
+    public function setPayeeName(?string $payeeName): self
+    {
+        $this->payeeName = $payeeName;
+
+        return $this;
+    }
+
+    public function getPayeeAddress(): ?string
+    {
+        return $this->payeeAddress;
+    }
+
+    public function setPayeeAddress(?string $payeeAddress): self
+    {
+        $this->payeeAddress = $payeeAddress;
+
+        return $this;
+    }
+
+    public function getPayeeIdent(): ?string
+    {
+        return $this->payeeIdent;
+    }
+
+    public function setPayeeIdent(?string $payeeIdent): self
+    {
+        $this->payeeIdent = $payeeIdent;
+
+        return $this;
+    }
+
+    public function getPayeeCompanyReg(): ?string
+    {
+        return $this->payeeCompanyReg;
+    }
+
+    public function setPayeeCompanyReg(?string $payeeCompanyReg): self
+    {
+        $this->payeeCompanyReg = $payeeCompanyReg;
+
+        return $this;
+    }
+
+    public function getPayeeCompanyFiscal(): ?string
+    {
+        return $this->payeeCompanyFiscal;
+    }
+
+    public function setPayeeCompanyFiscal(?string $payeeCompanyFiscal): self
+    {
+        $this->payeeCompanyFiscal = $payeeCompanyFiscal;
 
         return $this;
     }

@@ -25,7 +25,7 @@
                     <hr>
                     Seria {{ invoice.getInvoiceSerial }} nr {{ invoice.getInvoiceNumber }} <br>
                     Data emiterii: {{ invoice.getInvoiceDate|localizeddate('short', 'none') }}<br>
-                    Data Scadentă: {{ invoice.getInvoiceDate|localizeddate('short', 'none') }}
+                    Data Scadentă: {{ invoice.getInvoiceDate|date_modify("+1 week")|localizeddate('short', 'none') }}
                     <hr>
 
                 </td>
@@ -45,10 +45,28 @@
                     Militari, Sector 6<br>
                     București <br>
                     <br>
-                    Fix: 021.434.35.72 /501/570 <br>
-                    Fax: 021.433.02.63
+                    Tel 1: 0724.212.887 <br>
+                    Tel 2: 0731.406.879
                 </td>
 
+                {% if invoice.getPayeeName is not empty %}
+                <td style="vertical-align:top;">
+                    Elev:<br>
+                    {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}<br>
+                    <br>
+                    {% if invoice.getPayeeIsCompany == false %}
+                    Detalii Facturare: <br>
+                    Nume: {{ invoice.getPayeeName }}<br>
+                    CNP: {{ invoice.getPayeeIdent|default('-') }}<br>
+                    Adresă: {{ invoice.getPayeeAddress|default('-') }}<br>
+                    {% else %}
+                    Denumire Firmă: {{ invoice.getPayeeName }}<br>
+                    Adresă: {{ invoice.getPayeeAddress }}<br>
+                    Reg Com: {{ invoice.getPayeeCompanyReg|default('-') }}<br>
+                    CIF: {{ invoice.getPayeeCompanyFiscal|default('-') }}<br>
+                    {% endif %}
+                </td>
+                {% else %}
                 <td style="vertical-align:top;">
                     Elev:<br>
                     {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}<br>
@@ -58,6 +76,7 @@
                     {{ invoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getEmail }}<br>
                     {{ invoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getPhoneNo }}
                 </td>
+                {% endif %}
             </tr>
 
             <!-- <tr class="heading">

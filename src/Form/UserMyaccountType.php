@@ -20,28 +20,6 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 class UserMyaccountType extends AbstractType
 {
 
-    // /**
-    //  * {@inheritdoc}
-    //  */
-    // public static function getSubscribedEvents()
-    // {
-    //     return [FormEvents::PRE_SUBMIT => 'preSubmit'];
-    // }
-    //
-    // public function preSubmit(FormEvent $event)
-    // {
-    //     if ($event->getForm()->getConfig()->getType()->getName() !== 'repeated') {
-    //         throw new \UnexpectedValueException(sprintf(
-    //             'Expected FormType of type "repeated", "%s" given',
-    //             $event->getForm()->getConfig()->getType()->getName()
-    //         ));
-    //     }
-    //
-    //     if (!is_array($event->getData())) {
-    //         $event->setData(['first' => $event->getData(), 'second' => null]);
-    //     }
-    // }
-
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -72,7 +50,65 @@ class UserMyaccountType extends AbstractType
                 'error_mapping' => array(
                     '.' => 'first',
                 ),
-            ));
+            ))
+            ->add('secondaryEmail', EmailType::class, array(
+              'label' => 'E-Mail Secundar',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('notifySecond', ChoiceType::class, array(
+              'label' => 'Trimite notificări și către e-mailul secundar',
+              'choices' => array(
+                'NU Trimite' => false,
+                'Trimite' => true,
+              ),
+              'expanded' => true,
+              'multiple' => false,
+              'attr' => array('class' => '')
+            ))
+            ->add('customInvoicing', ChoiceType::class, array(
+              'label' => 'Informații pentru facturare',
+              'choices' => array(
+                'Nefurnizate' => false,
+                'Furnizate' => true,
+              ),
+              'expanded' => true,
+              'multiple' => false,
+            ))
+            ->add('isCompany', ChoiceType::class, array(
+              'label' => 'Tip factură',
+              'choices' => array(
+                'Persoană Fizică' => false,
+                'Firmă' => true,
+              ),
+              'expanded' => true,
+              'multiple' => false,
+            ))
+            ->add('invoicingName', TextType::class, array(
+              'label' => 'Nume',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingAddress', TextType::class, array(
+              'label' => 'Adresă',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingIdent', TextType::class, array(
+              'label' => 'CNP',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingCompanyReg', TextType::class, array(
+              'label' => 'Reg. Com.',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
+            ->add('invoicingCompanyFiscal', TextType::class, array(
+              'label' => 'CIF',
+              'required' => false,
+              'attr' => array('class' => 'form-control')
+            ))
         ;
     }
 

@@ -19,6 +19,17 @@
     </div>
     {% endfor %}
 
+    {% for flashMessage in app.session.flashbag.get('error') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-danger fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+
     {{ form_start(form) }}
       <div class="row">
         <div class="col-12 col-sm-6">
@@ -92,7 +103,111 @@
             </div>
             {{ form_widget(form.password.second) }}
           </div>
+          <center><button class="btn btn-sm btn-danger" onclick="HideFunction('');return false;"><i class="fas fa-key fa-fw"></i>Anulează Modificare Parolă</button></center>
         </div>
+        <div class="col-12 col-sm-6" id="secondPassCancel">
+          <!-- leave this div empty -->
+        </div>
+        <div class="col-12 col-sm-6">
+          <div class="form-group">
+          {{ form_label(form.secondaryEmail) }}
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-at fa-fw"></i></span>
+            </div>
+            {{ form_widget(form.secondaryEmail) }}
+          </div>
+          <code>{{ form_errors(form.secondaryEmail) }}</code>
+          </div>
+        </div>
+        <div class="col-12 col-sm-6">
+          {{ form_label(form.notifySecond) }} <br>
+          {{ form_widget(form.notifySecond[0]) }} {{ form_label(form.notifySecond[0]) }}<br>
+          {{ form_widget(form.notifySecond[1]) }} {{ form_label(form.notifySecond[1]) }} <br>
+          <code>{{ form_errors(form.notifySecond) }}</code>
+        </div>
+        <div class="col-6 col-md-4" onclick="customInvoicing('');">
+          {{ form_label(form.customInvoicing) }} <br>
+          {{ form_widget(form.customInvoicing[0]) }} {{ form_label(form.customInvoicing[0]) }}<br>
+          {{ form_widget(form.customInvoicing[1]) }} {{ form_label(form.customInvoicing[1]) }} <br>
+          <code>{{ form_errors(form.customInvoicing) }}</code>
+        </div>
+        <div class="col-6 col-md-4" id="isCompany" onclick="formInvoicing('');">
+          {{ form_label(form.isCompany) }} <br>
+          {{ form_widget(form.isCompany[0]) }} {{ form_label(form.isCompany[0]) }}<br>
+          {{ form_widget(form.isCompany[1]) }} {{ form_label(form.isCompany[1]) }} <br>
+          <code>{{ form_errors(form.isCompany) }}</code>
+        </div>
+        <div class="col-12">
+        <div class= "row" id="customInvoicing">
+          <div class="col-12 col-sm-6">
+            <div class="form-group">
+            {# form_label(form.invoicingName) #}
+            {% if app.user.isCompany == false %}
+            <label id="nameLabel">Nume</label>
+            {% else %}
+            <label id="nameLabel">Denumire Firmă</label>
+            {% endif %}
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="far fa-address-card fa-fw"></i></span>
+              </div>
+              {{ form_widget(form.invoicingName) }}
+            </div>
+            <code>{{ form_errors(form.invoicingName) }}</code>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6" id="invoicingIdent">
+            <div class="form-group">
+            {{ form_label(form.invoicingIdent) }}
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-terminal fa-fw"></i></span>
+              </div>
+              {{ form_widget(form.invoicingIdent) }}
+            </div>
+            <code>{{ form_errors(form.invoicingIdent) }}</code>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-group">
+            {{ form_label(form.invoicingAddress) }}
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt fa-fw"></i></span>
+              </div>
+              {{ form_widget(form.invoicingAddress) }}
+            </div>
+            <code>{{ form_errors(form.invoicingAddress) }}</code>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6" id="invoicingCompanyReg">
+            <div class="form-group">
+            {{ form_label(form.invoicingCompanyReg) }}
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fas fa-building fa-fw"></i></span>
+              </div>
+              {{ form_widget(form.invoicingCompanyReg) }}
+            </div>
+            <code>{{ form_errors(form.invoicingCompanyReg) }}</code>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6" id="invoicingCompanyFiscal">
+            <div class="form-group">
+            {{ form_label(form.invoicingCompanyFiscal) }}
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text"><i class="far fa-building fa-fw"></i></span>
+              </div>
+              {{ form_widget(form.invoicingCompanyFiscal) }}
+            </div>
+            <code>{{ form_errors(form.invoicingCompanyFiscal) }}</code>
+            </div>
+          </div>
+        </div>
+        </div>
+
     </div>
   <br>
   <button class="btn btn-success mt-3"><i class="fas fa-angle-double-up"></i> Actualizează</button>
@@ -114,16 +229,62 @@
   document.getElementById('user_myaccount_password_second').disabled = true;
 
   function ShowFunction() {
-    if (document.getElementById('secondPass').style.maxHeight == 0) {
-      document.getElementById('secondPass').style.maxHeight = "100px";
+    if (document.getElementById('secondPass').style.maxHeight == "0px" ||
+        document.getElementById('secondPass').style.maxHeight == 0) {
+      document.getElementById('secondPass').style.maxHeight = "150px";
+      document.getElementById('secondPassCancel').style.maxHeight = "100px";
       document.getElementById('user_myaccount_password_first').disabled = false;
       document.getElementById('user_myaccount_password_second').disabled = false;
-      console.log('it\'s OK!');
+      //console.log('it\'s OK!');
     } else {
       //document.getElementById('secondPass').hidden = true;
       //console.log('it\'s OK Combo!');
       //Do nothing!
     }
   }
+
+  function HideFunction() {
+    if (document.getElementById('secondPass').style.maxHeight != "0px") {
+      document.getElementById('secondPass').style.maxHeight = "0px";
+      document.getElementById('secondPassCancel').style.maxHeight = "0px";
+      document.getElementById('user_myaccount_password_first').disabled = true;
+      document.getElementById('user_myaccount_password_second').disabled = true;
+      //console.log('it\'s OK!');
+    } else {
+      //document.getElementById('secondPass').hidden = true;
+      //console.log('it\'s OK Combo!');
+      //Do nothing!
+    }
+  }
+
+  function customInvoicing() {
+    if ($('#user_myaccount_customInvoicing_0').is(":checked")) {
+      $('#customInvoicing').css('max-height', '0px');
+      $('#isCompany').css('max-height', '0px');
+    } else if ($('#user_myaccount_customInvoicing_1').is(":checked")) {
+      $('#customInvoicing').css('max-height', '500px');
+      $('#isCompany').css('max-height', '100px');
+    }
+  }
+
+  function formInvoicing() {
+    if ($('#user_myaccount_isCompany_0').is(":checked")) {
+      $('#invoicingIdent').css('max-height', '100px');
+      $('#invoicingCompanyReg').css('max-height', '0px');
+      $('#invoicingCompanyFiscal').css('max-height', '0px');
+      $('#nameLabel').html('Nume');
+    } else if ($('#user_myaccount_isCompany_1').is(":checked")) {
+      $('#invoicingIdent').css('max-height', '0px');
+      $('#invoicingCompanyReg').css('max-height', '100px');
+      $('#invoicingCompanyFiscal').css('max-height', '100px');
+      $('#nameLabel').html('Denumire Firmă');
+    }
+  }
+
+  customInvoicing();
+
+  formInvoicing();
+
+
 </script>
 {% endblock %}

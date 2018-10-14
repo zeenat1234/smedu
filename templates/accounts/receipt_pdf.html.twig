@@ -58,11 +58,35 @@
 
                 <td colspan="3">
                     <span>Am primit de la </span>
+                    {% if receipt.getAccountInvoice.getPayeeName is not empty %}
+                      {% if receipt.getAccountInvoice.getPayeeIsCompany == false %}
+                        <span class="grow">{{ receipt.getAccountInvoice.getPayeeName }}</span>
+                        <span> CNP: </span>
+                        <span class="grow"> {{ receipt.getAccountInvoice.getPayeeIdent }}</span>
+                        <br>
+                        <span> Adresă: </span>
+                        <span class="grow"> {{ receipt.getAccountInvoice.getPayeeAddress }}</span>
+                      {% else %}
+                        <span class="grow">{{ receipt.getAccountInvoice.getPayeeName }}</span>
+                        {% if receipt.getAccountInvoice.getPayeeCompanyReg is not empty %}
+                          <span> Reg Com: </span>
+                          <span class="grow"> {{ receipt.getAccountInvoice.getPayeeCompanyReg }}</span>
+                        {% endif %}
+                        {% if receipt.getAccountInvoice.getPayeeCompanyFiscal is not empty %}
+                          <span> CIF: </span>
+                          <span class="grow"> {{ receipt.getAccountInvoice.getPayeeCompanyFiscal }}</span>
+                        {% endif %}
+                        <br>
+                        <span> Adresă: </span>
+                        <span class="grow"> {{ receipt.getAccountInvoice.getPayeeAddress }}</span>
+                      {% endif %}
+                    {% else %}
                     <span class="grow">{{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getRoName }}</span>
                     <span> E-mail: </span>
                     <span class="grow"> {{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getEmail }}</span>
                     <span> Tel: </span>
                     <span class="grow"> {{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getPhoneNo }}</span>
+                    {% endif %}
                     <br>
                     <span> Pentru elevul: </span>
                     <span class="grow">{{ receipt.getAccountInvoice.getMonthAccount.getStudent.getUser.getRoName }}</span>

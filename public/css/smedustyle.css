@@ -182,6 +182,15 @@ select {
 	transition: max-height 0.8s;
 }
 
+#invoicingIdent, #invoicingCompanyReg, #invoicingCompanyFiscal, #customInvoicing, #isCompany, #secondPassCancel {
+  max-height: 0px;
+  overflow: hidden;
+
+  -webkit-transition: max-height 0.8s;
+	-moz-transition: max-height 0.8s;
+	transition: max-height 0.8s;
+}
+
 #users, .enrollmentsTable, .classOptTable {
   visibility: hidden;
 }
