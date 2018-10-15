@@ -104,6 +104,60 @@ class AccountsController extends Controller
         ]);
     }
 
+    //TODO Find out how to fix 500 error which occurs in the browser console
+    //when a delete statement is executed
+    /**
+     * @Route("/accounts/item/{itemId}/delete", name="accounts_item_delete")
+     * @Method({"DELETE", "POST"})
+     */
+    public function accounts_item_delete(Request $request, $itemId)
+    {
+      $payItem = $this->getDoctrine()->getRepository
+      (PaymentItem::class)->find($itemId);
+
+      $monthAccount = $payItem->getMonthAccount();
+      $removePrice = $payItem->getItemPrice();
+      $removeCount = $payItem->getItemCount();
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->remove($payItem);
+      $entityManager->flush();
+
+      $monthAccount->setTotalPrice($monthAccount->getTotalPrice() - $removePrice*$removeCount);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->persist($monthAccount);
+      $entityManager->flush();
+
+      if ($payItem->getIsInvoiced() == true) {
+          $invoice = $payItem->getAccountInvoice();
+          $invoiceTotal = $invoice->getInvoiceTotal() - $removePrice*$removeCount;
+          if ($invoiceTotal == 0) {
+            //TODO implement
+            if ($invoice->getTrueAccountInvoice()) {
+              $parentInvoice = $invoice->getTrueAccountInvoice();
+              $parentInvoice->setTrueInvoice(null);
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($parentInvoice);
+              $entityManager->flush();
+            }
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($invoice);
+            $entityManager->flush();
+          } else {
+            $invoice->setInvoiceTotal($invoiceTotal);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($invoice);
+            $entityManager->flush();
+          }
+      }
+
+      //console.log('A mers!');
+      $response = new Response();
+      $response->send();
+
+    }
+
     /**
      * @Route("/accounts/item/{itemId}/{redirect?'redirect'}", name="accounts_item_modify")
      */
@@ -169,59 +223,7 @@ class AccountsController extends Controller
         ]);
     }
 
-    //TODO Find out how to fix 500 error which occurs in the browser console
-    //when a delete statement is executed
-    /**
-     * @Route("/accounts/item/{itemId}/delete", name="accounts_item_delete")
-     * @Method({"DELETE", "POST"})
-     */
-    public function accounts_item_delete(Request $request, $itemId)
-    {
-      $payItem = $this->getDoctrine()->getRepository
-      (PaymentItem::class)->find($itemId);
 
-      $monthAccount = $payItem->getMonthAccount();
-      $removePrice = $payItem->getItemPrice();
-      $removeCount = $payItem->getItemCount();
-
-      $entityManager = $this->getDoctrine()->getManager();
-      $entityManager->remove($payItem);
-      $entityManager->flush();
-
-      $monthAccount->setTotalPrice($monthAccount->getTotalPrice() - $removePrice*$removeCount);
-
-      $entityManager = $this->getDoctrine()->getManager();
-      $entityManager->persist($monthAccount);
-      $entityManager->flush();
-
-      if ($payItem->getIsInvoiced() == true) {
-          $invoice = $payItem->getAccountInvoice();
-          $invoiceTotal = $invoice->getInvoiceTotal() - $removePrice*$removeCount;
-          if ($invoiceTotal == 0) {
-            //TODO implement
-            if ($invoice->getTrueAccountInvoice()) {
-              $parentInvoice = $invoice->getTrueAccountInvoice();
-              $parentInvoice->setTrueInvoice(null);
-              $entityManager = $this->getDoctrine()->getManager();
-              $entityManager->persist($parentInvoice);
-              $entityManager->flush();
-            }
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($invoice);
-            $entityManager->flush();
-          } else {
-            $invoice->setInvoiceTotal($invoiceTotal);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($invoice);
-            $entityManager->flush();
-          }
-      }
-
-      //console.log('A mers!');
-      $response = new Response();
-      $response->send();
-
-    }
 
     /**
      * @Route("/accounts/payinvoice/{invId}", name="accounts_pay_invoice")
