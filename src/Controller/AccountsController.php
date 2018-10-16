@@ -1034,8 +1034,8 @@ class AccountsController extends Controller
                 $serviceTaxItem->setMonthAccount($newMonthAccount);
                 //NOTE: The following should be used instead to show inAdvance status on invoice!!!!
                 //$serviceTaxItem->setItemName($schoolService->getServicename().' (avans '.$formatter->format($mY).')');
-                //$serviceTaxItem->setItemName($schoolService->getServicename().' ('.$formatter->format($mY).')');
-                $serviceTaxItem->setItemName($schoolService->getServicename());
+                $serviceTaxItem->setItemName($schoolService->getServicename().' ('.$formatter->format($mY).')');
+                //$serviceTaxItem->setItemName($schoolService->getServicename());
                 $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
 
                 $entityManager = $this->getDoctrine()->getManager();

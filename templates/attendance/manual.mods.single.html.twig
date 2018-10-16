@@ -1,0 +1,125 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Catalog prezențe{% endblock %}
+
+{% block body %}
+
+  <div class="row justify-content-center align-items-center">
+    <div class="col-12">
+      <center>
+        <h1 class="kuraleFont">Modificare catalog {{ the_optional.getOptionalname|title }}</h1>
+      </center>
+    </div>
+    <div class="col-auto">
+      {% if prev_sched is not null %}
+        <a href="{{ path('manual_mods_edit', {'schdId':prev_sched.id}) }}">
+          <i class="fas fa-chevron-circle-left"></i> {{ prev_sched.getScheduledDateTime|localizeddate('long', 'medium') }}
+        </a>
+      {% endif %}
+    </div>
+    <div class="col-auto">
+      <h3 class="kuraleFont">{{ the_schedule.getScheduledDateTime|localizeddate('long','medium') }}</h3>
+    </div>
+    <div class="col-auto">
+      {% if next_sched is not null %}
+        <a href="{{ path('manual_mods_edit', {'schdId':next_sched.id}) }}">
+          {{ next_sched.getScheduledDateTime|localizeddate('long', 'medium') }} <i class="fas fa-chevron-circle-right"></i>
+        </a>
+      {% endif %}
+    </div>
+    <div class="col-12">
+      <center>
+        <a href="{{ path('manual_mods') }}">
+          <i class="fas fa-chevron-circle-left"></i> Înapoi la Catalog
+        </a>
+      </center>
+    </div>
+  </div>
+
+  {% for flashMessage in app.session.flashbag.get('notice') %}
+  <br>
+  <div id="message">
+  <div style="padding: 5px;">
+      <div id="inner-message" class="alert alert-success fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ flashMessage }}
+      </div>
+  </div>
+  </div>
+  {% endfor %}
+  <br>
+  <div class="row">
+    <div class="col-12 col-md-8">
+      <h4 class="kuraleFont">Prezențe Active</h4>
+      <table class="table">
+        <thead class="thead-dark">
+          <th width=50%>
+            Nume Elev
+          </th>
+          <th width=35% style="text-align:center;" colspan=2>
+            Prezența
+          </th>
+          <th width=15% style="text-align:center;">
+            Ștergere
+          </th>
+        </thead>
+        <tbody>
+          {{ form_start(form) }}
+          {% for f in form.attends %}
+          <tr id="attendance_mod_edit_row">
+            <td>
+              {{ f.vars.value.student.getUser.getRoName|title }}
+            </td>
+            <td style="text-align:center;">
+              {{ form_widget(f.hasAttended[0]) }} <i class="fas fa-check fa-fw" style='color:#0f0'></i> {{ form_label(f.hasAttended[0]) }}
+            </td>
+            <td style="text-align:center;">
+              {{ form_widget(f.hasAttended[1]) }} <i class="fas fa-times fa-fw" style='color:#f00'></i> {{ form_label(f.hasAttended[1]) }}
+            </td>
+            <td style="text-align:center;">
+              <a href="{{ path('manual_del_attd', {'attId':f.vars.value.id}) }}">
+                <button type="button" class="btn btn-sm btn-danger"><i class="far fa-trash-alt fa-fw"></i></button>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td colspan=4 style="text-align:center;">
+              <button class="btn btn-primary" type="submit"><i class="fas fa-cloud-upload-alt"></i> Actualizează Prezențe</button>
+            </td>
+          </tr>
+          {{ form_end(form) }}
+        </tbody>
+      </table>
+    </div>
+    <div class="col-12 col-md-4">
+      <h4 class="kuraleFont">Adăugare</h4>
+      <table class="table">
+        <thead class="thead-dark">
+          <th width=25%>
+            Adăugare
+          </th>
+          <th width=75%>
+            Nume Elev
+          </th>
+        </thead>
+        <tbody>
+          {% for student in enrollable_students %}
+          <tr id="attendance_mod_edit_row">
+            <td style="text-align:center;">
+              <a href="{{ path('manual_add_attd', {'studId':student.getId, 'schdId':the_schedule.getId}) }}">
+                <button class="btn btn-sm btn-success"><i class="far fa-plus-square fa-fw"></i></button>
+              </a>
+            </td>
+            <td>
+              {{ student.getUser.getRoName }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+{% endblock %}

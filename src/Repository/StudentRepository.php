@@ -22,7 +22,6 @@ class StudentRepository extends ServiceEntityRepository
     /**
      * @return Student[] Returns an array of Student objects
      */
-
      public function findAllYear($yearId)
      {
         return $this->createQueryBuilder('s')
@@ -31,6 +30,24 @@ class StudentRepository extends ServiceEntityRepository
              ->andWhere('unit.schoolyear = :val')
              ->setParameter('val', $yearId)
              ->addOrderBy('usr.lastName', 'ASC')
+             ->addOrderBy('usr.firstName', 'ASC')
+             ->getQuery()
+             ->getResult()
+        ;
+      }
+
+     /**
+      * @return Student[] Returns an array of Student objects
+      */
+      public function findAllUnit($unitId)
+      {
+        return $this->createQueryBuilder('s')
+             ->leftJoin('s.User', 'usr')
+             ->leftJoin('s.schoolUnit', 'unit')
+             ->andWhere('unit.id = :val')
+             ->setParameter('val', $unitId)
+             ->addOrderBy('usr.lastName', 'ASC')
+             ->addOrderBy('usr.firstName', 'ASC')
              ->getQuery()
              ->getResult()
         ;

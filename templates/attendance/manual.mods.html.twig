@@ -1,0 +1,99 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Catalog prezențe{% endblock %}
+
+{% block body %}
+
+  <h1 class="coinyFont">Prezențe {{ current_year.getYearlabel|lower }}</h1>
+  <br>
+  {% if current_units is not empty %}
+    {% for schoolunit in current_units %}
+      <div class="row">
+        <div class="col-auto">
+          <h2 class="kuraleFont">{{ schoolunit.unitname|capitalize }} </h2>
+        </div>
+        <!-- <div class="col">
+        <a href="#{# path('class_optional_new', {'unitId':schoolunit.id }) #}">
+          <button class="btn btn-success"><i class="fas fa-plus"></i></button>
+        </a>
+        </div> -->
+      </div>
+      <p style="font-weight:bold;">Materii</p>
+      {% if modules is not empty %}
+
+      {% else %}
+        <p>Nu există materii.</p>
+      {% endif %}
+      <p style="font-weight:bold;">Opționale</p>
+      {% if schoolunit.getClassOptionals is not empty %}
+        <div class="row">
+        {% set i = 0 %}
+        {% for optional in schoolunit.getClassOptionals %}
+          <div class="col-12 col-md-6" style="text-align:center;">
+            <div class="indexParentHolder holderWhite">
+              <h2 class="kuraleFont">{{ optional.getOptionalName }}</h2>
+              Număr Elevi: {{ optional.getStudents|length }} <br>
+              <br>
+              {% if optional.getStudents is empty %}
+                0 Înscrieri
+              {% elseif optional.getOptionalSchedules is empty %}
+                0 Ore
+              {% else %}
+                <p><a href="#" style="text-decoration:underline" onclick="RevealFunction('.attendance_scheds_{{i}}');return false;">detalii</a></p>
+                <div class="row le_row attendance_scheds_{{i}}" style="margin:10px;">
+                {% set j = 0 %}
+                {% for schedule in optional.getAscOptionalSchedules %}
+                  {% if schedule.getScheduledDateTime < date() %}
+                    <div class="col-6 col-md-4">
+                      <a href="{{ path('manual_mods_edit', {'schdId':schedule.getId}) }}">{{ schedule.getScheduledDateTime|localizeddate('short', 'short') }}</a> <br>
+                    </div>
+                    {% set j = j + 1 %}
+                  {% endif %}
+                {% endfor %}
+                {% if j == 0 %}
+                  <div class="col-12">
+                    <code>0 Ore trecute</code>
+                  </div>
+                {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          {% set i = i + 1 %}
+        {% endfor %}
+        </div>
+      {% else %}
+        <p>Nu există opționale.</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p>Nu există nicio unitate școlară definită în acest an școlar!</p>
+  {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+  function RevealFunction(schedules) {
+    $('.le_row').each(function(){
+      if ($(this).is(schedules)) {
+        if ($(this).css('max-height') == '0px') {
+          $(this).css('max-height', '1080px');
+          $(this).css('overflow', 'visible');
+          $(this).css('visibility', 'visible');
+        } else {
+          $(this).css('max-height', '0px');
+          $(this).css('overflow', 'hidden');
+          $(this).css('visibility', 'hidden');
+        }
+      } else {
+        $(this).css('max-height', '0px');
+        $(this).css('overflow', 'hidden');
+        $(this).css('visibility', 'hidden');
+      }
+    });
+  }
+
+  ScrollReveal({ reset: false }).reveal('.indexParentHolder', { duration:1500, delay:50 });
+  </script>
+{% endblock %}

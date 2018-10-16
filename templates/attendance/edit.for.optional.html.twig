@@ -22,7 +22,7 @@
       <p>Catalogul nu a fost generat!</p>
     {% else %}
       {% set i = 0 %}
-      {% for schedule in optional.getOptionalSchedules|reverse %}
+      {% for schedule in optional.getDescOptionalSchedules %}
         {% if (schedule.getScheduledDateTime <= date()) and (schedule.getOptionalsAttendances.count != 0) %}
           <a href="#" onclick="RevealFunction('.attendance_row_{{i}}');return false;">
             <h4 class="kuraleFont">
@@ -33,7 +33,7 @@
           {{ form_start(forms[i]) }}
           <div class="row le_row attendance_row_{{i}}">
             {% for f in forms[i].attends %}
-              {% set index = f.vars.value %}
+              {# set index = f.vars.value #}
               <div class="col-6 col-sm-4 col-md-4 col-lg-3 col-xl-2">
                 <div class="attendanceHolder">
               <span class="kuraleFont">{{ f.vars.value.student.getUser.getRoName|title }}</span>

@@ -6,8 +6,10 @@ namespace App\Controller;
 use App\Entity\SchoolYear;
 use App\Entity\SchoolUnit;
 use App\Entity\ClassOptional;
+use App\Entity\OptionalSchedule;
 use App\Entity\OptionalsAttendance;
 use App\Entity\User;
+use App\Entity\Student;
 
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -44,6 +46,203 @@ class AttendanceController extends AbstractController
           'current_year'  => $currentSchoolYear,
           'current_units' => $schoolUnits,
           'modules'       => [],
+        ]);
+    }
+
+    /**
+     * @Route("/attendance/manual_mods", name="manual_mods")
+     * @Method({"GET"})
+     */
+    public function manual_mods()
+    {
+        $currentSchoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findCurrentYear();
+
+        $schoolUnits = $currentSchoolYear->getSchoolunits();
+
+        return $this->render('attendance/manual.mods.html.twig', [
+          'current_year'  => $currentSchoolYear,
+          'current_units' => $schoolUnits,
+          'modules'       => [],
+        ]);
+    }
+
+    /**
+     * @Route("/attendance/man_mods_del/{attId}", name="manual_del_attd")
+     * @Method({"GET", "POST", "DELETE"})
+     */
+    public function manual_del_attd($attId)
+    {
+      $attendance = $this->getDoctrine()->getRepository
+      (OptionalsAttendance::class)->find($attId);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->remove($attendance);
+      $entityManager->flush();
+
+      $update_date = $attendance->getOptionalSchedule()->getScheduledDateTime();
+      $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+      $formatter->setPattern('dd MMMM, yyyy');
+
+      $this->get('session')->getFlashBag()->add(
+          'notice',
+          'Prezența pentru '.$attendance->getStudent()->getUser()->getRoName().' din data de '.$formatter->format($update_date).' a fost ștearsă cu succes!'
+      );
+
+      return $this->redirectToRoute('manual_mods_edit', array('schdId'=>$attendance->getOptionalSchedule()->getId()));
+    }
+
+    /**
+     * @Route("/attendance/man_mods_add/{studId}_{schdId}", name="manual_add_attd")
+     * @Method({"GET", "POST"})
+     */
+    public function manual_add_attd($studId, $schdId)
+    {
+      $schedule = $this->getDoctrine()->getRepository
+      (OptionalSchedule::class)->find($schdId);
+
+      $student = $this->getDoctrine()->getRepository
+      (Student::class)->find($studId);
+
+      $newAttendance = new OptionalsAttendance();
+
+      $newAttendance->setClassOptional($schedule->getClassOptional());
+      $newAttendance->setOptionalSchedule($schedule);
+      $newAttendance->setStudent($student);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->persist($newAttendance);
+      $entityManager->flush();
+
+      $update_date = $schedule->getScheduledDateTime();
+      $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+      $formatter->setPattern('dd MMMM, yyyy');
+
+      $this->get('session')->getFlashBag()->add(
+          'notice',
+          'Prezența pentru '.$student->getUser()->getRoName().' din data de '.$formatter->format($update_date).' a fost adăugată cu succes!'
+      );
+
+      return $this->redirectToRoute('manual_mods_edit', array('schdId'=>$schedule->getId()));
+
+    }
+
+    /**
+     * @Route("/attendance/manual_mods/{schdId}", name="manual_mods_edit")
+     * @Method({"GET", "POST"})
+     */
+    public function manual_mods_edit(Request $request, $schdId)
+    {
+        $theSchedule = $this->getDoctrine()->getRepository
+        (OptionalSchedule::class)->find($schdId);
+
+        $optional = $theSchedule->getClassOptional();
+
+        $editableScheds = array();
+        foreach($optional->getAscOptionalSchedules() as $schedule) {
+          if ($schedule->getScheduledDateTime() <= (new \DateTime('now')) ) {
+            $editableScheds[] = $schedule;
+          }
+        }
+
+        $first_sched = $editableScheds[0];
+        $last_sched = $editableScheds[count($editableScheds)-1];
+        $prev_sched = null;
+        $next_sched = null;
+
+        if ($first_sched != $last_sched) {
+          if ($first_sched == $theSchedule) {
+            $prev_sched = null; //not needed - keeping for easy code read
+            $next_sched_key = array_search($theSchedule, $editableScheds) + 1;
+            $next_sched = $editableScheds[$next_sched_key];
+          } else if ($last_sched == $theSchedule) {
+            $next_sched = null; //not needed - keeping for easy code read
+            $prev_sched_key = array_search($theSchedule, $editableScheds) - 1;
+            $prev_sched = $editableScheds[$prev_sched_key];
+          } else {
+            $next_sched_key = array_search($theSchedule, $editableScheds) + 1;
+            $next_sched = $editableScheds[$next_sched_key];
+            $prev_sched_key = array_search($theSchedule, $editableScheds) - 1;
+            $prev_sched = $editableScheds[$prev_sched_key];
+          }
+        }
+
+        $sortedStudents = $this->getDoctrine()->getRepository
+        (Student::class)->findAllUnit($optional->getSchoolUnit()->getId());
+
+        $attendances = $this->getDoctrine()->getRepository
+        (OptionalsAttendance::class)->findBy(['optionalSchedule' => $theSchedule]);
+
+        $enrolledAttendances = array();
+        $enrolledStudents = array();
+        $enrollableStudents = array();
+        //sorted by student
+        foreach($sortedStudents as $student) {
+          foreach($attendances as $attendance) {
+            if ($student == $attendance->getStudent()) {
+              $enrolledAttendances[] = $attendance;
+              $enrolledStudents[] = $student;
+            }
+          }
+          if (!in_array($student, $enrolledStudents)) {
+            if ($student->getEnrollment()->getIsActive()) {
+              $enrollableStudents[] = $student;
+            }
+          }
+        }
+
+        $formFactory = $this->get('form.factory');
+        $form = $formFactory->createNamedBuilder('attendance_form', FormType::class, array('attends' => $enrolledAttendances));
+
+        $form->add('attends', CollectionType::class, array(
+          'label' => false,
+          'entry_type' => OptionalsAttendanceType::class,
+        ));
+        // $form->add('update', SubmitType::class, array(
+        //   'label' => 'Actualizează',
+        // ));
+
+        $the_form = $form->getForm();
+        $the_view = $form->getForm()->createView();
+
+        if ($request->isMethod('POST')) {
+
+          $the_form->handleRequest($request);
+
+          if ($the_form->isSubmitted()) {
+
+            $data = $form->getData();
+
+            // $data['attends'] contains an array of AppBundle\Entity\OptionalsAttendance
+            // use it to persist the categories in a foreach loop
+            foreach ($data['attends'] as $attendance) {
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($attendance);
+              $entityManager->flush();
+            }
+
+            $update_date = $data['attends'][0]->getOptionalSchedule()->getScheduledDateTime();
+            $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+            $formatter->setPattern('dd MMMM, yyyy');
+
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Informația pentru '.$formatter->format($update_date).' a fost actualizată cu succes!'
+            );
+
+            return $this->redirectToRoute('manual_mods_edit', array('schdId'=>$schdId));
+          }
+
+        }
+
+        return $this->render('attendance/manual.mods.single.html.twig', [
+          'the_schedule' => $theSchedule,
+          'prev_sched' => $prev_sched,
+          'next_sched' => $next_sched,
+          'the_optional' => $optional,
+          'enrolled_attendances' => $enrolledAttendances,
+          'enrollable_students' => $enrollableStudents,
+          'form' => $the_view,
         ]);
     }
 
@@ -209,12 +408,10 @@ class AttendanceController extends AbstractController
 
                 // $data['attends'] contains an array of AppBundle\Entity\OptionalsAttendance
                 // use it to persist the categories in a foreach loop
-                $i = 0;
                 foreach ($data['attends'] as $attendance) {
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->persist($attendance);
                   $entityManager->flush();
-                  $i++;
                 }
 
                 $update_date = $data['attends'][0]->getOptionalSchedule()->getScheduledDateTime();

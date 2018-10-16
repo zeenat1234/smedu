@@ -200,6 +200,33 @@ class ClassOptional
         return $this->optionalSchedules;
     }
 
+    /**
+     * @return Collection|OptionalSchedule[]
+     */
+    public function getDescOptionalSchedules(): Collection
+    {
+        $criteria = Criteria::create()
+          ->orderBy(array('scheduledDateTime' => Criteria::DESC))
+          ->setFirstResult(0)
+        ;
+
+        return $this->optionalSchedules->matching($criteria);
+    }
+
+    /**
+     * @return Collection|OptionalSchedule[]
+     */
+    public function getAscOptionalSchedules(): Collection
+    {
+        $criteria = Criteria::create()
+          ->orderBy(array('scheduledDateTime' => Criteria::ASC))
+          ->setFirstResult(0)
+        ;
+
+        return $this->optionalSchedules->matching($criteria);
+    }
+
+
     public function addOptionalSchedule(OptionalSchedule $optionalSchedule): self
     {
         if (!$this->optionalSchedules->contains($optionalSchedule)) {

@@ -87,7 +87,7 @@ class OptionalScheduleController extends AbstractController
         $theOptional = $this->getDoctrine()->getRepository
         (ClassOptional::class)->find($id);
 
-        $schedules = $theOptional->getOptionalSchedules();
+        $schedules = $theOptional->getAscOptionalSchedules();
 
         return $this->render('optional_schedule/optional.schedule.html.twig', [
             'the_optional' => $theOptional,
