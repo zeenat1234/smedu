@@ -4,7 +4,7 @@
 
 {% block body %}
 
-  <h1 class="coinyFont">Prezențe {{ current_year.getYearlabel|lower }}</h1>
+  <h1 class="coinyFont">Catalog {{ current_year.getYearlabel|lower }}</h1>
   <br>
   {% if current_units is not empty %}
     {% for schoolunit in current_units %}
