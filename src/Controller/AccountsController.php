@@ -1132,7 +1132,7 @@ class AccountsController extends Controller
                 $entityManager->flush();
 
                 $newMonthAccount->addPaymentItem($payItem);
-                $newMonthAccount->addToTotalPrice($payItem->getItemPrice());
+                $newMonthAccount->addToTotalPrice($payItem->getItemPrice()*$payItem->getItemCount());
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($newMonthAccount);
                 $entityManager->flush();

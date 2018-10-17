@@ -55,15 +55,35 @@
                     {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}<br>
                     <br>
                     {% if invoice.getPayeeIsCompany == false %}
-                    Detalii Facturare: <br>
-                    Nume: {{ invoice.getPayeeName }}<br>
-                    CNP: {{ invoice.getPayeeIdent|default('-') }}<br>
-                    Adresă: {{ invoice.getPayeeAddress|default('-') }}<br>
+                      Detalii Facturare: <br>
+                      Nume: {{ invoice.getPayeeName }}<br>
+                      CNP: {{ invoice.getPayeeIdent|default('-') }}<br>
+                      Adresă: {{ invoice.getPayeeAddress|default('-') }}<br>
+                      <br>
+                      {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                        Cont: RO11 BTRL RONC RT03 3357 1401 <br>
+                        Banca: TRANSILVANIA <br>
+                      {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                        Cont: RO56 BTRL RONC RT04 1362 7601 <br>
+                        Banca: TRANSILVANIA <br>
+                      {% else %}
+                        {# do nothing #}
+                      {% endif %}
                     {% else %}
-                    Denumire Firmă: {{ invoice.getPayeeName }}<br>
-                    Adresă: {{ invoice.getPayeeAddress }}<br>
-                    Reg Com: {{ invoice.getPayeeCompanyReg|default('-') }}<br>
-                    CIF: {{ invoice.getPayeeCompanyFiscal|default('-') }}<br>
+                      Denumire Firmă: {{ invoice.getPayeeName }}<br>
+                      Adresă: {{ invoice.getPayeeAddress }}<br>
+                      Reg Com: {{ invoice.getPayeeCompanyReg|default('-') }}<br>
+                      CIF: {{ invoice.getPayeeCompanyFiscal|default('-') }}<br>
+                      <br>
+                      {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                        Cont: RO11 BTRL RONC RT03 3357 1401 <br>
+                        Banca: TRANSILVANIA <br>
+                      {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                        Cont: RO56 BTRL RONC RT04 1362 7601 <br>
+                        Banca: TRANSILVANIA <br>
+                      {% else %}
+                        {# do nothing #}
+                      {% endif %}
                     {% endif %}
                 </td>
                 {% else %}
