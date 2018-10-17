@@ -11,6 +11,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 
 class AccountInvoiceReceiptType extends AbstractType
 {
@@ -45,6 +46,14 @@ class AccountInvoiceReceiptType extends AbstractType
               'label' => 'Număr',
               'attr' => array('class' => 'form-control'),
             ))
+            ->add('totalPaid', MoneyType::class, array(
+              'label'    => 'Total Achitat',
+              'currency' => 'RON',
+              'data' => $options['total'],
+              'scale' => 2,
+              'mapped' => false,
+              'attr' => array('class' => 'form-control'),
+            ))
         ;
     }
 
@@ -52,6 +61,7 @@ class AccountInvoiceReceiptType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => AccountReceipt::class,
+            'total' => Integer::class,
             'validation_groups' => array('receiptDetails'),
         ]);
     }

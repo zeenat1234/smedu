@@ -767,7 +767,9 @@ class AccountsController extends Controller
           }
           /* RECEIPT NUMBER LOGIC ENDS HERE */
 
-          $form2 = $this->createForm(AccountInvoiceReceiptType::Class, $newReceipt);
+          $form2 = $this->createForm(AccountInvoiceReceiptType::Class, $newReceipt, array(
+            'total' => $invoice->getInvoiceTotal(),
+          ));
           $forms2[] = $form2;
           $views2[] = $form2->createView();
 
@@ -815,25 +817,43 @@ class AccountsController extends Controller
                 if ($form2->isValid()) {
                   $newReceipt = $form2->getData();
 
+                  // Retrieve the value from the extra, non-mapped field!
+                  $receiptTotalPaid = $form2->get('totalPaid')->getData();
+
+                  $invoice = $newReceipt->getAccountInvoice();
+
+                  if($receiptTotalPaid <= 0) {
+                    $this->get('session')->getFlashBag()->add(
+                        'notice',
+                        'ATENȚIE: Chitanța NU poate fi generată decat dacă suma plătită este mai mare de 0 RON!'
+                    );
+                    return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
+                  } elseif ($receiptTotalPaid > $invoice->getInvoiceTotal()) {
+                    $this->get('session')->getFlashBag()->add(
+                        'notice',
+                        'ATENȚIE: Chitanța NU poate fi generată pe o sumă mai mare decât cea înscrisă în factură!'
+                    );
+                    return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
+                  }
+
                   $newReceipt->setReceiptSerial(strtoupper($newReceipt->getReceiptSerial()));
 
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->persist($newReceipt);
                   $entityManager->flush();
 
-                  $invoice = $newReceipt->getAccountInvoice();
-                  $oldInvoicePrice = $invoice->getInvoicePaid();
+                  $oldInvoicePaid = $invoice->getInvoicePaid();
                   $invoice->setIsLocked(true);
                   //when generating a receipt, set invoice to isPaid and update totalPaid
                   $invoice->setIsPaid(true);
-                  $invoice->setInvoicePaid($invoice->getInvoiceTotal());
+                  $invoice->setInvoicePaid($receiptTotalPaid);
                   $invoice->setInvoicePaidDate($newReceipt->getReceiptDate());
 
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->persist($invoice);
                   $entityManager->flush();
 
-                  $account->setTotalPaid($account->getTotalPaid() - $oldInvoicePrice + $invoice->getInvoicePaid());
+                  $account->setTotalPaid($account->getTotalPaid() - $oldInvoicePaid + $receiptTotalPaid);
 
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->persist($account);
