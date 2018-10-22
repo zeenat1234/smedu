@@ -62,11 +62,11 @@ class OptionalScheduleController extends AbstractController
                if ($canCreate == true) {
                  return $this->redirectToRoute('generate_optional_attendance', array('optId' => $theOptional->getId(), 'redirect' => 'optional_schedule') );
                } else {
-                 return $this->redirectToRoute('optional_schedule', array('id' => $id) );
+                 return $this->redirectToRoute('optional_schedule', array('id' => $theOptional->getId()) );
                }
              }
            } else {
-             return $this->redirectToRoute('optional_schedule', array('id' => $id) );
+             return $this->redirectToRoute('optional_schedule', array('id' => $theOptional->getId()) );
            }
 
            //return $this->redirectToRoute('optional_schedule', array('id' => $theOptional->getId()) );
