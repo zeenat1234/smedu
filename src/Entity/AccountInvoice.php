@@ -172,9 +172,15 @@ class AccountInvoice
      */
     private $payeeCompanyFiscal;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Payment", mappedBy="payInvoices")
+     */
+    private $payments;
+
     public function __construct()
     {
         $this->paymentItems = new ArrayCollection();
+        $this->payments = new ArrayCollection();
     }
 
     public function getId()
@@ -502,6 +508,34 @@ class AccountInvoice
     public function setPayeeCompanyFiscal(?string $payeeCompanyFiscal): self
     {
         $this->payeeCompanyFiscal = $payeeCompanyFiscal;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Payment[]
+     */
+    public function getPayments(): Collection
+    {
+        return $this->payments;
+    }
+
+    public function addPayment(Payment $payment): self
+    {
+        if (!$this->payments->contains($payment)) {
+            $this->payments[] = $payment;
+            $payment->addPayInvoice($this);
+        }
+
+        return $this;
+    }
+
+    public function removePayment(Payment $payment): self
+    {
+        if ($this->payments->contains($payment)) {
+            $this->payments->removeElement($payment);
+            $payment->removePayInvoice($this);
+        }
 
         return $this;
     }

@@ -15,11 +15,13 @@ use App\Entity\MonthAccount;
 use App\Entity\OptionalsAttendance;
 use App\Entity\AccountInvoice;
 use App\Entity\AccountReceipt;
+use App\Entity\PaymentProof;
 
 #can use entity's form
 use App\Form\UserMyaccountType;
 use App\Form\UserMyaccountEnrollType;
-use App\Form\UserMyaccountInvoiceType;
+use App\Form\UserMyaccountSmartProofType;
+//use App\Form\UserMyaccountInvoiceType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -313,15 +315,23 @@ class HomeController extends Controller
 
                 foreach ($accounts as $account) {
                   foreach ($account->getAccountInvoices() as $invoice) {
+                    foreach ($invoice->getPayments() as $payment) {
+                      if ($payment->getIsPending()) {
+                        $form = $this->createForm(UserMyaccountSmartProofType::Class, $payment);
+                        $forms[] = $form;
+                        $views[] = $form->createView();
+                      }
+                    }
+                    // TODO DEPRECATED - old payment system
+                    // $invoice->setInvoicePaid($invoice->getInvoiceTotal());
+                    //
+                    // $form = $this->createForm(UserMyaccountInvoiceType::Class, $invoice, array(
+                    //   //'optionals' => $optionals,
+                    // ));
+                    // $pricePaid[$invoice->getId()] = $invoice->getInvoicePaid();
+                    // $forms[] = $form;
+                    // $views[] = $form->createView();
 
-                    $invoice->setInvoicePaid($invoice->getInvoiceTotal());
-
-                    $form = $this->createForm(UserMyaccountInvoiceType::Class, $invoice, array(
-                      //'optionals' => $optionals,
-                    ));
-                    $pricePaid[$invoice->getId()] = $invoice->getInvoicePaid();
-                    $forms[] = $form;
-                    $views[] = $form->createView();
                   }
                 }
             }
@@ -336,6 +346,40 @@ class HomeController extends Controller
               foreach ($forms as $form) {
                 if ($form->isSubmitted()) {
                   if ($form->isValid()) {
+
+                    $thePayment = $form->getData();
+                    $invoice = $thePayment->getPayInvoices()->first();
+
+                    $files = $form->get('payProof')->getData();
+                    $unix = time();
+                    $index = 0;
+
+                    foreach($files as $file) {
+                      $newProof = new PaymentProof();
+
+                      $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
+
+                      // Move the file to the directory where brochures are stored
+                      try {
+                        $file->move(
+                          $this->getParameter('invoice_directory'),
+                          $fileName
+                        );
+                      } catch (FileException $e) {
+                        // ... handle exception if something happens during file upload
+                      }
+
+                      // updates the 'pay proof' property to store the PDF file name
+                      // instead of its contents
+                      $newProof->setProof($fileName);
+                      $newProof->setPayment($thePayment);
+                      $entityManager = $this->getDoctrine()->getManager();
+                      $entityManager->persist($newProof);
+                      $entityManager->flush();
+
+                      $index = $index + 1;
+                    }
+                    /* TODO DEPRECATED - did this in old system
                     $invoice = $form->getData();
 
                     if ($invoice->getInvoicePaid() > $invoice->getInvoiceTotal()) {
@@ -353,7 +397,7 @@ class HomeController extends Controller
                     $invoice->setInvoicePaidDate(new \DateTime('now'));
 
                     // $file stores the uploaded PDF file
-                    /** @var Symfony\Component\HttpFoundation\File\UploadedFile $file */
+                    /** @var Symfony\Component\HttpFoundation\File\UploadedFile $file
                     $file = $form->get('payProof')->getData();
 
                     $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'.'.$file->guessExtension();
@@ -366,6 +410,12 @@ class HomeController extends Controller
                         );
                     } catch (FileException $e) {
                         // ... handle exception if something happens during file upload
+                        $this->get('session')->getFlashBag()->add(
+                            'notice',
+                            'ATENȚIE: PLATA NU A FOST ÎNREGISTRATĂ! A existat o problemă la încărcarea dovezii de plată.
+                              Te rugăm să mai încerci o dată!'
+                        );
+                        return $this->redirectToRoute('myaccount_invoices');
                     }
 
                     // updates the 'pay proof' property to store the PDF file name
@@ -385,7 +435,6 @@ class HomeController extends Controller
                     $entityManager->flush();
 
                     //Send email to notify - ie. admin@iteachsmart.ro
-
                     $message = (new \Swift_Message('NOTIFICARE Plată nouă - '.$invoice->getMonthAccount()->getStudent()->getUser()->getRoName()))
                       ->setFrom('no-reply@iteachsmart.ro')
                       ->setTo('georgeta_sotae@yahoo.com')
@@ -399,16 +448,6 @@ class HomeController extends Controller
                           ),
                           'text/html'
                       )
-                      /*
-                       * If you also want to include a plaintext version of the message
-                      ->addPart(
-                          $this->renderView(
-                              'emails/registration.txt.twig',
-                              array('name' => $name)
-                          ),
-                          'text/plain'
-                      )
-                      */
                     ;
 
                     $mailer->send($message);
@@ -416,6 +455,7 @@ class HomeController extends Controller
                     //console.log('A mers!');
                     //$response = new Response();
                     //$response->send();
+                    */
 
                     return $this->redirectToRoute('myaccount_invoices');
                   } else {

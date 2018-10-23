@@ -19,12 +19,20 @@ use App\Entity\Student;
 use App\Entity\OptionalsAttendance;
 use App\Entity\AccountInvoice;
 use App\Entity\AccountReceipt;
+use App\Entity\SmartReceipt;
+use App\Entity\Payment;
+use App\Entity\PaymentProof;
 
 #form type definition
 use App\Form\PaymentItemType;
 use App\Form\AccountInvoiceType;
 use App\Form\AccountInvoiceNumberType;
 use App\Form\AccountInvoiceReceiptType;
+use App\Form\AccountSmartReceiptType;
+use App\Form\UserMyaccountSmartProofType;
+use App\Form\SmartPayType;
+
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,6 +60,614 @@ class AccountsController extends Controller
             'current_units' => $currentUnits,
             'sorted_students' => $allStudents,
         ]);
+    }
+
+    /**
+     * @Route("/payments", name="payments")
+     */
+    public function payments()
+    {
+        $pending_payments = $this->getDoctrine()->getRepository
+        (Payment::class)->findBy(['isPending' => true], ['payDate' => 'DESC']);
+
+        $confirmed_payments = $this->getDoctrine()->getRepository
+        (Payment::class)->findBy(['isConfirmed' => true], ['payDate' => 'DESC']);
+
+        $rejected_payments = $this->getDoctrine()->getRepository
+        (Payment::class)->findBy(['isPending' => false, 'isConfirmed' => false], ['payDate' => 'DESC']);
+
+        return $this->render('accounts/payments.html.twig', [
+            'pending_payments' => $pending_payments,
+            'confirmed_payments' => $confirmed_payments,
+            'rejected_payments' => $rejected_payments,
+        ]);
+    }
+
+    /**
+     * @Route("/smartpay/{accId}/{edit}", name="smart_pay")
+     */
+    public function smart_pay(Request $request, $accId, $edit, \Swift_Mailer $mailer)
+    {
+      $monthAccount = $this->getDoctrine()->getRepository
+      (MonthAccount::class)->find($accId);
+      //return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+
+      if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
+        if ($monthAccount->getStudent()->getUser()->getGuardian()->getUser() != $this->getUser()) {
+          return $this->redirectToRoute('myaccount_invoices');
+        }
+      }
+
+      if ($edit == 'add') {
+        $newPayment = new Payment();
+
+        $newPayment->setPayAmount(0);
+        $newPayment->setPayDate(new \DateTime('now'));
+        $newPayment->setPayMethod('single');
+        $newPayment->setIsPending(true);
+        $newPayment->setIsConfirmed(false);
+      } else {
+        $newPayment = $this->getDoctrine()->getRepository
+        (Payment::class)->find($edit);
+      }
+
+      $guardian = $monthAccount->getStudent()->getUser()->getGuardian();
+      $children = $guardian->getChildren();
+
+      $availableBalance = 0;
+      $payableInvoices = array();
+
+      foreach($children as $child) {
+        $student = $child->getChildLatestEnroll()->getStudent();
+        foreach($student->getMonthAccounts() as $account) {
+          $availableBalance = $availableBalance + $account->getAdvanceBalance();
+          if ($account->getTotalPrice() != $account->getTotalPaid()) {
+           foreach($account->getAccountInvoices() as $invoice) {
+             //TODO - should be able to just lookup the isPaid value, but we need to make sure
+             //       that this is doable with the old system still in place
+             if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal() && $invoice->getIsLocked()) {
+               $payableInvoices[$invoice->getInvoiceName()] = $invoice;
+             }
+           }
+          }
+        }
+      }
+
+      if (count($payableInvoices) == 0) {
+        $this->get('session')->getFlashBag()->add(
+            'notice',
+            'Nu există facturi salvate în așteptare!'
+        );
+        return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+      }
+
+
+      $form = $this->createForm(SmartPayType::Class, $newPayment, array(
+        'invoices' => $payableInvoices,
+      ));
+
+      if ($edit != 'add') {
+        $form->remove('payProof');
+      }
+
+      if ($this->getUser()->getUsertype() != 'ROLE_PARENT') {
+        $form->remove('payProof');
+      }
+
+      $form->handleRequest($request);
+
+      if($form->isSubmitted() && $form->isValid()) {
+        $thePayment = $form->getData();
+
+        if ($thePayment->getPayAdvance() != 0) {
+          // !!!!!!!! IMPORTANT !!!!!!!!!
+          // the following line controls what we put in the amount field on the frontend (tot or tot+adv)
+          $thePayment->setPayAmount($thePayment->getPayAmount() - $thePayment->getPayAdvance());
+        }
+
+        if ($thePayment->getPayMethod() == 'single') {
+          //START checks
+          if ($thePayment->getPayInvoices()->count() == 0) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu ai selectat nicio factură. Te rugăm să selectezi factura pe care dorești să o plătești.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          $invoice = $thePayment->getPayInvoices()->first();
+          $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+          if ($thePayment->getPayAmount() < $invoiceRemaining) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Plata făcută este mai mică decât suma totală a facturii. Te rugăm să corectezi suma sau să selectezi 1x Factură (parțial).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          } elseif ($thePayment->getPayAmount() > $invoiceRemaining) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Plata făcută este mai mare decât suma totală a facturii. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
+                .($thePayment->getPayAmount() - $invoiceRemaining).' RON în căsuța Avans.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          //END checks;
+        }
+
+
+        if ($thePayment->getPayMethod() == 'partial') {
+          //START checks
+          if ($thePayment->getPayInvoices()->count() == 0) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu ai selectat nicio factură. Te rugăm să selectezi factura pe care dorești să o plătești.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          if ($thePayment->getPayAdvance() != 0) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu poți să adaugi avans când achiți o factură parțial.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          $invoice = $thePayment->getPayInvoices()->first();
+          $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+          if ($thePayment->getPayAmount() >= $invoiceRemaining) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Plata făcută este mai mare sau egală decât suma totală a facturii. Te rugăm să corectezi suma sau să selectezi 1x Factură (integral).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          //END checks
+        }
+
+        if ($thePayment->getPayMethod() == 'multiple') {
+          //START checks
+          if ($thePayment->getPayInvoices()->count() == 1) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Ai selectat 1x factură. Te rugăm să selectezi 2x sau mai multe sau să selectezi 1x Factură (integral).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          if ($thePayment->getPayInvoices()->count() == 0) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu ai selectat nicio factură. Te rugăm să selectezi 2x sau mai multe sau să selectezi opțiunea 1x Factură (integral).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          $invoices = $thePayment->getPayInvoices();
+          $invoicesRemaining = 0;
+          $invoiceUnits = array(); //check different units
+          foreach ($invoices as $invoice) {
+            $invoicesRemaining = $invoicesRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+            if (!in_array($invoice, $invoiceUnits)) { $invoiceUnits[] = $invoice; }
+          }
+          if (count($invoiceUnits)>1) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu poți achita facturi de la unități școlare diferite. Te rugăm să efectuezi plăți individuale sau să selectezi doar facturi aferente
+                aceleiași unități școlare.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          if ($thePayment->getPayAmount() < $invoicesRemaining) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Plata făcută este mai mică decât suma totală a facturilor. Te rugăm să corectezi suma sau să selectezi Facturi multiple (parțial).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          } elseif ($thePayment->getPayAmount() > $invoicesRemaining) {
+              $this->get('session')->getFlashBag()->add(
+                  'notice',
+                  'Plata făcută este mai mare decât suma totală a facturilor. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
+                  .($thePayment->getPayAmount() - $invoicesRemaining).' RON în căsuța Avans.'
+              );
+              return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          //END checks
+        }
+
+        if ($thePayment->getPayMethod() == 'multiple_partial') {
+          //START checks
+          if ($thePayment->getPayInvoices()->count() == 1) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Ai selectat 1x factură. Te rugăm să selectezi 2x sau mai multe sau să selectezi 1x Factură (parțial).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          if ($thePayment->getPayInvoices()->count() == 0) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu ai selectat nicio factură. Te rugăm să selectezi 2x sau mai multe sau să selectezi opțiunea 1x Factură (parțial).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          if ($thePayment->getPayAdvance() != 0) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu poți să adaugi avans când achiți facturi parțial.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          $invoices = $thePayment->getPayInvoices();
+          $invoicesRemaining = 0;
+          $invoiceUnits = array(); //check different units
+          foreach ($invoices as $invoice) {
+            $invoicesRemaining = $invoicesRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+            if (!in_array($invoice, $invoiceUnits)) { $invoiceUnits[] = $invoice; }
+          }
+          if (count($invoiceUnits)>1) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Nu poți achita facturi de la unități școlare diferite. Te rugăm să efectuezi plăți individuale sau să selectezi doar facturi aferente
+                aceleiași unități școlare.'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          if ($thePayment->getPayAmount() >= $invoicesRemaining) {
+            $this->get('session')->getFlashBag()->add(
+                'notice',
+                'Plata făcută este mai mare sau egală decât suma totală a facturilor. Te rugăm să corectezi suma sau să selectezi Facturi multiple (integral).'
+            );
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+          }
+          //END checks
+        }
+
+        $addAdvance = $form->get('addAdvance')->getData();
+        if($addAdvance == false) {
+          $thePayment->setPayAdvance(0);
+        }
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($thePayment);
+        $entityManager->flush();
+
+        //START check +add for file
+        // $file stores the uploaded PDF file
+        /** @var Symfony\Component\HttpFoundation\File\UploadedFile $file */
+        if (array_key_exists('payProof', $form)) {
+          $files = $form->get('payProof')->getData();
+          $unix = time();
+          $index = 0;
+
+          foreach($files as $file) {
+            $newProof = new PaymentProof();
+
+            $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
+
+            // Move the file to the directory where brochures are stored
+            try {
+              $file->move(
+                $this->getParameter('invoice_directory'),
+                $fileName
+              );
+            } catch (FileException $e) {
+              // ... handle exception if something happens during file upload
+            }
+
+            // updates the 'pay proof' property to store the PDF file name
+            // instead of its contents
+            $newProof->setProof($fileName);
+            $newProof->setPayment($thePayment);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($newProof);
+            $entityManager->flush();
+
+            $index = $index + 1;
+          }
+        }
+        //END check for file
+
+        if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
+          //Send email to notify - ie. admin@iteachsmart.ro
+          $message = (new \Swift_Message('NOTIFICARE Plată nouă - '.$invoice->getMonthAccount()->getStudent()->getUser()->getRoName()))
+            ->setFrom('no-reply@iteachsmart.ro')
+            // ->setTo('dj.diablo.x@gmail.com')
+            ->setTo('georgeta_sotae@yahoo.com')
+            ->setCc('nicoleta_sotae@yahoo.com')
+            ->setBcc('admin@iteachsmart.ro')
+            ->setBody(
+                $this->renderView(
+                    // templates/emails/registration.html.twig
+                    'home/email.new.smartpay.html.twig',
+                    array('payment' => $thePayment)
+                ),
+                'text/html'
+            )
+          ;
+
+          $mailer->send($message);
+          return $this->redirectToRoute('myaccount_invoices');
+        } else {
+          return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+        }
+      }
+
+      return $this->render('accounts/smartpay.html.twig', [
+        'month_account' => $monthAccount,
+        'balance' => $availableBalance,
+        'form' => $form->createView(),
+      ]);
+    }
+
+    /**
+     * @Route("/accounts/smartpay_confirm/{payId}/{accId}/{redirect?'no'}", name="smart_pay_confirm")
+     */
+    public function smart_pay_confirm(Request $request, $payId, $accId, $redirect)
+    {
+      $payment = $this->getDoctrine()->getRepository
+      (Payment::class)->find($payId);
+
+      $totalPaid = $payment->getPayAmount() + $payment->getPayAdvance();
+      $invoicePaid = $payment->getPayAmount();
+      $invoiceAdvance = $payment->getPayAdvance();
+
+      if ($payment->getPayMethod() == 'single') {
+        $invoice = $payment->getPayInvoices()->first();
+        $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
+        $invoice->setInvoicePaidDate($payment->getPayDate());
+        $invoice->setIsPaid(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($invoice);
+        $entityManager->flush();
+
+        $monthAcc = $invoice->getMonthAccount();
+        $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoicePaid);
+        $monthAcc->setAdvanceBalance($monthAcc->getAdvanceBalance() + $invoiceAdvance);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($monthAcc);
+        $entityManager->flush();
+
+        $payment->setIsPending(false);
+        $payment->setIsConfirmed(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($payment);
+        $entityManager->flush();
+
+        $this->get('session')->getFlashBag()->add(
+            'hurray',
+            'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
+        );
+      }
+      if ($payment->getPayMethod() == 'partial') {
+        $invoice = $payment->getPayInvoices()->first();
+        $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
+        $invoice->setInvoicePaidDate($payment->getPayDate());
+        $invoice->setIsPaid(false);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($invoice);
+        $entityManager->flush();
+
+        $monthAcc = $invoice->getMonthAccount();
+        $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoicePaid);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($monthAcc);
+        $entityManager->flush();
+
+        $payment->setIsPending(false);
+        $payment->setIsConfirmed(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($payment);
+        $entityManager->flush();
+
+        $this->get('session')->getFlashBag()->add(
+            'hurray',
+            'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
+        );
+      }
+      if ($payment->getPayMethod() == 'multiple') {
+
+        //fist double check total
+        $totalInvRemaining = 0;
+
+        foreach($payment->getPayInvoices() as $invoice) {
+          $totalInvRemaining = $totalInvRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+        }
+        if ($totalInvRemaining != $payment->getPayAmount()) {
+          $this->get('session')->getFlashBag()->add(
+              'notice',
+              'Plata nu corespunde în mod corect facturilor asociate!!!'
+          );
+          return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+        }
+
+        //the following 2x lines are to distribute advance equally between invoice accounts
+        $invoiceCount = $payment->getPayInvoices()->count();
+        $individualAdvance = $payment->getPayAdvance() / $invoiceCount;
+
+        foreach($payment->getPayInvoices() as $invoice) {
+          $oldInvPaid = $invoice->getInvoicePaid();
+          $invoice->setInvoicePaid($invoice->getInvoiceTotal());
+          $invoice->setInvoicePaidDate($payment->getPayDate());
+          $invoice->setIsPaid(true);
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($invoice);
+          $entityManager->flush();
+
+          $monthAcc = $invoice->getMonthAccount();
+          $monthAcc->setTotalPaid($monthAcc->getTotalPaid() - $oldInvPaid + $invoice->getInvoicePaid());
+          $monthAcc->setAdvanceBalance($monthAcc->getAdvanceBalance() + $individualAdvance);
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($monthAcc);
+          $entityManager->flush();
+        }
+
+        $payment->setIsPending(false);
+        $payment->setIsConfirmed(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($payment);
+        $entityManager->flush();
+
+        $this->get('session')->getFlashBag()->add(
+            'hurray',
+            'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
+        );
+      }
+      if ($payment->getPayMethod() == 'multiple_partial') {
+        //the following 2x lines are to distribute the sum equally between invoices
+        $invoiceCount = $payment->getPayInvoices()->count();
+        $individualSum = $payment->getPayAmount() / $invoiceCount;
+        $remainingSum = $payment->getPayAmount();
+
+        while ($remainingSum != 0) {
+          foreach ($payment->getPayInvoices() as $invoice) {
+            $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+            $monthAcc = $invoice->getMonthAccount();
+            $oldInvPaid = $invoice->getInvoicePaid();
+            if ($invoiceRemaining != 0) {
+              if ($individualSum < $invoiceRemaining) {
+                $invoice->setInvoicePaid($invoice->getInvoicePaid() + $individualSum);
+                $invoice->setIsPaid(false);
+                $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $individualSum);
+                $remainingSum = $remainingSum - $individualSum;
+              } elseif ($individualSum == $invoiceRemaining) {
+                $invoice->setInvoicePaid($invoice->getInvoicePaid() + $individualSum);
+                $invoice->setIsPaid(true);
+                $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $individualSum);
+                $remainingSum = $remainingSum - $individualSum;
+              } else {
+                $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoiceRemaining);
+                $invoice->setIsPaid(true);
+                $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoiceRemaining);
+                $remainingSum = $remainingSum - $invoiceRemaining;
+                $invoiceCount = $invoiceCount - 1;
+                //the following check is just as a precaution
+                if ($invoiceCount == 0) {
+                  $this->get('session')->getFlashBag()->add(
+                      'notice',
+                      'DEBUG - a existat o problema la calculare - te rugăm să verifici codul PHP!!!'
+                  );
+                  return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+                }
+                $individualSum = $remainingSum/$invoiceCount;
+              }
+              $invoice->setInvoicePaidDate($payment->getPayDate());
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($invoice);
+              $entityManager->flush();
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($monthAcc);
+              $entityManager->flush();
+            }
+          }
+        }
+        $payment->setIsPending(false);
+        $payment->setIsConfirmed(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($payment);
+        $entityManager->flush();
+
+        $this->get('session')->getFlashBag()->add(
+            'hurray',
+            'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
+        );
+      }
+
+      if ($redirect == 'payments') {
+        return $this->redirectToRoute('payments');
+      } else {
+        return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+      }
+
+    }
+
+    /**
+     * @Route("/accounts/smartpay_deny/{payId}/{accId}/{redirect?'no'}", name="smart_pay_deny")
+     */
+    public function smart_pay_deny(Request $request, $payId, $accId, $redirect)
+    {
+      $payment = $this->getDoctrine()->getRepository
+      (Payment::class)->find($payId);
+
+      $payment->setIsPending(false);
+      $payment->setIsConfirmed(false);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->persist($payment);
+      $entityManager->flush();
+
+      $this->get('session')->getFlashBag()->add(
+          'hurray',
+          'Plata a fost RESPINSĂ cu succes!'
+      );
+      if ($redirect == 'payments') {
+        return $this->redirectToRoute('payments');
+      } else {
+        return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+      }
+    }
+
+    /**
+     * @Route("/smartpay_proof/{prfId}/{action}", name="smartpay_proof")
+     * @Method({"GET", "POST"})
+     */
+    public function smartpay_proof($prfId, $action)
+    {
+        $proof = $this->getDoctrine()->getRepository
+        (PaymentProof::class)->find($prfId);
+
+        if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
+          $guardian = $proof->getPayment()->getPayInvoices()->first()->getMonthAccount()->getStudent()->getUser()->getGuardian();
+          if ($guardian->getUser() != $this->getUser()) {
+            return $this->redirectToRoute('myaccount_invoices');
+          }
+        }
+
+        $fileName = $proof->getProof();
+        $filePath = $this->getParameter('invoice_directory').'/'.$fileName;
+
+        if ($action=='download') {
+          return $this->file($filePath);
+        } else if ($action=='view') {
+          return $this->file($filePath, $fileName, ResponseHeaderBag::DISPOSITION_INLINE);
+        } else {
+          //do nothing
+        }
+    }
+
+    /**
+     * @Route("/smartpay_prfrem/{prfId}_{accId}", name="smartpay_prfrem")
+     * @Method({"GET", "POST"})
+     */
+    public function smartpay_prfrem($prfId, $accId)
+    {
+        $proof = $this->getDoctrine()->getRepository
+        (PaymentProof::class)->find($prfId);
+
+        if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
+          $guardian = $proof->getPayment()->getPayInvoices()->first()->getMonthAccount()->getStudent()->getUser()->getGuardian();
+          if ($guardian->getUser() != $this->getUser()) {
+            return $this->redirectToRoute('myaccount_invoices');
+          }
+        }
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->remove($proof);
+        $entityManager->flush();
+
+        if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
+          return $this->redirectToRoute('myaccount_invoices');
+        } else {
+          return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+        }
+
     }
 
     /**
@@ -319,7 +935,6 @@ class AccountsController extends Controller
         } else {
 
         }
-
     }
 
     /**
@@ -383,6 +998,52 @@ class AccountsController extends Controller
 
       return new Response(
         $snappy->getOutputFromHtml($html),
+        //ok status code
+        200,
+        array(
+          'Content-Type' => 'application/pdf',
+          'Content-Disposition' => 'inline; filename="'.$fileName.'"'
+        )
+      );
+    }
+
+    /**
+     * @Route("/accounts/smart_receipt_pdf/{recId}", name="smart_receipt_pdf")
+     * @Method({"GET"})
+     */
+    public function smart_receipt_pdf(Request $request, $recId)
+    {
+      $receipt = $this->getDoctrine()->getRepository
+      (SmartReceipt::class)->find($recId);
+
+      $students = array();
+      foreach ($receipt->getPayment()->getPayInvoices() as $invoice) {
+        if (!in_array($invoice, $students)) { $students[] = $invoice->getMonthAccount()->getStudent(); }
+      }
+
+      $snappy = $this->get('knp_snappy.pdf');
+      $html = $this->renderView('accounts/smart_receipt_pdf.html.twig',
+        array(
+            'receipt'  => $receipt,
+            'payment'  => $receipt->getPayment(),
+            'students' => $students,
+        ));
+
+      $fileName = 'chitanta_'.$receipt->getReceiptSerial().'-'.$receipt->getReceiptNumber().'.pdf';
+
+      // save PDF to server
+      // $snappy->generateFromHtml(
+      //     $html,
+      //     $this->getParameter('pdf_directory').'/'.$fileName
+      // );
+
+      return new Response(
+        $snappy->getOutputFromHtml($html, array(
+          'orientation' => 'Landscape',
+          'page-height' => 220,
+          'page-width'  => 140,
+          'dpi' => 300,
+        )),
         //ok status code
         200,
         array(
@@ -735,6 +1396,8 @@ class AccountsController extends Controller
 
         $views = array(); //required in case there are no views available
         $views2 = array();
+        $views3 = array();
+        $views4 = array();
 
         foreach ($invoices as $invoice) {
 
@@ -749,11 +1412,12 @@ class AccountsController extends Controller
           $newReceipt->setAccountInvoice($invoice);
           $newReceipt->setReceiptDate(new \DateTime('now'));
 
-          /* RECEIPT NUMBER LOGIC STARTS HERE */
+          /* RECEIPT VARIABLES */
           $theUnit = $account->getStudent()->getSchoolUnit();
           $iserial = $theUnit->getFirstReceiptSerial();
           $inumber = $theUnit->getFirstReceiptNumber();
 
+          /* RECEIPT NUMBER LOGIC STARTS HERE */
           $latestReceipt = $this->getDoctrine()->getRepository
           (AccountReceipt::class)->findLatestBySerial($iserial);
 
@@ -772,6 +1436,49 @@ class AccountsController extends Controller
           ));
           $forms2[] = $form2;
           $views2[] = $form2->createView();
+
+          //next prepare the smart receipt forms and smart proof forms
+          foreach ($invoice->getPayments() as $payment) {
+            if ($payment->getIsConfirmed() == true && $payment->getSmartReceipt() == null ) {
+              $newSmartRec = new SmartReceipt();
+
+              $newSmartRec->setPayment($payment);
+              $newSmartRec->setReceiptDate(new \DateTime('now'));
+
+              $latestSmartRec = $this->getDoctrine()->getRepository
+              (SmartReceipt::class)->findLatestBySerial($iserial);
+
+              if ($latestSmartRec == null) {
+                if ($latestReceipt == null) {
+                  $newSmartRec->setReceiptSerial($iserial);
+                  $newSmartRec->setReceiptNumber($inumber);
+                } else {
+                  // This latestReceipt scenario should ONLY HAPPEN 1x time
+                  // (when switching from old system to the new one)!!
+                  $newNumber = $latestReceipt->getReceiptNumber()+1;
+                  $newSmartRec->setReceiptSerial($iserial);
+                  $newSmartRec->setReceiptNumber($newNumber);
+                }
+              } else {
+                $newNumber = $latestSmartRec->getReceiptNumber()+1;
+                $newSmartRec->setReceiptSerial($iserial);
+                $newSmartRec->setReceiptNumber($newNumber);
+              }
+
+              $form3 = $this->createForm(AccountSmartReceiptType::Class, $newSmartRec, array(
+                'total' => $payment->getPayAmount()+$payment->getPayAdvance(),
+              ));
+              $forms3[] = $form3;
+              $views3[] = $form3->createView();
+            } elseif ($payment->getIsPending() == true) {
+                //TODO REMOVE THIS ELSEIF after tests
+            }
+
+            $form4 = $this->createForm(UserMyaccountSmartProofType::Class, $payment);
+            $forms4[] = $form4;
+            $views4[] = $form4->createView();
+
+          }
 
         }
 
@@ -859,7 +1566,7 @@ class AccountsController extends Controller
                   $entityManager->persist($account);
                   $entityManager->flush();
 
-                  return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
+                  return $this->redirectToRoute('account_invoices', array('accId' => $accId));
                 } else {
                   $this->get('session')->getFlashBag()->add(
                       'notice',
@@ -869,6 +1576,86 @@ class AccountsController extends Controller
                 }
               }
             }
+
+            foreach ($forms3 as $form3) {
+              $form3->handleRequest($request);
+            }
+
+            foreach ($forms3 as $form3) {
+              if ($form3->isSubmitted()) {
+                if ($form3->isValid()) {
+                  $newSmartReceipt = $form3->getData();
+
+                  $newSmartReceipt->setReceiptSerial(strtoupper($newSmartReceipt->getReceiptSerial()));
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newSmartReceipt);
+                  $entityManager->flush();
+
+                  return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+                } else {
+                  $this->get('session')->getFlashBag()->add(
+                      'notice',
+                      //(string) $form->getErrors(true, false)
+                      $form3->getErrors(true)
+                  );
+                }
+              }
+            }
+
+            foreach ($forms4 as $form4) {
+              $form4->handleRequest($request);
+            }
+
+            foreach ($forms4 as $form4) {
+              if ($form4->isSubmitted()) {
+                if ($form4->isValid()) {
+
+                  $thePayment = $form4->getData();
+                  $invoice = $thePayment->getPayInvoices()->first();
+
+                  $files = $form4->get('payProof')->getData();
+                  $unix = time();
+                  $index = 0;
+
+                  foreach($files as $file) {
+                    $newProof = new PaymentProof();
+
+                    $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
+
+                    // Move the file to the directory where brochures are stored
+                    try {
+                      $file->move(
+                        $this->getParameter('invoice_directory'),
+                        $fileName
+                      );
+                    } catch (FileException $e) {
+                      // ... handle exception if something happens during file upload
+                    }
+
+                    // updates the 'pay proof' property to store the PDF file name
+                    // instead of its contents
+                    $newProof->setProof($fileName);
+                    $newProof->setPayment($thePayment);
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($newProof);
+                    $entityManager->flush();
+
+                    $index = $index + 1;
+                  }
+
+                  return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+                } else {
+                  $this->get('session')->getFlashBag()->add(
+                      'notice',
+                      //(string) $form->getErrors(true, false)
+                      $form4->getErrors(true)
+                  );
+                }
+              }
+            }
+
+
           }
 
         return $this->render('accounts/account.invoices.html.twig', [
@@ -879,6 +1666,8 @@ class AccountsController extends Controller
           'invoices' => $invoices,
           'forms' => $views,
           'forms2' => $views2,
+          'forms3' => $views3,
+          'forms4' => $views4,
         ]);
     }
 
@@ -1072,9 +1861,13 @@ class AccountsController extends Controller
             } else {
                 //TODO: Test Logic for this and/or ammend logic if payment is NOT to be made in advance
                 if ( $student->getEnrollment()->getEnrollDate()->modify('+1 month') < $mY->modify('last day of this month')) {
+                    $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+                    $formatter->setPattern('MMMM');
+
                     $serviceTaxItem = new PaymentItem();
                     $serviceTaxItem->setMonthAccount($newMonthAccount);
-                    $serviceTaxItem->setItemName($schoolService->getServicename());
+                    //$serviceTaxItem->setItemName($schoolService->getServicename());
+                    $serviceTaxItem->setItemName($schoolService->getServicename().' ('.$formatter->format($mY).')');
                     $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
 
                     $entityManager = $this->getDoctrine()->getManager();

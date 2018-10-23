@@ -49,6 +49,11 @@ class MonthAccount
      */
     private $accountInvoices;
 
+    /**
+     * @ORM\Column(type="decimal", precision=7, scale=2)
+     */
+    private $advanceBalance = 0;
+
     public function __construct()
     {
         $this->paymentItems = new ArrayCollection();
@@ -173,6 +178,18 @@ class MonthAccount
                 $accountInvoice->setMonthAccount(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAdvanceBalance(): ?int
+    {
+        return $this->advanceBalance;
+    }
+
+    public function setAdvanceBalance(int $advanceBalance): self
+    {
+        $this->advanceBalance = $advanceBalance;
 
         return $this;
     }

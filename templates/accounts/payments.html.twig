@@ -1,0 +1,162 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Facturi Cont{% endblock %}
+
+{% block body %}
+  <h2 class="coinyFont">Administrare Plăți</h2>
+  <br>
+  {% for flashMessage in app.flashes('hurray') %}
+  <div id="message">
+  <div style="padding: 5px; min-width:320px; max-width:80%;">
+      <div id="inner-message" class="alert alert-success fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ flashMessage }}
+      </div>
+  </div>
+  </div>
+  <br>
+  {% endfor %}
+  {% for flashMessage in app.flashes('notice') %}
+  <div id="message">
+  <div style="padding: 5px; min-width:320px; max-width:80%;">
+      <div id="inner-message" class="alert alert-danger fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ flashMessage }}
+      </div>
+  </div>
+  </div>
+  <br>
+  {% endfor %}
+
+  {% if pending_payments %}
+    <h4 class="kuraleFont">Plăți în așteptare</h4>
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th>ID</th>
+          <th>Facturi</th>
+          <th>Suma</th>
+          <th>Avans</th>
+          <th>Data</th>
+          <th>Operațiuni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in pending_payments %}
+          <tr>
+            <td>{{ payment.id }}</td>
+            <td>
+              {{ payment.getNormalized }} <br>
+              {% for invoice in payment.getPayInvoices %}
+                <a href="{{ path('account_invoices',{'accId':invoice.getMonthAccount.getId}) }}">
+                  <i class="fas fa-eye fa-fw"></i>
+                </a>
+                {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
+                ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
+                invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
+              {% endfor %}
+            </td>
+            <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
+            <td>{{ payment.getPayAdvance|localizedcurrency('RON') }}</td>
+            <td>{{ payment.getPayDate|localizeddate('medium', 'none') }}</td>
+            <td>
+              <a href="{{ path('smart_pay_confirm',{'payId':payment.getId,'accId':0,'redirect':'payments'}) }}">
+                <button class="btn-sm btn-success">Confirmă</button>
+              </a>
+              <a href="{{ path('smart_pay_deny',{'payId':payment.getId,'accId':0,'redirect':'payments'}) }}">
+                <button class="btn-sm btn-danger">Respinge</button>
+              </a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <hr>
+  {% endif %}
+
+  {% if confirmed_payments %}
+    <h4 class="kuraleFont">Plăți confirmate</h4>
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th>ID</th>
+          <th>Facturi</th>
+          <th>Suma</th>
+          <th>Avans</th>
+          <th>Data</th>
+          <th>Operațiuni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in confirmed_payments %}
+          <tr>
+            <td>{{ payment.id }}</td>
+            <td>
+              {{ payment.getNormalized }} <br>
+              {% for invoice in payment.getPayInvoices %}
+                <a href="{{ path('account_invoices',{'accId':invoice.getMonthAccount.getId}) }}">
+                  <i class="fas fa-eye fa-fw"></i>
+                </a>
+                {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
+                ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
+                invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
+              {% endfor %}
+            </td>
+            <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
+            <td>{{ payment.getPayAdvance|localizedcurrency('RON') }}</td>
+            <td>{{ payment.getPayDate|localizeddate('medium', 'none') }}</td>
+            <td>
+              <button disabled class="btn btn-sm btn-success">Confirmat</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <hr>
+  {% endif %}
+
+  {% if rejected_payments %}
+    <h4 class="kuraleFont">Plăți respinse</h4>
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th>ID</th>
+          <th>Facturi</th>
+          <th>Suma</th>
+          <th>Avans</th>
+          <th>Data</th>
+          <th>Operațiuni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in rejected_payments %}
+          <tr>
+            <td>{{ payment.id }}</td>
+            <td>
+              {{ payment.getNormalized }} <br>
+              {% for invoice in payment.getPayInvoices %}
+                <a href="{{ path('account_invoices',{'accId':invoice.getMonthAccount.getId}) }}">
+                  <i class="fas fa-eye fa-fw"></i>
+                </a>
+                {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
+                ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
+                invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
+              {% endfor %}
+            </td>
+            <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
+            <td>{{ payment.getPayAdvance|localizedcurrency('RON') }}</td>
+            <td>{{ payment.getPayDate|localizeddate('medium', 'none') }}</td>
+            <td>
+              <button disabled class="btn btn-sm btn-danger">Respins</button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <hr>
+  {% endif %}
+
+{% endblock %}

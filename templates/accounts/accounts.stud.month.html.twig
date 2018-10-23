@@ -135,6 +135,12 @@
             <td>REST DE PLATĂ:</td>
             <td>{{ (remainingPay + month_account.getTotalPrice - month_account.getTotalPaid)|localizedcurrency('RON') }}</td>
           </tr>
+          {% if month_account.getAdvanceBalance != 0 %}
+          <tr style="color:#060; font-weight:bold;">
+            <td>Disponibil in cont:</td>
+            <td>{{ month_account.getAdvanceBalance|localizedcurrency('RON') }}</td>
+          </tr>
+          {% endif %}
         </thead>
 
       </table>

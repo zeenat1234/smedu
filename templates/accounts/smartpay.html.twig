@@ -1,0 +1,186 @@
+{% extends app.user.getUsertype == 'ROLE_PARENT' 
+    ? 'base.nav.parent.html.twig'
+    : 'base.nav.html.twig' %}
+
+{% block title %}Plătește Facturi{% endblock %}
+
+{% block body %}
+
+  {% if app.user.getUsertype != 'ROLE_PARENT' %}
+    <h2 class="coinyFont">SmartPay - {{ month_account.getStudent.getUser.getRoName }}</h2>
+    <h4 class="kuraleFont">{{ month_account.getAccYearMonth|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</h4>
+    <a href="{{ path('account_invoices', {'accId':month_account.getId}) }}">
+      <i class="fas fa-chevron-circle-left"></i> Înapoi la Documente Fiscale
+    </a>
+    <a href="{{ path('accounts_stud_month', {'monthYear':month_account.getAccYearMonth|localizeddate('none','none','ro', null, 'yyyy-MM'), 'studId':month_account.getStudent.getId}) }}">
+      <i class="fas fa-chevron-circle-left"></i> Înapoi la contul lunar
+    </a>
+  {% else %}
+    <h2 class="coinyFont">SmartPay</h2>
+    <h4 class="kuraleFont">{{ month_account.getAccYearMonth|localizeddate('none','none','ro', null, 'MMMM, yyyy') }}</h4>
+  {% endif %}
+  <br>
+  {% for flashMessage in app.session.flashbag.get('notice') %}
+  <br>
+  <div id="message">
+  <div style="padding: 5px;">
+      <div id="inner-message" class="alert alert-danger fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ flashMessage }}
+      </div>
+  </div>
+  </div>
+  {% endfor %}
+  <hr>
+  {{ form_start(form, {'attr': {'id': 'smart_pay'}}) }}
+  <div class="row">
+    <div class="col-auto" onclick="updateCheckboxes();">
+      {{ form_label(form.payMethod) }} <br>
+      {% for f in form.payMethod %}
+      {{ form_widget(f) }} {{ form_label(f) }} <br>
+      {% endfor %}
+      <hr>
+    </div>
+    <div class="col-auto">
+      {{ form_row(form.payAmount) }} <br>
+      <span>Total de plată = <big class="double" id="the_total">0,00</big> RON</span>
+    </div>
+    {% if form.payProof is defined %}
+      <div class="col-auto">
+        {{ form_label(form.payProof) }} <br>
+        {{ form_widget(form.payProof) }} <br>
+        <br>
+      </div>
+    {% endif %}
+    <div class="col-12">
+      {{ form_label(form.payInvoices) }}
+    </div>
+
+    {% for f in form.payInvoices %}
+
+      {% set index = f.vars.value %}
+      {% set entity = form.payInvoices.vars.choices[index].data %}
+
+      <div class="col-auto invoiceCol" data-invtotal="{{ entity.getInvoiceTotal - entity.getInvoicePaid }}" onclick="updateTotal();">
+        {{ form_widget(f) }} {{ form_label(f) }} <br>
+
+        Elev: {{ entity.getMonthAccount.getStudent.getUser.getRoName }} <br>
+        {% if entity.getInvoicePaid == 0 %}
+          Total = {{ entity.getInvoiceTotal|localizedcurrency('RON') }}
+        {% else %}
+          Rămas = {{ (entity.getInvoiceTotal - entity.getInvoicePaid)|localizedcurrency('RON') }} <br>
+          din: {{ entity.getInvoiceTotal|localizedcurrency('RON') }}
+        {% endif %}
+      </div>
+    {% endfor %}
+    <div class="col-12"><hr></div>
+    <div class="col-auto">
+      {{ form_label(form.addAdvance) }} <br>
+      {{ form_widget(form.addAdvance[0]) }} {{ form_label(form.addAdvance[0]) }}
+      {{ form_widget(form.addAdvance[1]) }} {{ form_label(form.addAdvance[1]) }}
+    </div>
+    <div class="col" style="min-width:200px;max-width:300px;">
+      {{ form_row(form.payAdvance) }}
+    </div>
+    <div class="col-12">
+      <hr>
+      <button type="submit" id="btnsubmit"> Plătește! </button>
+    </div>
+  </div>
+  {{ form_end(form) }}
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="/js/accounting.js"></script>
+<script>
+
+  var nr = $('#smart_pay_0_payAdvance').val();
+  var advance = parseFloat(nr.replace(",", "."));
+
+  function updateTotal() {
+    //console.log(advance);
+    total = 0;
+    if ($('#smart_pay_0_payMethod_0').is(':checked') || $('#smart_pay_0_payMethod_1').is(':checked')) {
+      $('input[type=checkbox]').change( function() {
+        total = 0;
+        if (this.checked) {
+          $('input[type=checkbox]').not(this).prop('checked', false);
+          total = total + $(this).parent('.invoiceCol').data('invtotal');
+        }
+        $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+      });
+
+    } else {
+      $('input[type=checkbox]').off();
+      $('input[type=checkbox]').each(function () {
+        if (this.checked) {
+          total = total + $(this).parent('.invoiceCol').data('invtotal');
+        }
+      });
+      $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+    }
+
+  }
+
+  function updateCheckboxes() {
+    if ($('#smart_pay_0_payMethod_0').is(':checked') || $('#smart_pay_0_payMethod_1').is(':checked')) {
+      var counter = 0;
+      $('input[type=checkbox]').each(function () {
+        if (this.checked) {
+          counter++;
+        }
+        if(counter > 1) {
+          $(this).prop('checked', false);
+        }
+      });
+
+      //UPDATE TOTAL
+      total = 0;
+      $('input[type=checkbox]').each(function () {
+        if (this.checked) {
+          total = total + $(this).parent('.invoiceCol').data('invtotal');
+        }
+      });
+      $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+    }
+    //TODO -- Add logic to disable total amount textarea when using full payments
+  }
+
+  $( document ).ready(function() {
+    //UPDATE TOTAL
+    total = 0;
+    $('input[type=checkbox]').each(function () {
+      if (this.checked) {
+        total = total + $(this).parent('.invoiceCol').data('invtotal');
+      }
+    });
+    $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+
+    $('#smart_pay_0_payAdvance').change(function(){
+      var num = $(this).val();
+      advance = parseFloat(num.replace(",", "."));
+      $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+      if (advance > 0) {
+        $('#smart_pay_0_addAdvance_1').prop('checked', true);
+      } else if (advance == 0) {
+        $('#smart_pay_0_addAdvance_0').prop('checked', true);
+      }
+    });
+
+    $('#smart_pay_0_addAdvance_0').change(function(){
+     if ($(this).prop('checked') == true) {
+       advance = 0;
+       $('#smart_pay_0_payAdvance').val(advance);
+       $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+     }
+    });
+    //TODO -- Add logic to disable total amount textarea when using full payments
+  });
+
+
+
+
+
+</script>
+{% endblock %}

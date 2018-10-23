@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>Chitanță Nr. {{ receipt.getReceiptSerial ~ '-' ~ receipt.getReceiptNumber }}</title>
+
+    <link rel="stylesheet" href="{{ app.request.scheme ~ '://' ~ app.request.host }}{{ asset('css/receipt_pdf.css') }}">
+</head>
+
+<body>
+    <div class="invoice-box">
+        <table cellpadding="0" cellspacing="0">
+            <tr class="top">
+
+                <td style="vertical-align:bottom; width:50%;"><!-- TODO Add logic to schoolunit invoicing variables which have yet to be created when writing this logic -->
+                  {% if 'gradinita' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                    <strong>Grădinița „Planeta Copiilor”</strong><br>
+                    CIF: RO32066470<br>
+                    Nr. Ord. Reg. Com.: <br>
+                    Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                    Cont: RO56 BTRL RONC RT04 1362 7601 <br>
+                    Banca: TRANSILVANIA <br>
+                    Capital Social:
+                  {% elseif 'scoala' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                    <strong>Școala Gimnazială „Planeta Copiilor”</strong><br>
+                    CIF: RO35271177<br>
+                    Nr. Ord. Reg. Com.: <br>
+                    Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                    Cont: RO11 BTRL RONC RT03 3357 1401 <br>
+                    Banca: TRANSILVANIA <br>
+                    Capital Social: 200 RON
+                  {% else %}
+                    <strong>„Planeta Copiilor”</strong><br>
+                    CIF: RO32066470<br>
+                    Nr. Ord. Reg. Com.: <br>
+                    Adresa: Str Gabriela Szabo nr. 3 – 11, Militari, Sector 6, Bucuresti <br>
+                    Cont: RO56 BTRL RONC RT04 1362 7601 <br>
+                    Banca: TRANSILVANIA <br>
+                    Capital Social:
+                  {% endif %}
+                </td>
+
+                <td>
+                    <img src="{{ app.request.scheme ~ '://' ~ app.request.host }}{{ asset('img/logo.planeta.copiilor.png') }}" style="height:100%; max-height:200px;">
+                </td>
+
+                <td style="vertical-align:top;">
+                    <h2><strong>CHITANȚĂ</strong></h2>
+                    <hr>
+                    Seria {{ receipt.getReceiptSerial }} nr {{ receipt.getReceiptNumber }} <br>
+                    Data emiterii: {{ receipt.getReceiptDate|localizeddate('short', 'none') }}<br>
+                    <hr>
+                </td>
+            </tr>
+
+            <tr class="information">
+
+                <td colspan="3">
+                    <span>Am primit de la </span>
+                    {% if (receipt.getPayment.getPayInvoices[0].getPayeeName is not empty) and (receipt.getPayment.getPayInvoices[0].getPayeeAddress is not empty) %}
+                      {% if receipt.getPayment.getPayInvoices[0].getPayeeIsCompany == false %}
+                        <span class="grow">{{ receipt.getPayment.getPayInvoices[0].getPayeeName }}</span>
+                        <span> CNP: </span>
+                        <span class="grow"> {{ receipt.getPayment.getPayInvoices[0].getPayeeIdent }}</span>
+                        <br>
+                        <span> Adresă: </span>
+                        <span class="grow"> {{ receipt.getPayment.getPayInvoices[0].getPayeeAddress }}</span>
+                      {% else %}
+                        <span class="grow">{{ receipt.getPayment.getPayInvoices[0].getPayeeName }}</span>
+                        {% if receipt.getPayment.getPayInvoices[0].getPayeeCompanyReg is not empty %}
+                          <span> Reg Com: </span>
+                          <span class="grow"> {{ receipt.getPayment.getPayInvoices[0].getPayeeCompanyReg }}</span>
+                        {% endif %}
+                        {% if receipt.getPayment.getPayInvoices[0].getPayeeCompanyFiscal is not empty %}
+                          <span> CIF: </span>
+                          <span class="grow"> {{ receipt.getPayment.getPayInvoices[0].getPayeeCompanyFiscal }}</span>
+                        {% endif %}
+                        <br>
+                        <span> Adresă: </span>
+                        <span class="grow"> {{ receipt.getPayment.getPayInvoices[0].getPayeeAddress }}</span>
+                      {% endif %}
+                    {% else %}
+                      {% set guardian = receipt.getPayment.getPayInvoices[0].getMonthAccount.getStudent.getUser.getGuardian %}
+                      <span class="grow">{{ guardian.getUser.getRoName }}</span>
+                      <span> E-mail: </span>
+                      <span class="grow"> {{ guardian.getUser.getEmail }}</span>
+                      <span> Tel: </span>
+                      <span class="grow"> {{ guardian.getUser.getPhoneNo }}</span>
+                    {% endif %}
+                    <br>
+                    {% if payment.getPayInvoices|length == 1 %}
+                      {% if students|length == 1 %}
+                        <span> Pentru elevul: </span>
+                        <span class="grow">{{ students[0].getUser.getRoName }}</span>
+                      {% else %}
+                        <span> Pentru elevii: </span>
+                        {% for student in students %}
+                          <span class="grow">{{ student.getUser.getRoName }}, </span>
+                        {% endfor %}
+                      {% endif %}
+                      <br>
+                      <span> Suma de: </span>
+                      <span class="grow">{{ (payment.getPayAmount + payment.getPayAdvance)|localizedcurrency('RON') }}</span>
+                      <br>
+                      {% if receipt.getPayment.getPayInvoices[0].getIsProforma %}
+                        {% set invoicetype = 'proforme' %}
+                      {% else %}
+                        {% set invoicetype = 'fiscale' %}
+                      {% endif %}
+                      <span> reprezentând contravaloarea facturii {{ invoicetype }} seria </span>
+                      <span class="grow">{{ receipt.getPayment.getPayInvoices[0].getInvoiceSerial }} </span>
+                      <span> nr </span>
+                      <span class="grow" style="font-style:italic;">{{ receipt.getPayment.getPayInvoices[0].getInvoiceNumber }} </span>
+                      <span> din data de </span>
+                      <span class="grow">{{ receipt.getPayment.getPayInvoices[0].getInvoiceDate|localizeddate('short','none','RO') }}</span>
+                      {% if payment.getPayAdvance != 0 %}
+                      <br>
+                        + AVANS ({{ (payment.getPayAdvance)|localizedcurrency('RON') }})
+                      {% endif %}
+                    {% else %}
+                      {% if students|length == 1 %}
+                        <span> Pentru elevul: </span>
+                        <span class="grow">{{ students[0].getUser.getRoName }}</span>
+                      {% else %}
+                        <span> Pentru elevii: </span>
+                        {% for student in students %}
+                          <span class="grow">{{ student.getUser.getRoName }}, </span>
+                        {% endfor %}
+                      {% endif %}
+                      <br>
+                      <span> Suma de: </span>
+                      <span class="grow">{{ (payment.getPayAmount + payment.getPayAdvance)|localizedcurrency('RON') }}</span>
+                      <br>
+                      <span> reprezentând contravaloarea facturilor </span>
+                      {% for invoice in payment.getPayInvoices %}
+                        seria </span>
+                        <span class="grow">{{ invoice.getInvoiceSerial }} </span>
+                        <span> nr </span>
+                        <span class="grow" style="font-style:italic;">{{ invoice.getInvoiceNumber }} </span>
+                        <span> din data de </span>
+                        <span class="grow">{{ invoice.getInvoiceDate|localizeddate('short','none','RO') }}, </span>
+                        <br>
+                      {% endfor %}
+                      {% if payment.getPayAdvance != 0 %}
+                        + AVANS ({{ (payment.getPayAdvance)|localizedcurrency('RON') }})
+                      {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+              <td colspan="2"></td>
+              <td><strong>Casier,</strong></td>
+            </tr>
+
+          </table>
+
+          <br>
+
+    </div>
+</body>

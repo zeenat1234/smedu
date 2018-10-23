@@ -200,7 +200,8 @@ select {
 }
 
 #users_row td, #enrollments_row td,
-#class_opt_row td, #attendance_mod_edit_row td {
+#class_opt_row td, #attendance_mod_edit_row td,
+#acc_invoices_row td {
   padding: 3px;
 }
 
