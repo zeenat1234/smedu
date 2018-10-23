@@ -73,6 +73,8 @@
     </table>
     <br>
     <hr>
+  {% else %}
+    <p>Nu există plăți în așteptare</p>
   {% endif %}
 
   {% if confirmed_payments %}
@@ -115,6 +117,8 @@
     </table>
     <br>
     <hr>
+  {% else %}
+    <p>Nu există plăți confirmate</p>
   {% endif %}
 
   {% if rejected_payments %}
@@ -157,6 +161,8 @@
     </table>
     <br>
     <hr>
+  {% else %}
+    <p>Nu există plăți respinse</p>
   {% endif %}
 
 {% endblock %}
