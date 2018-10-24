@@ -394,15 +394,11 @@ class UserController extends Controller
       $entityManager->persist($user);
       $entityManager->flush();
 
-      $secondaryEmail='';
-      if ($user->getNotifySecond()) {
-        $secondaryEmail = $user->getSecondaryEmail();
-      }
 
       $message = (new \Swift_Message('E-mail Resetare Parolă - Planeta Copiilor'))
         ->setFrom('no-reply@iteachsmart.ro')
         ->setTo($user->getEmail())
-        ->setCc($secondaryEmail)
+
         ->setBody(
             $this->renderView(
                 // templates/emails/registration.html.twig
@@ -411,17 +407,11 @@ class UserController extends Controller
             ),
             'text/html'
         )
-        /*
-         * If you also want to include a plaintext version of the message
-        ->addPart(
-            $this->renderView(
-                'emails/registration.txt.twig',
-                array('name' => $name)
-            ),
-            'text/plain'
-        )
-        */
       ;
+      if ($user->getNotifySecond()) {
+        $secondaryEmail = $user->getSecondaryEmail();
+        $message->setCc($secondaryEmail);
+      }
 
       $mailer->send($message);
 
