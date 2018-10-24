@@ -394,11 +394,9 @@ class UserController extends Controller
       $entityManager->persist($user);
       $entityManager->flush();
 
-
       $message = (new \Swift_Message('E-mail Resetare Parolă - Planeta Copiilor'))
         ->setFrom('no-reply@iteachsmart.ro')
         ->setTo($user->getEmail())
-
         ->setBody(
             $this->renderView(
                 // templates/emails/registration.html.twig

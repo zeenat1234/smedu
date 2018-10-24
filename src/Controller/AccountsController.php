@@ -1268,15 +1268,10 @@ class AccountsController extends Controller
 
       $parentUser = $invoice->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser();
 
-      $secondaryEmail='';
-      if ($parentUser->getNotifySecond()) {
-        $secondaryEmail = $parentUser->getSecondaryEmail();
-      }
 
       $message = (new \Swift_Message($messageTitle.' - Planeta Copiilor'))
         ->setFrom('no-reply@iteachsmart.ro')
         ->setTo($parentUser->getEmail())
-        ->setCc($secondaryEmail)
         ->setBody(
             $this->renderView(
                 'accounts/invoice_email.html.twig',
@@ -1284,17 +1279,12 @@ class AccountsController extends Controller
             ),
             'text/html'
         )
-        /*
-         * If you also want to include a plaintext version of the message
-        ->addPart(
-            $this->renderView(
-                'emails/registration.txt.twig',
-                array('name' => $name)
-            ),
-            'text/plain'
-        )
-        */
       ;
+
+      if ($parentUser->getNotifySecond()) {
+        $secondaryEmail = $parentUser->getSecondaryEmail();
+        $message->setCc($secondaryEmail);
+      }
 
       $mailer->send($message);
 
