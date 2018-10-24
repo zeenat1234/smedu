@@ -18,11 +18,11 @@ class SecurityController extends Controller
 {
     # the following is created to encode the password
     private $encoder;
+
     public function __construct(UserPasswordEncoderInterface $encoder)
     {
       $this->encoder = $encoder;
     }
-
 
     /**
      * @Route("/login", name="login")
@@ -74,17 +74,12 @@ class SecurityController extends Controller
             );
 
             $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($user);
             $entityManager->flush();
-
-            $secondaryEmail='';
-            if ($user->getNotifySecond()) {
-              $secondaryEmail = $user->getSecondaryEmail();
-            }
 
             $message = (new \Swift_Message('Resetare Parolă - Planeta Copiilor'))
             ->setFrom('no-reply@iteachsmart.ro')
             ->setTo($user->getEmail())
-            ->setCc($secondaryEmail)
             ->setBody(
               $this->renderView(
                 // templates/emails/registration.html.twig
@@ -93,17 +88,12 @@ class SecurityController extends Controller
               ),
               'text/html'
               )
-              /*
-              * If you also want to include a plaintext version of the message
-              ->addPart(
-              $this->renderView(
-              'emails/registration.txt.twig',
-              array('name' => $name)
-            ),
-            'text/plain'
-            )
-            */
             ;
+
+            if ($user->getNotifySecond()) {
+              $secondaryEmail = $user->getSecondaryEmail();
+              $message->setCc($secondaryEmail);
+            }
 
             $mailer->send($message);
             //TODO magic end

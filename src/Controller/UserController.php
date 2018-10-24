@@ -391,6 +391,7 @@ class UserController extends Controller
       );
 
       $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->persist($user);
       $entityManager->flush();
 
       $secondaryEmail='';

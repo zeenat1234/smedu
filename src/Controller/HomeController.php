@@ -27,6 +27,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class HomeController extends Controller
@@ -186,7 +188,19 @@ class HomeController extends Controller
 
             //NOTE: no need to persist when editing
             $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($user);
             $entityManager->flush();
+
+            $oldToken = $this->container->get('security.token_storage')->getToken();
+
+            // create the authentication token
+            $token = new UsernamePasswordToken(
+                $user, //user object with updated username
+                $user->getPassword(),
+                $oldToken->getProviderKey(),
+                $oldToken->getRoles());
+            // update the token in the security context
+            $this->container->get('security.token_storage')->setToken($token);
 
             $this->get('session')->getFlashBag()->add(
                 'notice',
@@ -355,107 +369,42 @@ class HomeController extends Controller
                     $index = 0;
 
                     foreach($files as $file) {
-                      $newProof = new PaymentProof();
 
-                      $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
-
-                      // Move the file to the directory where brochures are stored
-                      try {
-                        $file->move(
-                          $this->getParameter('invoice_directory'),
-                          $fileName
-                        );
-                      } catch (FileException $e) {
-                        // ... handle exception if something happens during file upload
-                      }
-
-                      // updates the 'pay proof' property to store the PDF file name
-                      // instead of its contents
-                      $newProof->setProof($fileName);
-                      $newProof->setPayment($thePayment);
-                      $entityManager = $this->getDoctrine()->getManager();
-                      $entityManager->persist($newProof);
-                      $entityManager->flush();
-
-                      $index = $index + 1;
-                    }
-                    /* TODO DEPRECATED - did this in old system
-                    $invoice = $form->getData();
-
-                    if ($invoice->getInvoicePaid() > $invoice->getInvoiceTotal()) {
-                      $this->get('session')->getFlashBag()->add(
-                          'notice',
-                          'ATENȚIE: PLATA NU A FOST ÎNREGISTRATĂ! Nu poți achita mai mult decât suma totală a facturii. Dacă dorești să achiți în avans,
-                          atașează această dovada de plată celorlalte și celorlalte facturi cărora se aplică plata.
-                          Dacă nu au fost emise alte facturi, te rugăm să continui efectuarea plății când factura va deveni
-                          disponibilă.'
+                      $supportedExtensions = array(
+                        'pdf', 'jpg', 'jpeg', 'png',
                       );
-                      return $this->redirectToRoute('myaccount_invoices');
-                    }
 
-                    $invoice->setIsPaid(true);
-                    $invoice->setInvoicePaidDate(new \DateTime('now'));
-
-                    // $file stores the uploaded PDF file
-                    /** @var Symfony\Component\HttpFoundation\File\UploadedFile $file
-                    $file = $form->get('payProof')->getData();
-
-                    $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'.'.$file->guessExtension();
-
-                    // Move the file to the directory where brochures are stored
-                    try {
-                        $file->move(
-                            $this->getParameter('invoice_directory'),
-                            $fileName
-                        );
-                    } catch (FileException $e) {
-                        // ... handle exception if something happens during file upload
+                      if (!in_array(strtolower($file->guessExtension()),$supportedExtensions)) {
                         $this->get('session')->getFlashBag()->add(
                             'notice',
-                            'ATENȚIE: PLATA NU A FOST ÎNREGISTRATĂ! A existat o problemă la încărcarea dovezii de plată.
-                              Te rugăm să mai încerci o dată!'
+                            'Fișierul '.$file->getClientOriginalName().' nu conține unul din cele 4 formate suportate (PDF, PNG, JPG, JPEG) și nu a fost atașat plății.'
                         );
-                        return $this->redirectToRoute('myaccount_invoices');
+                      } else {
+                        $newProof = new PaymentProof();
+                        $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
+
+                        // Move the file to the directory where brochures are stored
+                        try {
+                          $file->move(
+                            $this->getParameter('invoice_directory'),
+                            $fileName
+                          );
+                        } catch (FileException $e) {
+                          // ... handle exception if something happens during file upload
+                        }
+
+                        // updates the 'pay proof' property to store the PDF file name
+                        // instead of its contents
+                        $newProof->setProof($fileName);
+                        $newProof->setPayment($thePayment);
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($newProof);
+                        $entityManager->flush();
+
+                        $index = $index + 1;
+                      }
+
                     }
-
-                    // updates the 'pay proof' property to store the PDF file name
-                    // instead of its contents
-                    $invoice->setPayProof($fileName);
-
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->persist($invoice);
-                    $entityManager->flush();
-
-                    $oldPaidPrice = $pricePaid[$invoice->getId()];
-                    $account = $invoice->getMonthAccount();
-                    $account->setTotalPaid($account->getTotalPaid() - $oldPaidPrice + $invoice->getInvoicePaid());
-
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->persist($account);
-                    $entityManager->flush();
-
-                    //Send email to notify - ie. admin@iteachsmart.ro
-                    $message = (new \Swift_Message('NOTIFICARE Plată nouă - '.$invoice->getMonthAccount()->getStudent()->getUser()->getRoName()))
-                      ->setFrom('no-reply@iteachsmart.ro')
-                      ->setTo('georgeta_sotae@yahoo.com')
-                      ->setCc('nicoleta_sotae@yahoo.com')
-                      ->setBcc('admin@iteachsmart.ro')
-                      ->setBody(
-                          $this->renderView(
-                              // templates/emails/registration.html.twig
-                              'home/email.new.payment.html.twig',
-                              array('invoice' => $invoice)
-                          ),
-                          'text/html'
-                      )
-                    ;
-
-                    $mailer->send($message);
-
-                    //console.log('A mers!');
-                    //$response = new Response();
-                    //$response->send();
-                    */
 
                     return $this->redirectToRoute('myaccount_invoices');
                   } else {

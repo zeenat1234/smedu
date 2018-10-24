@@ -119,16 +119,18 @@ class AccountsController extends Controller
 
       foreach($children as $child) {
         $student = $child->getChildLatestEnroll()->getStudent();
-        foreach($student->getMonthAccounts() as $account) {
-          $availableBalance = $availableBalance + $account->getAdvanceBalance();
-          if ($account->getTotalPrice() != $account->getTotalPaid()) {
-           foreach($account->getAccountInvoices() as $invoice) {
-             //TODO - should be able to just lookup the isPaid value, but we need to make sure
-             //       that this is doable with the old system still in place
-             if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal() && $invoice->getIsLocked()) {
-               $payableInvoices[$invoice->getInvoiceName()] = $invoice;
-             }
-           }
+        if ($student) {
+          foreach($student->getMonthAccounts() as $account) {
+            $availableBalance = $availableBalance + $account->getAdvanceBalance();
+            if ($account->getTotalPrice() != $account->getTotalPaid()) {
+              foreach($account->getAccountInvoices() as $invoice) {
+                //TODO - should be able to just lookup the isPaid value, but we need to make sure
+                //       that this is doable with the old system still in place
+                if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal() && $invoice->getIsLocked()) {
+                  $payableInvoices[$invoice->getInvoiceName()] = $invoice;
+                }
+              }
+            }
           }
         }
       }
@@ -146,12 +148,16 @@ class AccountsController extends Controller
         'invoices' => $payableInvoices,
       ));
 
+      $hasPayProof = true;
+
       if ($edit != 'add') {
         $form->remove('payProof');
+        $hasPayProof = false;
       }
 
       if ($this->getUser()->getUsertype() != 'ROLE_PARENT') {
         $form->remove('payProof');
+        $hasPayProof = false;
       }
 
       $form->handleRequest($request);
@@ -243,7 +249,8 @@ class AccountsController extends Controller
           $invoiceUnits = array(); //check different units
           foreach ($invoices as $invoice) {
             $invoicesRemaining = $invoicesRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
-            if (!in_array($invoice, $invoiceUnits)) { $invoiceUnits[] = $invoice; }
+            $unit = $invoice->getMonthAccount()->getStudent()->getSchoolUnit();
+            if (!in_array($unit, $invoiceUnits)) { $invoiceUnits[] = $unit; }
           }
           if (count($invoiceUnits)>1) {
             $this->get('session')->getFlashBag()->add(
@@ -327,38 +334,47 @@ class AccountsController extends Controller
         $entityManager->persist($thePayment);
         $entityManager->flush();
 
-        //START check +add for file
-        // $file stores the uploaded PDF file
-        /** @var Symfony\Component\HttpFoundation\File\UploadedFile $file */
-        if (array_key_exists('payProof', $form)) {
+        if ($hasPayProof) {
+          //START check +add for file
           $files = $form->get('payProof')->getData();
           $unix = time();
           $index = 0;
 
           foreach($files as $file) {
-            $newProof = new PaymentProof();
+            $supportedExtensions = array(
+              'pdf', 'jpg', 'jpeg', 'png',
+            );
 
-            $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
-
-            // Move the file to the directory where brochures are stored
-            try {
-              $file->move(
-                $this->getParameter('invoice_directory'),
-                $fileName
+            if (!in_array(strtolower($file->guessExtension()),$supportedExtensions)) {
+              $this->get('session')->getFlashBag()->add(
+                  'notice',
+                  'Fișierul '.$file->getClientOriginalName().' nu conține unul din cele 4 formate suportate (PDF, PNG, JPG, JPEG) și nu a fost atașat plății.'
               );
-            } catch (FileException $e) {
-              // ... handle exception if something happens during file upload
+            } else {
+              $newProof = new PaymentProof();
+
+              $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
+
+              // Move the file to the directory where brochures are stored
+              try {
+                $file->move(
+                  $this->getParameter('invoice_directory'),
+                  $fileName
+                );
+              } catch (FileException $e) {
+                // ... handle exception if something happens during file upload
+              }
+
+              // updates the 'pay proof' property to store the PDF file name
+              // instead of its contents
+              $newProof->setProof($fileName);
+              $newProof->setPayment($thePayment);
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($newProof);
+              $entityManager->flush();
+
+              $index = $index + 1;
             }
-
-            // updates the 'pay proof' property to store the PDF file name
-            // instead of its contents
-            $newProof->setProof($fileName);
-            $newProof->setPayment($thePayment);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($newProof);
-            $entityManager->flush();
-
-            $index = $index + 1;
           }
         }
         //END check for file
@@ -1619,29 +1635,40 @@ class AccountsController extends Controller
                   $index = 0;
 
                   foreach($files as $file) {
-                    $newProof = new PaymentProof();
+                    $supportedExtensions = array(
+                      'pdf', 'jpg', 'jpeg', 'png',
+                    );
 
-                    $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
-
-                    // Move the file to the directory where brochures are stored
-                    try {
-                      $file->move(
-                        $this->getParameter('invoice_directory'),
-                        $fileName
+                    if (!in_array(strtolower($file->guessExtension()),$supportedExtensions)) {
+                      $this->get('session')->getFlashBag()->add(
+                          'notice',
+                          'Fișierul '.$file->getClientOriginalName().' nu conține unul din cele 4 formate suportate (PDF, PNG, JPG, JPEG) și nu a fost atașat plății.'
                       );
-                    } catch (FileException $e) {
-                      // ... handle exception if something happens during file upload
+                    } else {
+                      $newProof = new PaymentProof();
+
+                      $fileName = 'dovada_factura_'.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().'_'.$unix.'_'.$index.'.'.$file->guessExtension();
+
+                      // Move the file to the directory where brochures are stored
+                      try {
+                        $file->move(
+                          $this->getParameter('invoice_directory'),
+                          $fileName
+                        );
+                      } catch (FileException $e) {
+                        // ... handle exception if something happens during file upload
+                      }
+
+                      // updates the 'pay proof' property to store the PDF file name
+                      // instead of its contents
+                      $newProof->setProof($fileName);
+                      $newProof->setPayment($thePayment);
+                      $entityManager = $this->getDoctrine()->getManager();
+                      $entityManager->persist($newProof);
+                      $entityManager->flush();
+
+                      $index = $index + 1;
                     }
-
-                    // updates the 'pay proof' property to store the PDF file name
-                    // instead of its contents
-                    $newProof->setProof($fileName);
-                    $newProof->setPayment($thePayment);
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->persist($newProof);
-                    $entityManager->flush();
-
-                    $index = $index + 1;
                   }
 
                   return $this->redirectToRoute('account_invoices', array('accId' => $accId));
