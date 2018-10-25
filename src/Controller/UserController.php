@@ -475,7 +475,7 @@ class UserController extends Controller
                 $guardian->setPassword(
                   $this->encoder->encodePassword($guardian, $guardian->getPassword())
                 );
-                $guardian->setUsername($guardian->getFirstName().'.'.$guardian->getLastName());
+                $guardian->setUsername(str_replace(' ', '.', $guardian->getFirstName()).'.'.str_replace(' ', '.', $guardian->getLastName()));
                 $guardian->setUsertype('ROLE_PARENT');
 
                 $entityManager = $this->getDoctrine()->getManager();
@@ -498,9 +498,9 @@ class UserController extends Controller
                 $student->setPassword(
                   $this->encoder->encodePassword($student, $student->getPassword())
                 );
-                $student->setUsername($student->getFirstName().'.'.$student->getLastName());
+                $student->setUsername(str_replace(' ', '.', $student->getFirstName()).'.'.str_replace(' ', '.', $student->getLastName()));
                 $student->setUsertype('ROLE_PUPIL');
-                $student->setEmail($student->getFirstName().'.'.$student->getLastName().'@iteachsmart.ro');
+                $student->setEmail(str_replace(' ', '.', $student->getFirstName()).'.'.str_replace(' ', '.', $student->getLastName()).'@iteachsmart.ro');
                 $student->setPhoneNo('0');
                 $student->setGuardian($guardianAcc);
 
