@@ -305,7 +305,8 @@ class AccountsController extends Controller
           $invoiceUnits = array(); //check different units
           foreach ($invoices as $invoice) {
             $invoicesRemaining = $invoicesRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
-            if (!in_array($invoice, $invoiceUnits)) { $invoiceUnits[] = $invoice; }
+            $unit = $invoice->getMonthAccount()->getStudent()->getSchoolUnit();
+            if (!in_array($unit, $invoiceUnits)) { $invoiceUnits[] = $unit; }
           }
           if (count($invoiceUnits)>1) {
             $this->get('session')->getFlashBag()->add(
