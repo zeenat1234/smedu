@@ -9,7 +9,7 @@
     <hr>
     <br>
     <div class="row">
-    {% for schedule in optional.getOptionalSchedules %}
+    {% for schedule in optional.getAscOptionalSchedules %}
         <div class="col-6 col-md-4">
         <h5 class="kuraleFont">{{ schedule.getScheduledDateTime|localizeddate('medium', 'short', 'ro') }}</h5>
         <table>

@@ -1035,7 +1035,7 @@ class AccountsController extends Controller
 
       $students = array();
       foreach ($receipt->getPayment()->getPayInvoices() as $invoice) {
-        if (!in_array($invoice, $students)) { $students[] = $invoice->getMonthAccount()->getStudent(); }
+        if (!in_array($invoice->getMonthAccount()->getStudent(), $students)) { $students[] = $invoice->getMonthAccount()->getStudent(); }
       }
 
       $snappy = $this->get('knp_snappy.pdf');
