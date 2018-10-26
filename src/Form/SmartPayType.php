@@ -15,6 +15,9 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+
 class SmartPayType extends AbstractType
 {
     private $formCount;
@@ -61,7 +64,7 @@ class SmartPayType extends AbstractType
               'label'    => 'Total Achitat',
               'currency' => 'RON',
               'scale' => 2,
-              'attr' => array('class' => 'form-control'),
+              'attr' => array('class' => 'form-control currency'),
             ))
             ->add('payInvoices', EntityType::class, array(
                 'class'        => AccountInvoice::class,
@@ -100,6 +103,16 @@ class SmartPayType extends AbstractType
               'data' => 0,
             ))
         ;
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+          $data = $event->getData();
+          $form = $event->getForm();
+
+          $data['payAmount'] = floatVal(str_replace(',','.',str_replace('.','',($data['payAmount']))));
+          $data['payAdvance'] = floatVal(str_replace(',','.',str_replace('.','',($data['payAdvance']))));
+
+          $event->setData($data);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver)

@@ -1,4 +1,4 @@
-{% extends app.user.getUsertype == 'ROLE_PARENT' 
+{% extends app.user.getUsertype == 'ROLE_PARENT'
     ? 'base.nav.parent.html.twig'
     : 'base.nav.html.twig' %}
 
@@ -159,13 +159,35 @@
 
     $('#smart_pay_0_payAdvance').change(function(){
       var num = $(this).val();
-      advance = parseFloat(num.replace(",", "."));
+      if (num.indexOf(",") > num.indexOf(".")) {
+        num = num.split("\.").join("");
+        advance = parseFloat(num.replace(",", "\."));
+        //num = parseFloat(num.replace(",", "\."));
+      } else {
+        num = num.split(",").join("");
+        advance = parseFloat(num);
+      }
       $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
       if (advance > 0) {
         $('#smart_pay_0_addAdvance_1').prop('checked', true);
       } else if (advance == 0) {
         $('#smart_pay_0_addAdvance_0').prop('checked', true);
       }
+      $(this).val(accounting.formatMoney(advance, "", 2, ".", ","));
+
+      // advance = String($(this).val());
+      // if (advance.indexOf(",") > advance.indexOf(".")) {
+      //   advance = advance.split("\.").join("");
+      //   advance = parseFloat(advance.replace(",", "\."));
+      // }
+      // var n = accounting.unformat(advance, ".");
+      // $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
+      // if (advance > 0) {
+      //   $('#smart_pay_0_addAdvance_1').prop('checked', true);
+      // } else if (advance == 0) {
+      //   $('#smart_pay_0_addAdvance_0').prop('checked', true);
+      // }
+      // $(this).val(accounting.formatMoney(n, "", 2, ".", ","));
     });
 
     $('#smart_pay_0_addAdvance_0').change(function(){
@@ -175,7 +197,16 @@
        $('#the_total').html(accounting.formatMoney(total+advance, "", 2, ".", ","));
      }
     });
-    //TODO -- Add logic to disable total amount textarea when using full payments
+  });
+
+  $("#smart_pay_0_payAmount").change(function(){
+      var num = String($(this).val());
+      if (num.indexOf(",") > num.indexOf(".")) {
+        num = num.split("\.").join("");
+        num = parseFloat(num.replace(",", "\."));
+      }
+      var n = accounting.unformat(num, ".");
+      $(this).val(accounting.formatMoney(n, "", 2, ".", ","));
   });
 
 
