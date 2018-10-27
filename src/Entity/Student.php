@@ -198,6 +198,20 @@ class Student
         return $this->monthAccounts;
     }
 
+    /**
+     * @return Collection|MonthAccount[]
+     */
+    public function getDescMonthAccounts(): Collection
+    {
+        $criteria = Criteria::create()
+          ->where(Criteria::expr()->eq("student", $this))
+          ->orderBy(array('accYearMonth' => Criteria::DESC))
+          ->setFirstResult(0)
+        ;
+
+        return $this->monthAccounts->matching($criteria);
+    }
+
     public function getLatestMonthAccount(): ?MonthAccount
     {
         $criteria = Criteria::create()

@@ -64,7 +64,10 @@ class SmartPayType extends AbstractType
               'label'    => 'Total Achitat',
               'currency' => 'RON',
               'scale' => 2,
-              'attr' => array('class' => 'form-control currency'),
+              'attr' => array(
+                'class' => 'form-control currency',
+                'placeholder' => '0,00'
+              ),
             ))
             ->add('payInvoices', EntityType::class, array(
                 'class'        => AccountInvoice::class,
@@ -100,7 +103,10 @@ class SmartPayType extends AbstractType
               'currency' => 'RON',
               'scale' => 2,
               'attr' => array('class' => 'form-control'),
-              'data' => 0,
+              'attr' => array(
+                'class' => 'form-control currency',
+                'placeholder' => '0,00'
+              ),
             ))
         ;
 

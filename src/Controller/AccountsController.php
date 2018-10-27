@@ -63,6 +63,26 @@ class AccountsController extends Controller
     }
 
     /**
+     * @Route("/invoices", name="invoices")
+     */
+    public function invoices()
+    {
+        $currentSchoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findCurrentYear();
+
+        $currentUnits = $currentSchoolYear->getSchoolunits();
+
+        $allStudents = $this->getDoctrine()->getRepository
+        (Student::class)->findAllYear($currentSchoolYear);
+
+        return $this->render('accounts/view.all.invoices.html.twig', [
+            'current_year' => $currentSchoolYear,
+            'current_units' => $currentUnits,
+            'sorted_students' => $allStudents,
+        ]);
+    }
+
+    /**
      * @Route("/payments", name="payments")
      */
     public function payments()
@@ -101,7 +121,7 @@ class AccountsController extends Controller
       if ($edit == 'add') {
         $newPayment = new Payment();
 
-        $newPayment->setPayAmount(0);
+        //$newPayment->setPayAmount(0);
         $newPayment->setPayDate(new \DateTime('now'));
         $newPayment->setPayMethod('single');
         $newPayment->setIsPending(true);
@@ -599,6 +619,8 @@ class AccountsController extends Controller
 
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
+      } else if ($redirect == 'invoices') {
+        return $this->redirectToRoute('invoices');
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }
@@ -626,6 +648,8 @@ class AccountsController extends Controller
       );
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
+      } else if ($redirect == 'invoices') {
+        return $this->redirectToRoute('invoices');
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }

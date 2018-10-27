@@ -205,6 +205,10 @@ select {
   padding: 3px;
 }
 
+#invoices_row th, #invoices_row td {
+  padding: 3px;
+}
+
 #attendance_mod_edit_row label {
   margin-bottom: 0px;
 }

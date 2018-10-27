@@ -1,0 +1,280 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Info Financiar{% endblock %}
+
+{% block body %}
+
+  <h2 class="coinyFont" style="visibility:visible;">Info Financiar</h2>
+  <br>
+  {% if current_units is not empty %}
+    {% for schoolunit in current_units %}
+      <h3 class="kuraleFont">{{ schoolunit.unitname|title }} </h3>
+      {% if schoolunit.getStudents is not empty %}
+        {% for classgroup in schoolunit.getClassGroups %}
+          <h4 class="kuraleFont">{{ classgroup.getGroupName }}</h2>
+          <table class="table">
+            <thead id="invoices_row">
+              <tr>
+                <th width="25%">Elev</th>
+                <th width="20%">Ultimul cont</th>
+                <th style="text-align:center">Facturi</th>
+                <th style="text-align:center"><i class="fas fa-check"></i> / <i class="fas fa-times"></i></th>
+                <th>Plăți</th>
+                <th>Rest</th>
+                <th>Cont Avans</th>
+              </tr>
+            </thead>
+            <tbody id="invoices_row">
+              {% set groupStudents = classgroup.getStudents %}
+              {% for student in sorted_students %}
+                {% if student in groupStudents %}
+                  <tr>
+                    <td>
+                      {% if student.getLatestMonthAccount is empty %}
+                        <button disabled class="btn btn-sm btn-warning">
+                          <i class="fas fa-info-circle"></i>
+                        </button>
+                      {% else %}
+                        <button type="button" class="btn-sm btn-warning" data-toggle="modal" data-target="#infoModal-{{ student.getId }}">
+                          <i class="fas fa-info-circle"></i>
+                        </button>
+                      {% endif %}
+                      {{ student.getUser.getRoName }}
+                    </td>
+                    <td>
+                      <a href="{{ path('accounts_stud', {'studId':student.getId }) }}">
+                        <big><i class="far fa-calendar-alt fa-fw" style="color:#05f"></i></big>
+                      </a>
+                      {% if student.getLatestMonthAccount is not empty %}
+                        <a href="{{ path('accounts_stud_month', {'monthYear':student.getLatestMonthAccount.getAccYearMonth|localizeddate('none','none','ro', null, 'yyyy-MM'), 'studId':student.id}) }}">
+                          <big><i class="fas fa-balance-scale fa-fw" style="color:#080"></i></big>
+                        </a>
+                        <a href="{{ path('account_invoices',{'accId':student.getLatestMonthAccount.getId}) }}">
+                          <big><i class="fas fa-file-invoice-dollar fa-fw" style="color:#f00"></i></big>
+                        </a>
+                        {{ student.getLatestMonthAccount.getAccYearMonth|localizeddate('none','none','ro', null, 'MMM yyyy') }}
+                      {% else %}
+                        0 conturi!
+                      {% endif %}
+                    {% set invNo = 0 %}
+                    {% set invNoPaid = 0 %}
+                    {% set invNoPending = 0 %}
+                    {% set payNoPending = 0 %}
+                    {% set grandTotal = 0 %}
+                    {% set advanceTotal = 0 %}
+                    <!-- The Modal for SmartProof START -->
+                    <div class="modal fade" id="infoModal-{{ student.getId }}">
+                      <div class="modal-dialog modal-lg" style="max-width:85%">
+                        <div class="modal-content">
+
+                          <!-- Modal Header -->
+                          <div class="modal-header">
+                            <h4 class="modal-title kuraleFont" style="font-weight:bold">Informații {{ student.getUser.getRoName }}</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                          </div>
+
+                          <!-- Modal body -->
+                          <div class="modal-body">
+                            {% for account in student.getDescMonthAccounts %}
+                              {% set grandTotal = grandTotal + account.getTotalPrice - account.getTotalPaid %}
+                              {% set advanceTotal = advanceTotal + account.getAdvanceBalance %}
+                              {# set invNo = invNo + account.getAccountInvoices|length #}
+                              <h4 class="kuraleFont">
+                                <a href="{{ path('accounts_stud', {'studId':student.getId }) }}">
+                                  <big><i class="far fa-calendar-alt fa-fw" style="color:#05f"></i></big>
+                                </a>
+                                <a href="{{ path('accounts_stud_month', {'monthYear':account.getAccYearMonth|localizeddate('none','none','ro', null, 'yyyy-MM'), 'studId':student.id}) }}">
+                                  <big><i class="fas fa-balance-scale fa-fw" style="color:#080"></i></big>
+                                </a>
+                                <a href="{{ path('account_invoices',{'accId':account.getId}) }}">
+                                  <big><i class="fas fa-file-invoice-dollar fa-fw" style="color:#f00"></i></big>
+                                </a>
+                                {{ account.getAccYearMonth|localizeddate('none','none','ro', null, 'MMMM yyyy') }}
+                              </h4>
+                              <strong>FACTURI</strong>
+                              <br>
+                              {% if account.getAccountInvoices is empty %}
+                                0 x facturi
+                              {% endif %}
+                              <table class="table">
+                                <thead></thead>
+                                <tbody id="invoices_row">
+                                  {% for invoice in account.getAccountInvoices %}
+                                    {% if invoice.isLocked %}
+                                      {% set invNo = invNo + 1 %}
+                                    {% endif %}
+                                    {% if invoice.getInvoiceTotal - invoice.getInvoicePaid == 0 %}
+                                      {% set invNoPaid = invNoPaid + 1 %}
+                                    {% elseif invoice.getIsLocked %}
+                                      {% set invNoPending = invNoPending + 1 %}
+                                    {% endif %}
+                                    <tr valign="top">
+                                      <td rowspan="{{ invoice.getPayments|length + 1 }}" width="25%">
+                                        {{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber }} <br>
+                                        {% if invoice.getInvoiceTotal - invoice.getInvoicePaid == 0 %}
+                                          Plătit integral: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}
+                                        {% elseif invoice.getInvoicePaid != 0 %}
+                                          Rămas: {{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }} din <br>
+                                          Total: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}
+                                        {% else %}
+                                          De plătit: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}
+                                        {% endif %}
+                                      </td>
+                                      {% if invoice.getPayments|length == 0 %}
+                                        {% if invoice.getInvoiceTotal - invoice.getInvoicePaid == 0 %}
+                                          <td colspan="4" style="text-align:center">
+                                            Plătit integral non SmartPay
+                                          </td>
+                                        {% elseif invoice.getInvoicePaid != 0 %}
+                                          <td colspan="4" style="text-align:center">
+                                            Plătit parțial non SmartPay
+                                          </td>
+                                        {% else %}
+                                          <td colspan="4" style="text-align:center">
+                                            Nu există plăți!
+                                          </td>
+                                        {% endif %}
+                                      {% endif %}
+                                    </tr>
+                                    {% for payment in invoice.getPayments %}
+                                      <tr valign="top">
+                                        <td>
+                                          <button disabled class="btn btn-sm btn-info">{{ payment.getId }}</button>
+                                          {{ payment.getNormalized }}, {{ payment.getPayAmount|localizedcurrency('RON') }}
+                                        </td>
+                                        <td>
+                                          {% for proof in payment.getPaymentProofs %}
+                                            <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">
+                                              <button class="btn-sm btn-warning"><i class="fas fa-eye"></i></button>
+                                            </a>
+                                          {% endfor %}
+                                        </td>
+                                        <td width="20%">
+                                          {% if payment.isPending %}
+                                            <a href="{{ path('smart_pay_confirm',{'payId':payment.getId,'accId':account.getId,'redirect':'invoices'}) }}">
+                                              <button class="btn-sm btn-success">Confirmă</button>
+                                            </a>
+                                            <a href="{{ path('smart_pay_deny',{'payId':payment.getId,'accId':account.getId,'redirect':'invoices'}) }}">
+                                              <button class="btn-sm btn-danger">Respinge</button>
+                                            </a>
+                                            {% set payNoPending = payNoPending + 1 %}
+                                          {% elseif payment.isConfirmed %}
+                                            <button class="btn btn-sm btn-success" disabled>Confirmat</button>
+                                          {% else %}
+                                            <button class="btn btn-sm btn-danger" disabled>Respins</button>
+                                          {% endif %}
+                                        </td>
+                                        <td width="15%">
+                                          {% if payment.getSmartReceipt %}
+                                            <a href="{{ path('smart_receipt_pdf',{'recId':payment.getSmartReceipt.getId}) }}" target="_blank">
+                                              <button class="btn-outline-info"><i class="fas fa-eye"></i> {{ payment.getSmartReceipt.getReceiptSerial ~ '-' ~ payment.getSmartReceipt.getReceiptNumber }}</button>
+                                            </a>
+                                          {% endif %}
+                                        </td>
+                                      </tr>
+                                    {% endfor %}
+
+                                  {% endfor %}
+                                </tbody>
+                              </table>
+                              <hr>
+                              <strong>SERVICII NEFACTURATE</strong> <br>
+                              <table class="table">
+                                <thead id="invoices_row">
+                                  <tr style="font-weight:bold">
+                                    <td>Serviciu</td>
+                                    <td>Cant.</td>
+                                    <td>Preț</td>
+                                    <td>TOTAL</td>
+                                  </tr>
+                                </thead>
+                                <tbody id="invoices_row">
+                                  {% set numberOfItems = 0 %}
+                                  {% for payItem in account.getPaymentItems %}
+                                    {% if not('(***)' in payItem.getItemName) and payItem.isInvoiced == false %}
+                                      {% set numberOfItems = numberOfItems + 1 %}
+                                      <tr>
+                                        <td>
+                                          {{ payItem.getItemName }}
+                                        </td>
+                                        <td>
+                                          x {{ payItem.getItemCount }}
+                                        </td>
+                                        <td>
+                                          {{ payItem.getItemPrice|localizedcurrency('RON') }}
+                                        </td>
+                                        <td>
+                                          {{ (payItem.getItemCount * payItem.getItemPrice)|localizedcurrency('RON') }}
+                                        </td>
+                                      </tr>
+                                    {% endif %}
+                                  {% endfor %}
+                                  {% if numberOfItems == 0 %}
+                                  <tr>
+                                    <td colspan="4">
+                                      Nu există servicii nefacturate.
+                                    </td>
+                                  </tr>
+                                  {% endif %}
+                                </tbody>
+                              </table>
+                              <br>
+                              <hr style="border:solid 1px; color:#000;">
+                            {% endfor %}
+                          </div>
+
+                          <!-- Modal footer -->
+                          <div class="modal-footer">
+                            <!-- <button type="button" class="btn btn-success test">Salvează</button> -->
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Înapoi</button>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                    <!-- The Modal for SmartProof Edit END -->
+                    </td>
+                    <td style="text-align:center">
+                      {{ invNo }}
+                    </td>
+                    <td style="text-align:center">
+                      <span style="color:#080">{{ invNoPaid }}</span> / <span style="color:#f00; font-weight:bold">{{ invNoPending }}
+                    </td>
+                    <td>
+                      {{ payNoPending }}
+                    </td>
+                    <td>
+                      {{ grandTotal|localizedcurrency('RON') }}
+                    </td>
+                    <td>
+                      {{ advanceTotal|localizedcurrency('RON') }}
+                    </td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+          <br>
+        {% endfor %}
+        <hr>
+      {% else %}
+        <p>Nu există nicio înscriere în această unitate</p>
+        <hr><br>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p>Nu există nicio unitate școlară definită în acest an școlar</p>
+  {% endif %}
+
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    $('[id^="infoModal"]').appendTo("body");
+    // ScrollReveal({ reset: true }).reveal('.reveal', { duration:600, delay:0 });
+    // ScrollReveal({ reset: true }).reveal('.enrollmentsTable', { duration:2000, delay:0 });
+    // ScrollReveal({ reset: true }).reveal('#enroll_table_head', { duration:800, delay:0 });
+    // ScrollReveal({ reset: true }).reveal('#enrollments_row', { duration:1000, delay:0 });
+  </script>
+{% endblock %}
