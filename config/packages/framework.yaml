@@ -8,6 +8,8 @@ framework:
     # Remove or comment this section to explicitly disable session support.
     session:
         handler_id: ~
+        # if not set, cookie_lifetime should be that in php.ini
+        cookie_lifetime: 604800
 
     #esi: true
     #fragments: true
