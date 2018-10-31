@@ -1,0 +1,172 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Generare Smart{% endblock %}
+
+{% block body %}
+  <h2 class="coinyFont">Generare Smart</h2>
+  {% for flashMessage in app.session.flashbag.get('notice') %}
+    <br>
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-primary fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|nl2br }}
+        </div>
+    </div>
+    </div>
+  {% endfor %}
+  <br>
+  {{ form_start(form) }}
+
+    <div style="max-width:400px;">
+      {{ form_row(form.year_month) }}
+    </div>
+    <br>
+    {{ form_label(form.stud_choice) }} <br>
+    <div class="row">
+      {% for f in form.stud_choice %}
+        <div class="col-auto">
+          {{ form_widget(f) }} {{ form_label(f) }}
+        </div>
+      {% endfor %}
+    </div>
+    <hr>
+    <button type="button" class="btn btn-info" onclick="ShowHideFunction();return false;"><i class="fas fa-users fa-fw"></i> Studenți</button>
+    <br>
+    <div id="smartGenStuds">
+      <br>
+      <div class="row">
+        {% for f in form.students %}
+          <div class="col-12 col-md-6 col-lg-4">
+            <span>{{ form_widget(f) }} {{ form_label(f) }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <hr>
+    <div class="row">
+      <div class="col-auto">
+        {{ form_label(form.pay_item_type) }}
+      </div>
+      {% for f in form.pay_item_type %}
+        <div class="col-auto">
+          {{ form_widget(f) }} {{ form_label(f) }}
+        </div>
+      {% endfor %}
+    </div>
+    <div id="smartGenOptDates">
+      <div class="row">
+        <div class="col-6">
+          {{ form_row(form.start_date) }}
+        </div>
+        <div class="col-6">
+          {{ form_row(form.end_date) }}
+        </div>
+      </div>
+    </div>
+    <br>
+
+    <div class="row">
+      <div class="col-12 col-md-6">
+        {{ form_label(form.auto_invoice) }}
+        <div class="row" id="autoInvoice">
+          {% for f in form.auto_invoice %}
+            <div class="col-auto">
+              {{ form_widget(f) }} {{ form_label(f) }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-12 col-md-6" id="smartGenInvoicing">
+        {{ form_label(form.invoice_all) }}
+        <div class="row">
+          {% for f in form.invoice_all %}
+            <div class="col-auto">
+              {{ form_widget(f) }} {{ form_label(f) }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div id="smartGenInvDate">
+      <div class="row">
+        <div class="col-12 col-md-6">
+          {{ form_label(form.invoice_date) }}
+          {{ form_widget(form.invoice_date) }}
+          <br>
+          {{ form_label(form.save_invoice) }}
+          <span class="double2">{{ form_widget(form.save_invoice) }}</span>
+        </div>
+        <div class="col-12 col-md-6">
+        </div>
+      </div>
+    </div>
+    <br>
+    <center>
+      <button type="submit" class="btn btn-lg btn-success" id="submitBtn"><i class="fas fa-redo" id="icon"></i> GENERARE</button>
+    </center>
+  {{ form_end(form) }}
+
+  <br>
+
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+
+  function ShowHideFunction() {
+    if ($('#smartGenStuds').height() == "0") {
+      document.getElementById('smartGenStuds').style.maxHeight = "100%";
+    } else {
+      document.getElementById('smartGenStuds').style.maxHeight = "0";
+    }
+  }
+
+  $(document).ready(function () {
+    $("#submitBtn").click(function () {
+      setTimeout(function () { disableButton(); }, 0);
+    });
+
+    function disableButton() {
+      $("#submitBtn").prop('disabled', true);
+      $("#icon").addClass('fa-spin');
+    }
+
+    $('#smart_generate_pay_item_type_1').change(function(){
+      if ($('#smart_generate_pay_item_type_1').prop('checked')) {
+        document.getElementById('smartGenOptDates').style.maxHeight = "200px";
+      } else {
+        document.getElementById('smartGenOptDates').style.maxHeight = "0";
+      }
+    });
+
+    $('#autoInvoice').change(function(){
+      if ($('#smart_generate_auto_invoice_0').prop('checked')) {
+        document.getElementById('smartGenInvoicing').style.maxHeight = "0";
+        document.getElementById('smartGenInvDate').style.maxHeight = "0";
+      } else {
+        document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
+        document.getElementById('smartGenInvDate').style.maxHeight = "200px";
+      }
+    });
+
+    if ($('#smart_generate_pay_item_type_1').prop('checked')) {
+      document.getElementById('smartGenOptDates').style.maxHeight = "200px";
+    } else {
+      document.getElementById('smartGenOptDates').style.maxHeight = "0";
+    }
+
+    if ($('#smart_generate_auto_invoice_0').prop('checked')) {
+      document.getElementById('smartGenInvoicing').style.maxHeight = "0";
+      document.getElementById('smartGenInvDate').style.maxHeight = "0";
+    } else {
+      document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
+      document.getElementById('smartGenInvDate').style.maxHeight = "200px";
+    }
+
+  });
+
+</script>
+{% endblock %}

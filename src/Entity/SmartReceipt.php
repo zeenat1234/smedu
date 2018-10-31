@@ -37,7 +37,7 @@ class SmartReceipt
 
     /**
      * @ORM\Column(type="string", length=10)
-     * @Assert\NotBlank(message = "Acest câmp (Serie Chitanță) nu poate fii gol", groups = {"receiptDetails"})
+     * @Assert\NotBlank(message = "Acest câmp (Serie Chitanță) nu poate fi gol", groups = {"receiptDetails"})
      * @Assert\Length(
      *     min=1, minMessage = "Seria pentru chitanță trebuie să conțină cel puțin '{{ limit }}' caractere",
      *     max=10, maxMessage = "Seria pentru chitanță NU poate să conțină mai mult de '{{ limit }}' caractere",
@@ -53,7 +53,7 @@ class SmartReceipt
 
     /**
      * @ORM\Column(type="integer")
-     * @Assert\NotBlank(message = "Acest câmp (Număr Chitanță) nu poate fii gol", groups = {"receiptDetails"})
+     * @Assert\NotBlank(message = "Acest câmp (Număr Chitanță) nu poate fi gol", groups = {"receiptDetails"})
      * @Assert\Length(
      *     min=1, minMessage = "Numărul chitanței trebuie să conțină cel puțin '{{ limit }}' cifre",
      *     max=9, maxMessage = "Numărul chitanței NU poate să conțină mai mult de '{{ limit }}' cifre",

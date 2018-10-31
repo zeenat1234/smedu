@@ -55,6 +55,25 @@ class OptionalsAttendanceRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return OptionalsAttendance[] Returns an array of OptionalsAttendance objects
+     */
+    public function findAllForStudByInterval(\DateTimeInterface $start, $end, $student)
+    {
+        return $this->createQueryBuilder('oa')
+            ->andWhere('oa.student = :theStudent')
+            ->setParameter('theStudent', $student->getId())
+            ->leftJoin('oa.optionalSchedule', 'sched')
+            ->andWhere('sched.scheduledDateTime >= :firstDay')
+            ->andWhere('sched.scheduledDateTime <= :lastDay')
+            ->setParameter('firstDay', $start->format('Y-m-d H:i:s'))
+            ->setParameter('lastDay', $end->format('Y-m-d H:i:s'))
+            ->orderBy('oa.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 
 //    /**
 //     * @return OptionalsAttendance[] Returns an array of OptionalsAttendance objects

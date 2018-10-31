@@ -40,7 +40,7 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=32, unique=true)
-     * @Assert\NotBlank(message = "Acest câmp (username) nu poate fii gol")
+     * @Assert\NotBlank(message = "Acest câmp (username) nu poate fi gol")
      * @Assert\Length(
      *     min=4, minMessage = "Numele de utilizator trebuie să conțină cel puțin '{{ limit }}' caractere",
      *     max=32, maxMessage = "Numele de utilizator NU poate să conțină mai mult de '{{ limit }}' caractere"
@@ -54,7 +54,7 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=128, unique=true)
-     * @Assert\NotBlank(message = "Acest câmp (e-mail) nu poate fii gol")
+     * @Assert\NotBlank(message = "Acest câmp (e-mail) nu poate fi gol")
      * @Assert\Email(
      *     message = "Adresa de e-mail '{{ value }}' nu este validă",
      *     checkMX = true
@@ -98,7 +98,7 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=32)
-     * @Assert\NotBlank(message = "Câmpul \'prenume\' nu poate fii gol.")
+     * @Assert\NotBlank(message = "Câmpul \'prenume\' nu poate fi gol.")
      * @Assert\Length(
      *     min=2, minMessage = "Câmpul 'nume' trebuie să conțină cel puțin '{{ limit }}' caractere",
      *     max=32, maxMessage = "Câmpul 'nume' can NU poate să conțină mai mult de '{{ limit }}' caractere"
@@ -112,7 +112,7 @@ class User implements UserInterface, \Serializable
 
     /**
      * @ORM\Column(type="string", length=32)
-     * @Assert\NotBlank(message = "Câmpul 'prenume' nu poate fii gol.")
+     * @Assert\NotBlank(message = "Câmpul 'prenume' nu poate fi gol.")
      * @Assert\Length(
      *     min=2, minMessage = "Câmpul 'prenume' trebuie să conțină cel puțin '{{ limit }}' caractere",
      *     max=32, maxMessage = "Câmpul 'prenume' can NU poate să conțină mai mult de '{{ limit }}' caractere"

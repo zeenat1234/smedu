@@ -10,6 +10,7 @@ framework:
         handler_id: ~
         # if not set, cookie_lifetime should be that in php.ini
         cookie_lifetime: 1209600
+        # if not set, gc_maxlifetime should be that in php.ini
         gc_maxlifetime: 1209600
 
     #esi: true

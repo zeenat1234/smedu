@@ -180,8 +180,8 @@
 
                           <!-- Modal body -->
                           <div class="modal-body">
-                            Dovezile de plată pot fii vizualizate și modificate aici. <br>
-                            <code>ATENȚIE: </code> Plățile care nu conțin dovezi vor fii respinse. <br>
+                            Dovezile de plată pot fi vizualizate și modificate aici. <br>
+                            <code>ATENȚIE: </code> Plățile care nu conțin dovezi vor fi respinse. <br>
                             {% set pi = 1 %}
                             {% for proof in payment.getPaymentProofs %}
                             {{ pi }}) <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">

@@ -20,9 +20,13 @@
         <br>
         <code>Elevul nu a fost înscris în această lună!</code>
       {% else %}
-        <a href="{{ path('accounts_stud_month_generate', {'monthYear':(month_year|localizeddate('none','none','ro', null, 'yyyy-MM')), 'studId':student.id}) }}">
-          <button>Generează</button>
-        </a>
+        <a href="{{ path('smart_generate') }}">
+          <button>Generare Smart</button>
+        </a> <br>
+        <br>
+        <!-- <a href="{# path('accounts_stud_month_generate', {'monthYear':(month_year|localizeddate('none','none','ro', null, 'yyyy-MM')), 'studId':student.id}) #}"> -->
+        <button disabled>Generează</button> <code>Funcție suspendată</code>
+        <!-- </a> -->
       {% endif %}
 
     {% else %}
@@ -135,12 +139,20 @@
             <td>REST DE PLATĂ:</td>
             <td>{{ (remainingPay + month_account.getTotalPrice - month_account.getTotalPaid)|localizedcurrency('RON') }}</td>
           </tr>
-          {% if month_account.getAdvanceBalance != 0 %}
+          {% set totalAdvance = 0 %}
+          {% for mnthAcc in student.getMonthAccounts %}
+            {% if mnthAcc.getAdvanceBalance != 0 %}
+              {% set totalAdvance = totalAdvance + mnthAcc.getAdvanceBalance %}
+            {% endif %}
+          {% endfor %}
           <tr style="color:#060; font-weight:bold;">
-            <td>Disponibil in cont:</td>
+            <td>TOTAL Disponibil în cont (Toate Lunile):</td>
+            <td>{{ totalAdvance|localizedcurrency('RON') }}</td>
+          </tr>
+          <tr style="color:#080; font-weight:bold;">
+            <td><i class="far fa-arrow-alt-circle-right fa-fw"></i> din care luna curentă:</td>
             <td>{{ month_account.getAdvanceBalance|localizedcurrency('RON') }}</td>
           </tr>
-          {% endif %}
         </thead>
 
       </table>

@@ -92,7 +92,7 @@ class AccountInvoice
 
     /**
      * @ORM\Column(type="string", length=10)
-     * @Assert\NotBlank(message = "Acest câmp (Serie Factură) nu poate fii gol", groups = {"invoiceDetails"})
+     * @Assert\NotBlank(message = "Acest câmp (Serie Factură) nu poate fi gol", groups = {"invoiceDetails"})
      * @Assert\Length(
      *     min=1, minMessage = "Seria pentru factură trebuie să conțină cel puțin '{{ limit }}' caractere",
      *     max=10, maxMessage = "Seria pentru factură NU poate să conțină mai mult de '{{ limit }}' caractere",
@@ -108,7 +108,7 @@ class AccountInvoice
 
     /**
      * @ORM\Column(type="integer")
-     * @Assert\NotBlank(message = "Acest câmp (Număr Factură) nu poate fii gol", groups = {"invoiceDetails"})
+     * @Assert\NotBlank(message = "Acest câmp (Număr Factură) nu poate fi gol", groups = {"invoiceDetails"})
      * @Assert\Length(
      *     min=1, minMessage = "Numărul facturii trebuie să conțină cel puțin '{{ limit }}' cifre",
      *     max=9, maxMessage = "Numărul facturii NU poate să conțină mai mult de '{{ limit }}' cifre",

@@ -31,8 +31,11 @@ use App\Form\AccountInvoiceReceiptType;
 use App\Form\AccountSmartReceiptType;
 use App\Form\UserMyaccountSmartProofType;
 use App\Form\SmartPayType;
+use App\Form\SmartGenerateType;
 
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+
+use Doctrine\Common\Collections\ArrayCollection;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -881,7 +884,7 @@ class AccountsController extends Controller
     }
 
 
-
+    //DEPRECATED - accounts_pay_invoice is the old PaySystem which should be removed
     /**
      * @Route("/accounts/payinvoice/{invId}", name="accounts_pay_invoice")
      * @Method({"GET" , "DELETE", "POST"})
@@ -1159,6 +1162,20 @@ class AccountsController extends Controller
     {
       $invoice = $this->getDoctrine()->getRepository
       (AccountInvoice::class)->find($invId);
+
+      if ($invoice->getIsLocked()) {
+        $this->get('session')->getFlashBag()->add(
+            'notice',
+            'ATENȚIE: Factura '.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber().' este deja salvată!'
+        );
+        return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
+      }
+
+      $this->get('session')->getFlashBag()->add(
+          'notice',
+          'ATENȚIE: Această funcționalitate este temporar suspendată. Vă rugăm adresați-va echipei de programare pentru mai multe informații!'
+      );
+      return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
 
       $iserial = $invoice->getMonthAccount()->getStudent()->getSchoolUnit()->getFirstInvoiceSerial();
 
@@ -1844,6 +1861,620 @@ class AccountsController extends Controller
     }
 
     /**
+     * @Route("/accounts/smart_generate", name="smart_generate")
+     * @Method({"GET" , "POST"})
+     */
+    public function smart_generate(Request $request)
+    {
+      $currentSchoolYear = $this->getDoctrine()->getRepository
+      (SchoolYear::class)->findCurrentYear();
+
+      //$currentUnits = $currentSchoolYear->getSchoolunits();
+
+      $allStudents = $this->getDoctrine()->getRepository
+      (Student::class)->findAllYear($currentSchoolYear);
+
+      $allActiveStudents = array();
+      foreach ($allStudents as $student) {
+        if ($student->getUser()->getChildLatestEnroll()->getIsActive() == true) {
+          $allActiveStudents[] = $student;
+        }
+      }
+
+      $mY = new \DateTime('now'); //now
+
+      $firstMonth = $currentSchoolYear->getStartDate()->modify('first day of this month');
+      $lastMonth = $currentSchoolYear->getEndDate()->modify('last day of this month');
+      $monthChoices = array();
+      $month = $firstMonth; //used to iterate; use '= clone' instead of '=' for dates!
+      while ($month < $lastMonth) {
+        $monthChoices[] = clone $month;
+        $month->modify('last day of this month');
+        $month->modify('+ 1 day');
+      }
+
+      $form = $this->createForm(SmartGenerateType::Class, $data = null, array(
+        'students' => $allActiveStudents,
+        'month_choices' => $monthChoices,
+      ));
+
+      $view = $form->createView();
+
+      $form->handleRequest($request);
+
+      if($form->isSubmitted() && $form->isValid()) {
+        $data = $form->getData();
+
+        if (count($data['pay_item_type']) == 0 ) {
+          $this->get('session')->getFlashBag()->add(
+              'notice',
+              'ATENȚIE: 0 x acțiuni selectate!'
+          );
+          return $this->redirectToRoute('smart_generate');
+        }
+
+        $selectedStudents = array(); //using regular Array
+        $index = 0;
+        if ($data['stud_choice'] == 'all') {
+          $selectedStudents = $allActiveStudents;
+        } elseif ($data['stud_choice'] == 'specific') {
+          $selectedStudents = $data['students'];
+        } elseif ($data['stud_choice'] == 'excluding') {
+          foreach ($allActiveStudents as $student) {
+            if (!in_array($student, $data['students']->toArray())) {
+              $selectedStudents[] = $student;
+            }
+          }
+        }
+
+        // Starting summary string
+        $summary = "--------------------\nAi selectat ".count($selectedStudents).' x Elevi!'."\n--------------------\n";
+
+        foreach($selectedStudents as $student) {
+          $searchAccount = $this->getDoctrine()->getRepository
+          (MonthAccount::class)->findBy(['student' => $student, 'accYearMonth' => $data['year_month']]);
+
+          $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+          $formatter->setPattern('MMMM, YYYY');
+
+          if ($searchAccount) { //if account exists, use it, otherwise create one
+            $summary = $summary.'Elev - '.$student->getUser()->getRoName().' - contul pe '.strtoupper($formatter->format($data['year_month']))." EXISTĂ! - Va fi actualizat... \n ";
+            $account = $searchAccount[0];
+          } else {
+            $summary = $summary.'Elev - '.$student->getUser()->getRoName().' - contul pe '.strtoupper($formatter->format($data['year_month']))." NU există! Va fi creeat\n ";
+
+            $account = new MonthAccount();
+            $account->setStudent($student);
+            $account->setAccYearMonth($data['year_month']);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($account);
+            $entityManager->flush();
+          }
+
+          // set array for 1x INVOICE
+          $allCreatedItems = array();
+
+          // set variable to handle Advance
+          $advanceRemaining = 0;
+
+          if (in_array('tax', $data['pay_item_type'])) {
+            $summary = $summary."--> Adăugăm taxa! \n";
+            //START Get Service Tax
+            $schoolService = $student->getEnrollment()->getIdService();
+
+            if ($schoolService->getInAdvance() == true) {
+              $displayMonth = clone $data['year_month'];
+            } else {
+              $displayMonth = clone $data['year_month'];
+              $displayMonth->modify('-1 day');
+            }
+
+            $serviceTaxItem = new PaymentItem();
+            $serviceTaxItem->setMonthAccount($account);
+
+            $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+            $formatter->setPattern('MMMM');
+
+            //NOTE: The following is used to show inAdvance/nonInAdvance status on invoice!!!!
+            $serviceTaxItem->setItemName($schoolService->getServicename().' '.strtoupper($formatter->format($displayMonth)) );
+
+            $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($serviceTaxItem);
+            $entityManager->flush();
+
+            $account->addPaymentItem($serviceTaxItem);
+            $account->addToTotalPrice($serviceTaxItem->getItemPrice());
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($account);
+            $entityManager->flush();
+            // END School Service Tax
+            $allCreatedItems[] = $serviceTaxItem;
+            $summary = $summary."----> Taxa adăugată: ".$serviceTaxItem->getItemName()." în valoare de ".$serviceTaxItem->getItemPrice()." RON\n";
+
+            // HANDLE ADVANCE
+            foreach ($student->getMonthAccounts() as $oneAccount) {
+              if ($oneAccount->getAdvanceBalance() > 0) {
+
+                $oldRemaining = $advanceRemaining;
+                $advanceRemaining = $advanceRemaining + $oneAccount->getAdvanceBalance();
+
+                if ($advanceRemaining <= $serviceTaxItem->getItemPrice()) {
+                  $oneAccount->setAdvanceBalance(0);
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($oneAccount);
+                  $entityManager->flush();
+                } elseif ($oldRemaining < $serviceTaxItem->getItemPrice()) {
+                  $oneAccount->setAdvanceBalance($oneAccount->getAdvanceBalance() - ($serviceTaxItem->getItemPrice() - $oldRemaining));
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($oneAccount);
+                  $entityManager->flush();
+                }
+              }
+            }
+
+            if ($advanceRemaining > $serviceTaxItem->getItemPrice()) {
+              $advanceRemaining = $serviceTaxItem->getItemPrice();
+            }
+
+            if ($advanceRemaining > 0) {
+              $advanceItem = new PaymentItem();
+              $advanceItem->setMonthAccount($account);
+              $advanceItem->setItemName('SCĂDERE AVANS');
+              $advanceItem->setItemPrice($advanceRemaining * -1 );
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($advanceItem);
+              $entityManager->flush();
+
+              $allCreatedItems[] = $advanceItem;
+              $summary = $summary."----> Scăzut AVANS în valoare de: ".$advanceItem->getItemPrice()." RON\n";
+
+              $account->addPaymentItem($advanceItem);
+              $account->addToTotalPrice($advanceItem->getItemPrice());
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($account);
+              $entityManager->flush();
+            }
+            // HANDLE ADVANCE END - $advanceBalance is now the sum we want to substract
+
+          }
+
+          if (in_array('optionals', $data['pay_item_type'])) {
+            $summary = $summary."--> Adăugăm optionalele! \n";
+            //check dates validity first
+            $skip = false;
+            if (!$data['start_date']) {
+              $summary = $summary."----> Nu există zi de start pentru opționale \n";
+              $skip = true;
+            }
+            if (!$data['end_date']) {
+              $summary = $summary."----> Nu există zi de sfârșit pentru opționale \n";
+              $skip = true;
+            }
+            if ($data['start_date'] > $data['end_date']) {
+              $summary = $summary."----> Data de start trebuie să fie înainte sau în aceeași zi cu data de sfârșit! Opționalele nu vor fi generate.\n";
+              $skip = true;
+            }
+
+            if ($skip == false) {
+              $attendances = $this->getDoctrine()->getRepository
+              (OptionalsAttendance::class)->findAllForStudByInterval($data['start_date'], $data['end_date'], $student);
+
+              $paymentOptionals = array();
+              $paymentOptionalsCount = array();
+
+              //make attendance array for each optional
+              foreach ($attendances as $attendance) {
+                if (!in_array($attendance->getClassOptional(), $paymentOptionals)) {
+                  if ($attendance->getClassOptional()->getUseAttend() == true) {
+                    if ($attendance->getHasAttended() == true){
+                      $paymentOptionals[]=$attendance->getClassOptional();
+                      $paymentOptionalsCount[$attendance->getClassOptional()->getOptionalName()] = 1;
+                    }
+                  } else {
+                    $paymentOptionals[]=$attendance->getClassOptional();
+                    $paymentOptionalsCount[$attendance->getClassOptional()->getOptionalName()] = 1;
+                  }
+                } else {
+                  if ($attendance->getClassOptional()->getUseAttend() == true) {
+                    if ($attendance->getHasAttended() == true){
+                      $paymentOptionalsCount[$attendance->getClassOptional()->getOptionalName()]++;
+                    }
+                  }
+                }
+              }
+              // Array created; Now creating items based on this array
+              $optionalPayItems = array();
+              foreach ($paymentOptionals as $paymentOptional) {
+                $payItem = new PaymentItem();
+                $payItem->setMonthAccount($account);
+                $payItem->setItemName($paymentOptional->getOptionalName());
+                $payItem->setItemPrice($paymentOptional->getPrice());
+                $payItem->setItemCount($paymentOptionalsCount[$paymentOptional->getOptionalName()]);
+                $payItem->setItemOptional($paymentOptional);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($payItem);
+                $entityManager->flush();
+
+                $allCreatedItems[] = $payItem;
+                $optionalPayItems[] = $payItem;
+
+                $account->addPaymentItem($payItem);
+                $account->addToTotalPrice($payItem->getItemPrice()*$payItem->getItemCount());
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($account);
+                $entityManager->flush();
+
+                $summary = $summary."----> Taxa opțional adăugată: ".$payItem->getItemName()." în valoare de ".$payItem->getItemPrice()*$payItem->getItemCount()." RON\n";
+              }
+              //TODO: Get Transport Taxes
+            }
+          } // finish adding optionals
+
+          //check invoicing
+          if ($data['auto_invoice']) {
+            if ($data['auto_invoice'] == 'proforma') {
+              $summary = $summary."--> Creeare facturi - DA, proforme!";
+            } elseif ($data['auto_invoice'] == 'fiscal') {
+              $summary = $summary."--> Creeare facturi - DA, fiscale!";
+            }
+
+            if ($data['invoice_all'] == false) {
+              $summary = $summary." - Facturi Separate\n";
+              // use $serviceTaxItem and $optionalPayItems; add more for transport
+
+              if (in_array('tax', $data['pay_item_type'])) {
+                $newInvoice1 = new AccountInvoice();
+                $newInvoice1->setMonthAccount($account);
+
+                if ($data['invoice_date']) {
+                  $newInvoice1->setInvoiceDate($data['invoice_date']);
+                } else {
+                  $newInvoice1->setInvoiceDate(new \DateTime('now'));
+                }
+
+                /* INVOICE NUMBER LOGIC STARTS HERE */
+                $theUnit = $account->getStudent()->getSchoolUnit();
+
+                if ($data['auto_invoice'] == 'proforma') {
+                  $newInvoice1->setIsProforma(true);
+                  $iserial = 'PRFM';
+                  $inumber1 = 100;
+                  $ititle = 'Factură Proforma Nr: ';
+                } elseif ($data['auto_invoice'] == 'fiscal') {
+                  $iserial = $theUnit->getFirstInvoiceSerial();
+                  $inumber1 = $theUnit->getFirstInvoiceNumber();
+                  $ititle = 'Factură Fiscală Nr: ';
+                }
+
+                $latestInvoice = $this->getDoctrine()->getRepository
+                (AccountInvoice::class)->findLatestBySerial($iserial);
+
+                if ($latestInvoice == null) {
+
+                  $newInvoice1->setInvoiceSerial($iserial);
+                  $newInvoice1->setInvoiceNumber($inumber1);
+
+                  $newInvoice1->setInvoiceName($ititle.$iserial.'-'.$inumber1);
+
+                } else {
+                  $newNumber1 = $latestInvoice->getInvoiceNumber()+1;
+                  $newInvoice1->setInvoiceSerial($iserial);
+                  $newInvoice1->setInvoiceNumber($newNumber1);
+
+                  $newInvoice1->setInvoiceName($ititle.$iserial.'-'.$newNumber1);
+
+                }
+                /* INVOICE NUMBER LOGIC ENDS HERE */
+
+                /* PAYEE DETAILS LOGIC STARTS HERE*/
+                $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+                if ($gUser->getCustomInvoicing()) {
+                  $newInvoice1->setPayeeIsCompany($gUser->getIsCompany());
+                  $newInvoice1->setPayeeName($gUser->getInvoicingName());
+                  $newInvoice1->setPayeeAddress($gUser->getInvoicingAddress());
+                  $newInvoice1->setPayeeIdent($gUser->getInvoicingIdent());
+                  $newInvoice1->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                  $newInvoice1->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+                } else {
+                  $newInvoice1->setPayeeName($gUser->getRoName());
+                }
+                /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+                $serviceTaxItem->setIsInvoiced(true);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($serviceTaxItem);
+                $entityManager->flush();
+
+                $newInvoice1->addPaymentItem($serviceTaxItem);
+                $newInvoice1->setInvoiceTotal($serviceTaxItem->getItemPrice() * $serviceTaxItem->getItemCount());
+
+                // HANDLE ADVANCE
+                if ($advanceRemaining > 0) {
+                  $advanceItem->setIsInvoiced(true);
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($advanceItem);
+                  $entityManager->flush();
+
+                  $newInvoice1->addPaymentItem($advanceItem);
+                  $newInvoice1->setInvoiceTotal($serviceTaxItem->getItemPrice() * $serviceTaxItem->getItemCount() + $advanceItem->getItemPrice());
+
+                }
+
+                if($data['save_invoice']) {
+                  $newInvoice1->setIsLocked(true);
+                }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($newInvoice1);
+                $entityManager->flush();
+
+                if ($newInvoice1->getInvoiceTotal() == 0) {
+                  $newInvoice1->setIsLocked(true);
+                  $newInvoice1->setIsPaid(1);
+                  if ($data['invoice_date']) {
+                    $newInvoice1->setInvoicePaidDate($data['invoice_date']);
+                  } else {
+                    $newInvoice1->setInvoicePaidDate(new \DateTime('now'));
+                  }
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newInvoice1);
+                  $entityManager->flush();
+                }
+
+                if($data['save_invoice']) {
+                  $summary = $summary."----> ".$newInvoice1->getInvoiceName()." a fost creată și salvată!\n";
+                } elseif ($newInvoice1->getIsPaid() == true) {
+                  $summary = $summary."----> ".$newInvoice1->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+                } else {
+                  $summary = $summary."----> ".$newInvoice1->getInvoiceName()." a fost creată!\n";
+                }
+              } //end logic for service tax
+
+              if (in_array('optionals', $data['pay_item_type'])) {
+                if (count($optionalPayItems) > 0) {
+                  $newInvoice2 = new AccountInvoice();
+                  $newInvoice2->setMonthAccount($account);
+
+                  if ($data['invoice_date']) {
+                    $newInvoice2->setInvoiceDate($data['invoice_date']);
+                  } else {
+                    $newInvoice2->setInvoiceDate(new \DateTime('now'));
+                  }
+
+                  /* INVOICE NUMBER LOGIC STARTS HERE */
+                  $theUnit = $account->getStudent()->getSchoolUnit();
+
+                  if ($data['auto_invoice'] == 'proforma') {
+                    $newInvoice2->setIsProforma(true);
+                    $iserial = 'PRFM';
+                    $inumber2 = 100;
+                    $ititle = 'Factură Proforma Nr: ';
+                  } elseif ($data['auto_invoice'] == 'fiscal') {
+                    $iserial = $theUnit->getFirstInvoiceSerial();
+                    $inumber2 = $theUnit->getFirstInvoiceNumber();
+                    $ititle = 'Factură Fiscală Nr: ';
+                  }
+
+                  $latestInvoice = $this->getDoctrine()->getRepository
+                  (AccountInvoice::class)->findLatestBySerial($iserial);
+
+                  if ($latestInvoice == null) {
+
+                    $newInvoice2->setInvoiceSerial($iserial);
+                    $newInvoice2->setInvoiceNumber($inumber2);
+
+                    $newInvoice2->setInvoiceName($ititle.$iserial.'-'.$inumber2);
+
+                  } else {
+                    $newNumber2 = $latestInvoice->getInvoiceNumber()+1;
+                    $newInvoice2->setInvoiceSerial($iserial);
+                    $newInvoice2->setInvoiceNumber($newNumber2);
+
+                    $newInvoice2->setInvoiceName($ititle.$iserial.'-'.$newNumber2);
+
+                  }
+                  /* INVOICE NUMBER LOGIC ENDS HERE */
+
+                  /* PAYEE DETAILS LOGIC STARTS HERE*/
+                  $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+                  if ($gUser->getCustomInvoicing()) {
+                    $newInvoice2->setPayeeIsCompany($gUser->getIsCompany());
+                    $newInvoice2->setPayeeName($gUser->getInvoicingName());
+                    $newInvoice2->setPayeeAddress($gUser->getInvoicingAddress());
+                    $newInvoice2->setPayeeIdent($gUser->getInvoicingIdent());
+                    $newInvoice2->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                    $newInvoice2->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+                  } else {
+                    $newInvoice2->setPayeeName($gUser->getRoName());
+                  }
+                  /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+                  $total = 0;
+
+                  foreach ($optionalPayItems as $payItem) {
+                    if ($payItem->getIsInvoiced() == false) {
+                      $payItem->setIsInvoiced(true);
+
+                      $entityManager = $this->getDoctrine()->getManager();
+                      $entityManager->persist($payItem);
+                      $entityManager->flush();
+
+                      $newInvoice2->addPaymentItem($payItem);
+                      $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+                      $newInvoice2->setInvoiceTotal($total);
+                    }
+                  }
+
+                  if($data['save_invoice']) {
+                    $newInvoice2->setIsLocked(true);
+                  }
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newInvoice2);
+                  $entityManager->flush();
+
+                  if ($newInvoice2->getInvoiceTotal() == 0) {
+                    $newInvoice2->setIsPaid(1);
+                    $newInvoice2->setIsLocked(true);
+                    if ($data['invoice_date']) {
+                      $newInvoice2->setInvoicePaidDate($data['invoice_date']);
+                    } else {
+                      $newInvoice2->setInvoicePaidDate(new \DateTime('now'));
+                    }
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($newInvoice2);
+                    $entityManager->flush();
+                  }
+
+                  if($data['save_invoice']) {
+                    $summary = $summary."----> ".$newInvoice2->getInvoiceName()." a fost creată și salvată!\n";
+                  } elseif ($newInvoice2->getIsPaid() == true) {
+                    $summary = $summary."----> ".$newInvoice2->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+                  } else {
+                    $summary = $summary."----> ".$newInvoice2->getInvoiceName()." a fost creată!\n";
+                  }
+                } else {
+                  $summary = $summary."----------> Nu există opționale!\n";
+                }
+              } // end logic for optionals tax
+
+              //TODO add transport condition here
+
+            // end logic for multiple invoices
+            } else {
+              $summary = $summary." - 1x factură\n";
+              // use $allCreatedItems
+              $newInvoice = new AccountInvoice();
+              $newInvoice->setMonthAccount($account);
+
+              if ($data['invoice_date']) {
+                $newInvoice->setInvoiceDate($data['invoice_date']);
+              } else {
+                $newInvoice->setInvoiceDate(new \DateTime('now'));
+              }
+
+              /* INVOICE NUMBER LOGIC STARTS HERE */
+              $theUnit = $account->getStudent()->getSchoolUnit();
+
+              if ($data['auto_invoice'] == 'proforma') {
+                $newInvoice->setIsProforma(true);
+                $iserial = 'PRFM';
+                $inumber = 100;
+                $ititle = 'Factură Proforma Nr: ';
+              } elseif ($data['auto_invoice'] == 'fiscal') {
+                $iserial = $theUnit->getFirstInvoiceSerial();
+                $inumber = $theUnit->getFirstInvoiceNumber();
+                $ititle = 'Factură Fiscală Nr: ';
+              }
+
+              $latestInvoice = $this->getDoctrine()->getRepository
+              (AccountInvoice::class)->findLatestBySerial($iserial);
+
+              if ($latestInvoice == null) {
+
+                $newInvoice->setInvoiceSerial($iserial);
+                $newInvoice->setInvoiceNumber($inumber);
+
+                $newInvoice->setInvoiceName($ititle.$iserial.'-'.$inumber);
+              } else {
+                $newNumber = $latestInvoice->getInvoiceNumber()+1;
+                $newInvoice->setInvoiceSerial($iserial);
+                $newInvoice->setInvoiceNumber($newNumber);
+
+                $newInvoice->setInvoiceName($ititle.$iserial.'-'.$newNumber);
+              }
+              /* INVOICE NUMBER LOGIC ENDS HERE */
+
+              /* PAYEE DETAILS LOGIC STARTS HERE*/
+              $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+              if ($gUser->getCustomInvoicing()) {
+                $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
+                $newInvoice->setPayeeName($gUser->getInvoicingName());
+                $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
+                $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
+                $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+              } else {
+                $newInvoice->setPayeeName($gUser->getRoName());
+              }
+              /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+              $total = 0;
+
+              foreach ($allCreatedItems as $payItem) {
+                $payItem->setIsInvoiced(true);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($payItem);
+                $entityManager->flush();
+
+                $newInvoice->addPaymentItem($payItem);
+                $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+                $newInvoice->setInvoiceTotal($total);
+              }
+
+              if($data['save_invoice']) {
+                $newInvoice->setIsLocked(true);
+              }
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($newInvoice);
+              $entityManager->flush();
+
+              if ($newInvoice->getInvoiceTotal() == 0) {
+                $newInvoice->setIsPaid(1);
+                $newInvoice->setIsLocked(true);
+                if ($data['invoice_date']) {
+                  $newInvoice->setInvoicePaidDate($data['invoice_date']);
+                } else {
+                  $newInvoice->setInvoicePaidDate(new \DateTime('now'));
+                }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($newInvoice);
+                $entityManager->flush();
+              }
+
+              if($data['save_invoice']) {
+                $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată și salvată!\n";
+              } elseif ($newInvoice->getIsPaid() == true) {
+                $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+              } else {
+                $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată!\n";
+              }
+            } // end logic for 1x invoice
+          } else {
+            $summary = $summary."--> Creeare facturi - NU!\n";
+          }
+        $summary = $summary."------------------------------------\n";
+        } //finishes foreach student
+
+        $this->get('session')->getFlashBag()->add(
+          'notice',
+          "SUMAR: \n".$summary
+        );
+
+        return $this->redirectToRoute('smart_generate');
+      }
+
+      return $this->render('accounts/smart_generate.html.twig', [
+          'form' => $view,
+      ]);
+
+    }
+
+    /**
      * @Route("/accounts/{monthYear}/{studId}/generate", name="accounts_stud_month_generate")
      * @Method({"GET" , "POST"})
      */
@@ -1927,7 +2558,6 @@ class AccountsController extends Controller
             }
 
             //Get Optional Taxes
-            // foreach ($student->getOptionalsAttendancesByMonth($mY) as $attendance) {
             $attendances = $this->getDoctrine()->getRepository
             (OptionalsAttendance::class)->findAllForStudByMonth($mY, $student);
 

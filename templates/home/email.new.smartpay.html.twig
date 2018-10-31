@@ -6,6 +6,7 @@
 <h1 class="kuraleFont">Salutare!</h1>
 
 <p>O nouă plată a fost înregistrată în sistem.</p>
+<p><strong>Părinte: </strong> {{ payment.getPayInvoices[0].getMonthAccount.getStudent.getUser.getGuardian.getUser.getRoName }}</p>
 <p><strong>Tip plată: </strong> {{ payment.getNormalized }}</p>
 <p><strong>Valoare plătită: </strong> {{ payment.getPayAmount|localizedcurrency('RON') }}</p>
 {% if payment.getPayAdvance != 0 %}
@@ -15,7 +16,6 @@
 <p>În contul următoarei/următoarelor facturi: </p>
 {% for invoice in payment.getPayInvoices %}
   <p><strong>Elev: </strong> {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}</p>
-  <p><strong>Părinte: </strong> {{ invoice.getMonthAccount.getStudent.getUser.getGuardian.getUser.getRoName }}</p>
   <p><strong>Link cont: </strong><a href="{{ app.request.scheme ~ '://' ~ app.request.host }}{{ path('account_invoices', {'accId':invoice.getMonthAccount.getId}) }}" style="text-decoration:underline;">Click aici!</a></p>
 
   <table>
@@ -25,26 +25,16 @@
         <td></td>
       </tr>
       <tr>
-        <td><strong>Total de Plată:</strong></td>
+        <td><strong>Total Factură:</strong></td>
         <td>{{ invoice.getInvoiceTotal|localizedcurrency('RON') }}</td>
       </tr>
       <tr>
-        <td><strong>Total Achitat:</strong></td>
-        <td>{{ invoice.getInvoicePaid|localizedcurrency('RON') }}</td>
+        <td><strong>Data Factură:</strong></td>
+        <td>{{ invoice.getInvoiceDate|localizeddate('long', 'none') }}</td>
       </tr>
-      {% if (invoice.getInvoiceTotal - invoice.getInvoicePaid) <= 0 %}
-      <tr>
-        <td><strong>ACHITAT INTEGRAL</strong></td>
-        <td></td>
-      </tr>
-      {% else %}
-      <tr>
-        <td><strong>Rest de plată:</strong></td>
-        <td>{{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</td>
-      </tr>
-      {% endif %}
     </tbody>
   </table>
+
   <br><br>
 {% endfor %}
 <p>Îți mulțumim că ai ales serviciile noastre.</p>

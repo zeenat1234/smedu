@@ -13,14 +13,15 @@
       {% if schoolunit.getStudents is not empty %}
         <table id="accounts-{{ schoolunit.id }}" class="table table-striped table-hover enrollmentsTable">
 
-          <thead id="enroll_table_head">
+          <thead id="invoices_row">
             <tr>
               <th>Nume elev</th>
-              <th>Facturi Neachitate</th>
-              <th>Status</th>
-              <th>Opționale</th>
-              <th>Operațiuni</th>
-              <th>Alertează</th>
+              <th>Ultimul cont</th>
+              <th style="text-align:center">Facturi</th>
+              <th style="text-align:center"><i class="fas fa-check"></i> / <i class="fas fa-times"></i></th>
+              <th style="text-align:center">Opționale</th>
+              <th style="text-align:center">Operațiuni</th>
+              <th style="text-align:center">Alertează</th>
             </tr>
           </thead>
 
@@ -30,9 +31,44 @@
               {% if student in unitStudents %}
                 <tr id="enrollments_row">
                   <td>{{ student.getUser.getFullName(1) }}</td>
-                  <td><code>for all year</code></td>
-                  <td><code>expiră la / alertă / achitat</code></td>
-                  <td>{{ student.getClassOptionals|length }}</td>
+                  <td>
+                    <a href="{{ path('accounts_stud', {'studId':student.getId }) }}">
+                      <big><i class="far fa-calendar-alt fa-fw" style="color:#05f"></i></big>
+                    </a>
+                    {% if student.getLatestMonthAccount is not empty %}
+                      <a href="{{ path('accounts_stud_month', {'monthYear':student.getLatestMonthAccount.getAccYearMonth|localizeddate('none','none','ro', null, 'yyyy-MM'), 'studId':student.id}) }}">
+                        <big><i class="fas fa-balance-scale fa-fw" style="color:#080"></i></big>
+                      </a>
+                      <a href="{{ path('account_invoices',{'accId':student.getLatestMonthAccount.getId}) }}">
+                        <big><i class="fas fa-file-invoice-dollar fa-fw" style="color:#f00"></i></big>
+                      </a>
+                      {{ student.getLatestMonthAccount.getAccYearMonth|localizeddate('none','none','ro', null, 'MMM yyyy') }}
+                    {% else %}
+                      0 conturi!
+                    {% endif %}
+                  </td>
+                  {% set invNo = 0 %}
+                  {% set invNoPaid = 0 %}
+                  {% set invNoPending = 0 %}
+                  {% for account in student.getDescMonthAccounts %}
+                    {% for invoice in account.getAccountInvoices %}
+                      {% if invoice.isLocked %}
+                        {% set invNo = invNo + 1 %}
+                      {% endif %}
+                      {% if invoice.getInvoiceTotal - invoice.getInvoicePaid == 0 %}
+                        {% set invNoPaid = invNoPaid + 1 %}
+                      {% elseif invoice.getIsLocked %}
+                        {% set invNoPending = invNoPending + 1 %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                  <td style="text-align:center">
+                    {{ invNo }}
+                  </td>
+                  <td style="text-align:center">
+                    <span style="color:#080">{{ invNoPaid }}</span> / <span style="color:#f00; font-weight:bold">{{ invNoPending }}
+                  </td>
+                  <td style="text-align:center">{{ student.getClassOptionals|length }}</td>
                   <td><center>
                     <a href="{{ path('accounts_stud_month', {'monthYear':(date('-1 month')|localizeddate('none','none','ro', null, 'yyyy-MM')), 'studId':student.id}) }}">
                       <button type="button" class="btn-sm btn-primary">{{ (date('-1 month')|localizeddate('none','none','ro', null, 'MMMM'))|capitalize }}</button>
@@ -42,7 +78,7 @@
                     </a>
                     <a href="{{ path('accounts_stud', {'studId':student.id }) }}"><button type="button" class="btn-sm btn-success">TOATE</button></a>
                   </center></td>
-                  <td>
+                  <td style="text-align:center">
                     <i class="far fa-envelope"></i>
                   </td>
                 </tr>
