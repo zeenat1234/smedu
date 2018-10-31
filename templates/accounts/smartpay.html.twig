@@ -95,8 +95,13 @@
 <script src="/js/accounting.js"></script>
 <script>
 
+  var advance = 0;
+
   var nr = $('#smart_pay_0_payAdvance').val();
-  var advance = parseFloat(nr.replace(",", "."));
+  var editAdvance = parseFloat(nr.replace(",", "."));
+  if (advance < editAdvance) {
+    advance = editAdvance;
+  }
 
   function updateTotal() {
     //console.log(advance);

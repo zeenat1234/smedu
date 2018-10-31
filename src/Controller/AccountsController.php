@@ -132,6 +132,7 @@ class AccountsController extends Controller
       } else {
         $newPayment = $this->getDoctrine()->getRepository
         (Payment::class)->find($edit);
+        $newPayment->setPayAmount($newPayment->getPayAmount()+$newPayment->getPayAdvance());
       }
 
       $guardian = $monthAccount->getStudent()->getUser()->getGuardian();
