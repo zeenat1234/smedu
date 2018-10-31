@@ -1442,6 +1442,11 @@ class AccountsController extends Controller
         $student = $account->getStudent();
         $invoices = $account->getAccountInvoices();
 
+        $forms = array(); //required in case there are no forms available
+        $forms2 = array();
+        $forms3 = array();
+        $forms4 = array();
+
         $views = array(); //required in case there are no views available
         $views2 = array();
         $views3 = array();

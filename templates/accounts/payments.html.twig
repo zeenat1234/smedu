@@ -35,6 +35,7 @@
         <tr>
           <th>ID</th>
           <th>Facturi</th>
+          <th>Dovezi</th>
           <th>Suma</th>
           <th>Avans</th>
           <th>Data</th>
@@ -54,6 +55,13 @@
                 {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
                 ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
                 invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
+              {% endfor %}
+            </td>
+            <td>
+              {% for proof in payment.getPaymentProofs %}
+              <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">
+                <big><i class="fas fa-file-invoice-dollar fa-fw"></i></big>
+              </a>
               {% endfor %}
             </td>
             <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
@@ -84,6 +92,7 @@
         <tr>
           <th>ID</th>
           <th>Facturi</th>
+          <th>Dovezi</th>
           <th>Suma</th>
           <th>Avans</th>
           <th>Data</th>
@@ -103,6 +112,13 @@
                 {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
                 ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
                 invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
+              {% endfor %}
+            </td>
+            <td>
+              {% for proof in payment.getPaymentProofs %}
+              <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">
+                <big><i class="fas fa-file-invoice-dollar fa-fw"></i></big>
+              </a>
               {% endfor %}
             </td>
             <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
@@ -128,6 +144,7 @@
         <tr>
           <th>ID</th>
           <th>Facturi</th>
+          <th>Dovezi</th>
           <th>Suma</th>
           <th>Avans</th>
           <th>Data</th>
@@ -147,6 +164,13 @@
                 {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
                 ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
                 invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
+              {% endfor %}
+            </td>
+            <td>
+              {% for proof in payment.getPaymentProofs %}
+              <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">
+                <big><i class="fas fa-file-invoice-dollar fa-fw"></i></big>
+              </a>
               {% endfor %}
             </td>
             <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
