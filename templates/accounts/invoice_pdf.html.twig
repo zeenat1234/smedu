@@ -37,11 +37,13 @@
                     {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
                     or 'școala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
                     or 'școală' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
-                      <strong>Grădinița „Planeta Copiilor”</strong><br>
+                      <strong>Școala „Planeta Copiilor”</strong><br>
+                      CIF: RO35271177<br>
                     {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
                     or 'grădinița' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
                     or 'grădiniță' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                       <strong>Grădinița „Planeta Copiilor”</strong><br>
+                      CIF: RO32066470<br>
                     {% else %}
                       <strong>„Planeta Copiilor”</strong><br>
                     {% endif %}
