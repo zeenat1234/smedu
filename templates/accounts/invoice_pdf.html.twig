@@ -34,9 +34,13 @@
             <tr class="information">
                 <td style="vertical-align:bottom;">
                     <!-- TODO Add logic to schoolunit invoicing variables which have yet to be created when writing this logic -->
-                    {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) or 'școala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                    {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                    or 'școala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                    or 'școală' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                       <strong>Grădinița „Planeta Copiilor”</strong><br>
-                    {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) or 'grădinița' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                    {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                    or 'grădinița' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                    or 'grădiniță' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                       <strong>Grădinița „Planeta Copiilor”</strong><br>
                     {% else %}
                       <strong>„Planeta Copiilor”</strong><br>
