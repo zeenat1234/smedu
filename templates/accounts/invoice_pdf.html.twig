@@ -64,10 +64,14 @@
                       CNP: {{ invoice.getPayeeIdent|default('-') }}<br>
                       Adresă: {{ invoice.getPayeeAddress|default('-') }}<br>
                       <br>
-                      {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                      {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'școala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'școală' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                         Cont: RO11 BTRL RONC RT03 3357 1401 <br>
                         Banca: TRANSILVANIA <br>
-                      {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                      {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'grădinița' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'grădiniță' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                         Cont: RO56 BTRL RONC RT04 1362 7601 <br>
                         Banca: TRANSILVANIA <br>
                       {% else %}
@@ -79,10 +83,14 @@
                       Reg Com: {{ invoice.getPayeeCompanyReg|default('-') }}<br>
                       CIF: {{ invoice.getPayeeCompanyFiscal|default('-') }}<br>
                       <br>
-                      {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                      {% if 'scoala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'școala' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'școală' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                         Cont: RO11 BTRL RONC RT03 3357 1401 <br>
                         Banca: TRANSILVANIA <br>
-                      {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                      {% elseif 'gradinita' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'grădinița' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                      or 'grădiniță' in (invoice.getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                         Cont: RO56 BTRL RONC RT04 1362 7601 <br>
                         Banca: TRANSILVANIA <br>
                       {% else %}

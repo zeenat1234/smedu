@@ -14,7 +14,9 @@
             <tr class="top">
 
                 <td style="vertical-align:bottom; width:50%;"><!-- TODO Add logic to schoolunit invoicing variables which have yet to be created when writing this logic -->
-                  {% if 'gradinita' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                  {% if 'gradinita' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                  or 'grădinița' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                  or 'grădiniță' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                     <strong>Grădinița „Planeta Copiilor”</strong><br>
                     CIF: RO32066470<br>
                     Nr. Ord. Reg. Com.: <br>
@@ -22,7 +24,9 @@
                     Cont: RO56 BTRL RONC RT04 1362 7601 <br>
                     Banca: TRANSILVANIA <br>
                     Capital Social:
-                  {% elseif 'scoala' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
+                  {% elseif 'scoala' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                  or 'școala' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower)
+                  or 'școală' in (payment.getPayInvoices[0].getMonthAccount.getStudent.getSchoolUnit.getUnitname|lower) %}
                     <strong>Școala Gimnazială „Planeta Copiilor”</strong><br>
                     CIF: RO35271177<br>
                     Nr. Ord. Reg. Com.: <br>
