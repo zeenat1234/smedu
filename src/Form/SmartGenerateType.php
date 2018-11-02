@@ -67,6 +67,7 @@ class SmartGenerateType extends AbstractType
               'choices'  => array(
                 'Taxa Școlară' => 'tax',
                 'Opționale' => 'optionals',
+                'Servicii nefacturate din urmă' => 'noninvoiced',
               ),
             ))
             ->add('start_date', DateType::class, array(

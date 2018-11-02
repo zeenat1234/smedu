@@ -2119,9 +2119,47 @@ class AccountsController extends Controller
 
                 $summary = $summary."----> Taxa opțional adăugată: ".$payItem->getItemName()." în valoare de ".$payItem->getItemPrice()*$payItem->getItemCount()." RON\n";
               }
-              //TODO: Get Transport Taxes
+              //TODO: Get Transport Taxes (not here, lower down)
             }
           } // finish adding optionals
+
+          //check Past Uninvoiced items + relabel + move to new month
+          if (in_array('noninvoiced', $data['pay_item_type'])) {
+            $summary = $summary."--> Adăugăm servicii nefacturate din lunile anterioare! \n";
+            $noninvItems = array();
+            foreach ($student->getMonthAccounts() as $oldAccount) {
+              if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
+                foreach ($oldAccount->getPaymentItems() as $oldPayItem) {
+                  if ($oldPayItem->getIsInvoiced() == false) {
+                    $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+                    $formatter->setPattern('MMMM');
+                    $oldPayItem->setItemName($oldPayItem->getItemName().' '.strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                    $oldPayItem->setMonthAccount($account);
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($oldPayItem);
+                    $entityManager->flush();
+
+                    $oldAccount->setTotalPrice($oldAccount->getTotalPrice() - $oldPayItem->getItemPrice() * $oldPayItem->getItemCount());
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($oldAccount);
+                    $entityManager->flush();
+
+                    $account->addToTotalPrice($oldPayItem->getItemPrice() * $oldPayItem->getItemCount());
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($account);
+                    $entityManager->flush();
+
+                    $noninvItems[] = $oldPayItem;
+                    $allCreatedItems[] = $oldPayItem;
+                  }
+                }
+              }
+            }
+            $summary = $summary."----> Servicii din urmă adăugate: ".count($noninvItems)."\n";
+          }
 
           //check invoicing
           if ($data['auto_invoice']) {
@@ -2355,6 +2393,112 @@ class AccountsController extends Controller
                 }
               } // end logic for optionals tax
 
+              if (in_array('noninvoiced', $data['pay_item_type'])) {
+                if (count($noninvItems) > 0) {
+                  $newInvoice3 = new AccountInvoice();
+                  $newInvoice3->setMonthAccount($account);
+
+                  if ($data['invoice_date']) {
+                    $newInvoice3->setInvoiceDate($data['invoice_date']);
+                  } else {
+                    $newInvoice3->setInvoiceDate(new \DateTime('now'));
+                  }
+
+                  /* INVOICE NUMBER LOGIC STARTS HERE */
+                  $theUnit = $account->getStudent()->getSchoolUnit();
+
+                  if ($data['auto_invoice'] == 'proforma') {
+                    $newInvoice3->setIsProforma(true);
+                    $iserial = 'PRFM';
+                    $inumber3 = 100;
+                    $ititle = 'Factură Proforma Nr: ';
+                  } elseif ($data['auto_invoice'] == 'fiscal') {
+                    $iserial = $theUnit->getFirstInvoiceSerial();
+                    $inumber3 = $theUnit->getFirstInvoiceNumber();
+                    $ititle = 'Factură Fiscală Nr: ';
+                  }
+
+                  $latestInvoice = $this->getDoctrine()->getRepository
+                  (AccountInvoice::class)->findLatestBySerial($iserial);
+
+                  if ($latestInvoice == null) {
+
+                    $newInvoice3->setInvoiceSerial($iserial);
+                    $newInvoice3->setInvoiceNumber($inumber3);
+
+                    $newInvoice3->setInvoiceName($ititle.$iserial.'-'.$inumber3);
+
+                  } else {
+                    $newNumber3 = $latestInvoice->getInvoiceNumber()+1;
+                    $newInvoice3->setInvoiceSerial($iserial);
+                    $newInvoice3->setInvoiceNumber($newNumber3);
+
+                    $newInvoice3->setInvoiceName($ititle.$iserial.'-'.$newNumber3);
+
+                  }
+                  /* INVOICE NUMBER LOGIC ENDS HERE */
+
+                  /* PAYEE DETAILS LOGIC STARTS HERE*/
+                  $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+                  if ($gUser->getCustomInvoicing()) {
+                    $newInvoice3->setPayeeIsCompany($gUser->getIsCompany());
+                    $newInvoice3->setPayeeName($gUser->getInvoicingName());
+                    $newInvoice3->setPayeeAddress($gUser->getInvoicingAddress());
+                    $newInvoice3->setPayeeIdent($gUser->getInvoicingIdent());
+                    $newInvoice3->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                    $newInvoice3->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+                  } else {
+                    $newInvoice3->setPayeeName($gUser->getRoName());
+                  }
+                  /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+                  $total = 0;
+
+                  foreach ($noninvItems as $payItem) {
+                    $payItem->setIsInvoiced(true);
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($payItem);
+                    $entityManager->flush();
+
+                    $newInvoice3->addPaymentItem($payItem);
+                    $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+                    $newInvoice3->setInvoiceTotal($total);
+                  }
+
+                  if($data['save_invoice']) {
+                    $newInvoice3->setIsLocked(true);
+                  }
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newInvoice3);
+                  $entityManager->flush();
+
+                  if ($newInvoice3->getInvoiceTotal() == 0) {
+                    $newInvoice3->setIsPaid(1);
+                    $newInvoice3->setIsLocked(true);
+                    if ($data['invoice_date']) {
+                      $newInvoice3->setInvoicePaidDate($data['invoice_date']);
+                    } else {
+                      $newInvoice3->setInvoicePaidDate(new \DateTime('now'));
+                    }
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($newInvoice3);
+                    $entityManager->flush();
+                  }
+
+                  if($data['save_invoice']) {
+                    $summary = $summary."----> ".$newInvoice3->getInvoiceName()." a fost creată și salvată!\n";
+                  } elseif ($newInvoice3->getIsPaid() == true) {
+                    $summary = $summary."----> ".$newInvoice3->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+                  } else {
+                    $summary = $summary."----> ".$newInvoice3->getInvoiceName()." a fost creată!\n";
+                  }
+                } else {
+                  $summary = $summary."----------> Nu există servicii nefacturate!\n";
+                }
+              }
               //TODO add transport condition here
 
             // end logic for multiple invoices
