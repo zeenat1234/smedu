@@ -459,9 +459,12 @@
 
                 {% if invoice.isLocked %}
                   <button disabled><i class="far fa-save"></i> Salvată</button>
+                  <a href="{{ path('invoice_unlock',{'invId':invoice.id}) }}">
+                    <button><i class="fas fa-unlock-alt"></i> Deblochează</button>
+                  </a>
                 {% else %}
                   <a href="{{ path('invoice_lock',{'invId':invoice.id}) }}">
-                    <button><i class="far fa-save"></i> Salvează</button>
+                    <button><i class="fa fa-save"></i> Salvează</button>
                   </a>
                 {% endif %}
 

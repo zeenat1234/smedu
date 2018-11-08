@@ -1156,6 +1156,23 @@ class AccountsController extends Controller
     }
 
     /**
+     * @Route("/accounts/invoice_unlock/{invId}", name="invoice_unlock")
+     * @Method({"GET", "POST"})
+     */
+    public function invoice_unlock(Request $request, $invId)
+    {
+      $invoice = $this->getDoctrine()->getRepository
+      (AccountInvoice::class)->find($invId);
+
+      $invoice->setIsLocked(false);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->flush();
+
+      return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
+    }
+
+    /**
      * @Route("/accounts/invoice_from_proforma/{invId}", name="invoice_from_proforma")
      * @Method({"GET", "POST"})
      */
