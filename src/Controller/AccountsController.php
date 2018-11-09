@@ -564,7 +564,7 @@ class AccountsController extends Controller
         $individualSum = $payment->getPayAmount() / $invoiceCount;
         $remainingSum = $payment->getPayAmount();
 
-        while ($remainingSum >= 0) {
+        while ($remainingSum > 0) {
           foreach ($payment->getPayInvoices() as $invoice) {
             $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
             $monthAcc = $invoice->getMonthAccount();
