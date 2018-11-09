@@ -566,45 +566,47 @@ class AccountsController extends Controller
 
         while ($remainingSum > 0) {
           foreach ($payment->getPayInvoices() as $invoice) {
-            $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
-            $monthAcc = $invoice->getMonthAccount();
-            $oldInvPaid = $invoice->getInvoicePaid();
-            if ($invoiceRemaining != 0) {
-              if ($individualSum < $invoiceRemaining) {
-                $invoice->setInvoicePaid($invoice->getInvoicePaid() + $individualSum);
-                $invoice->setIsPaid(false);
-                $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $individualSum);
-                $remainingSum = $remainingSum - $individualSum;
-              } elseif ($individualSum == $invoiceRemaining) {
-                $invoice->setInvoicePaid($invoice->getInvoicePaid() + $individualSum);
-                $invoice->setIsPaid(true);
-                $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $individualSum);
-                $remainingSum = $remainingSum - $individualSum;
-              } else {
-                $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoiceRemaining);
-                $invoice->setIsPaid(true);
-                $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoiceRemaining);
-                $remainingSum = $remainingSum - $invoiceRemaining;
-                $invoiceCount = $invoiceCount - 1;
-                //the following check is just as a precaution
-                if ($invoiceCount == 0) {
-                  $this->get('session')->getFlashBag()->add(
-                      'notice',
-                      'DEBUG - a existat o problema la calculare - te rugăm să verifici codul PHP!!!'
-                  );
-                  return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+            if ($remainingSum > 0) {
+              $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+              $monthAcc = $invoice->getMonthAccount();
+              $oldInvPaid = $invoice->getInvoicePaid();
+              if ($invoiceRemaining != 0) {
+                if ($individualSum < $invoiceRemaining) {
+                  $invoice->setInvoicePaid($invoice->getInvoicePaid() + $individualSum);
+                  $invoice->setIsPaid(false);
+                  $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $individualSum);
+                  $remainingSum = $remainingSum - $individualSum;
+                } elseif ($individualSum == $invoiceRemaining) {
+                  $invoice->setInvoicePaid($invoice->getInvoicePaid() + $individualSum);
+                  $invoice->setIsPaid(true);
+                  $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $individualSum);
+                  $remainingSum = $remainingSum - $individualSum;
+                } else {
+                  $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoiceRemaining);
+                  $invoice->setIsPaid(true);
+                  $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoiceRemaining);
+                  $remainingSum = $remainingSum - $invoiceRemaining;
+                  $invoiceCount = $invoiceCount - 1;
+                  //the following check is just as a precaution
+                  if ($invoiceCount == 0) {
+                    $this->get('session')->getFlashBag()->add(
+                        'notice',
+                        'DEBUG - a existat o problema la calculare - te rugăm să verifici codul PHP!!!'
+                    );
+                    return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+                  }
+                  $individualSum = $remainingSum/$invoiceCount;
                 }
-                $individualSum = $remainingSum/$invoiceCount;
+                $invoice->setInvoicePaidDate($payment->getPayDate());
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($invoice);
+                $entityManager->flush();
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($monthAcc);
+                $entityManager->flush();
               }
-              $invoice->setInvoicePaidDate($payment->getPayDate());
-
-              $entityManager = $this->getDoctrine()->getManager();
-              $entityManager->persist($invoice);
-              $entityManager->flush();
-
-              $entityManager = $this->getDoctrine()->getManager();
-              $entityManager->persist($monthAcc);
-              $entityManager->flush();
             }
           }
           $individualSum = $remainingSum/$invoiceCount;
