@@ -45,7 +45,7 @@ class UserMyaccountType extends AbstractType
                 'options' => array('attr' => array('class' => 'form-control')),
                 'required' => true,
                 'empty_data' => '',
-                'first_options'  => array('label' => 'Parolă'),
+                'first_options'  => array('label' => 'Parolă Nouă'),
                 'second_options' => array('label' => 'Repetă Parola'),
                 'error_mapping' => array(
                     '.' => 'first',

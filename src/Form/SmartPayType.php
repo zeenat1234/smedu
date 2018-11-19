@@ -107,6 +107,7 @@ class SmartPayType extends AbstractType
                 'class' => 'form-control currency',
                 'placeholder' => '0,00'
               ),
+              'data' => 0,
             ))
         ;
 

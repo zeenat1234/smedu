@@ -2527,103 +2527,105 @@ class AccountsController extends Controller
             } else {
               $summary = $summary." - 1x factură\n";
               // use $allCreatedItems
-              $newInvoice = new AccountInvoice();
-              $newInvoice->setMonthAccount($account);
+              if ( count($allCreatedItems) > 0) {
+                $newInvoice = new AccountInvoice();
+                $newInvoice->setMonthAccount($account);
 
-              if ($data['invoice_date']) {
-                $newInvoice->setInvoiceDate($data['invoice_date']);
-              } else {
-                $newInvoice->setInvoiceDate(new \DateTime('now'));
-              }
-
-              /* INVOICE NUMBER LOGIC STARTS HERE */
-              $theUnit = $account->getStudent()->getSchoolUnit();
-
-              if ($data['auto_invoice'] == 'proforma') {
-                $newInvoice->setIsProforma(true);
-                $iserial = 'PRFM';
-                $inumber = 100;
-                $ititle = 'Factură Proforma Nr: ';
-              } elseif ($data['auto_invoice'] == 'fiscal') {
-                $iserial = $theUnit->getFirstInvoiceSerial();
-                $inumber = $theUnit->getFirstInvoiceNumber();
-                $ititle = 'Factură Fiscală Nr: ';
-              }
-
-              $latestInvoice = $this->getDoctrine()->getRepository
-              (AccountInvoice::class)->findLatestBySerial($iserial);
-
-              if ($latestInvoice == null) {
-
-                $newInvoice->setInvoiceSerial($iserial);
-                $newInvoice->setInvoiceNumber($inumber);
-
-                $newInvoice->setInvoiceName($ititle.$iserial.'-'.$inumber);
-              } else {
-                $newNumber = $latestInvoice->getInvoiceNumber()+1;
-                $newInvoice->setInvoiceSerial($iserial);
-                $newInvoice->setInvoiceNumber($newNumber);
-
-                $newInvoice->setInvoiceName($ititle.$iserial.'-'.$newNumber);
-              }
-              /* INVOICE NUMBER LOGIC ENDS HERE */
-
-              /* PAYEE DETAILS LOGIC STARTS HERE*/
-              $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
-              if ($gUser->getCustomInvoicing()) {
-                $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
-                $newInvoice->setPayeeName($gUser->getInvoicingName());
-                $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
-                $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
-                $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
-                $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
-              } else {
-                $newInvoice->setPayeeName($gUser->getRoName());
-              }
-              /* PAYEE DETAILS LOGIC ENDS HERE*/
-
-              $total = 0;
-
-              foreach ($allCreatedItems as $payItem) {
-                $payItem->setIsInvoiced(true);
-
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($payItem);
-                $entityManager->flush();
-
-                $newInvoice->addPaymentItem($payItem);
-                $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
-                $newInvoice->setInvoiceTotal($total);
-              }
-
-              if($data['save_invoice']) {
-                $newInvoice->setIsLocked(true);
-              }
-
-              $entityManager = $this->getDoctrine()->getManager();
-              $entityManager->persist($newInvoice);
-              $entityManager->flush();
-
-              if ($newInvoice->getInvoiceTotal() == 0) {
-                $newInvoice->setIsPaid(1);
-                $newInvoice->setIsLocked(true);
                 if ($data['invoice_date']) {
-                  $newInvoice->setInvoicePaidDate($data['invoice_date']);
+                  $newInvoice->setInvoiceDate($data['invoice_date']);
                 } else {
-                  $newInvoice->setInvoicePaidDate(new \DateTime('now'));
+                  $newInvoice->setInvoiceDate(new \DateTime('now'));
+                }
+
+                /* INVOICE NUMBER LOGIC STARTS HERE */
+                $theUnit = $account->getStudent()->getSchoolUnit();
+
+                if ($data['auto_invoice'] == 'proforma') {
+                  $newInvoice->setIsProforma(true);
+                  $iserial = 'PRFM';
+                  $inumber = 100;
+                  $ititle = 'Factură Proforma Nr: ';
+                } elseif ($data['auto_invoice'] == 'fiscal') {
+                  $iserial = $theUnit->getFirstInvoiceSerial();
+                  $inumber = $theUnit->getFirstInvoiceNumber();
+                  $ititle = 'Factură Fiscală Nr: ';
+                }
+
+                $latestInvoice = $this->getDoctrine()->getRepository
+                (AccountInvoice::class)->findLatestBySerial($iserial);
+
+                if ($latestInvoice == null) {
+
+                  $newInvoice->setInvoiceSerial($iserial);
+                  $newInvoice->setInvoiceNumber($inumber);
+
+                  $newInvoice->setInvoiceName($ititle.$iserial.'-'.$inumber);
+                } else {
+                  $newNumber = $latestInvoice->getInvoiceNumber()+1;
+                  $newInvoice->setInvoiceSerial($iserial);
+                  $newInvoice->setInvoiceNumber($newNumber);
+
+                  $newInvoice->setInvoiceName($ititle.$iserial.'-'.$newNumber);
+                }
+                /* INVOICE NUMBER LOGIC ENDS HERE */
+
+                /* PAYEE DETAILS LOGIC STARTS HERE*/
+                $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+                if ($gUser->getCustomInvoicing()) {
+                  $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
+                  $newInvoice->setPayeeName($gUser->getInvoicingName());
+                  $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
+                  $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
+                  $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                  $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+                } else {
+                  $newInvoice->setPayeeName($gUser->getRoName());
+                }
+                /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+                $total = 0;
+
+                foreach ($allCreatedItems as $payItem) {
+                  $payItem->setIsInvoiced(true);
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($payItem);
+                  $entityManager->flush();
+
+                  $newInvoice->addPaymentItem($payItem);
+                  $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+                  $newInvoice->setInvoiceTotal($total);
+                }
+
+                if($data['save_invoice']) {
+                  $newInvoice->setIsLocked(true);
                 }
 
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->persist($newInvoice);
                 $entityManager->flush();
-              }
 
-              if($data['save_invoice']) {
-                $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată și salvată!\n";
-              } elseif ($newInvoice->getIsPaid() == true) {
-                $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
-              } else {
-                $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată!\n";
+                if ($newInvoice->getInvoiceTotal() == 0) {
+                  $newInvoice->setIsPaid(1);
+                  $newInvoice->setIsLocked(true);
+                  if ($data['invoice_date']) {
+                    $newInvoice->setInvoicePaidDate($data['invoice_date']);
+                  } else {
+                    $newInvoice->setInvoicePaidDate(new \DateTime('now'));
+                  }
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newInvoice);
+                  $entityManager->flush();
+                }
+
+                if($data['save_invoice']) {
+                  $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată și salvată!\n";
+                } elseif ($newInvoice->getIsPaid() == true) {
+                  $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+                } else {
+                  $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată!\n";
+                }
               }
             } // end logic for 1x invoice
           } else {
