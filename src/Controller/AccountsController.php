@@ -2088,8 +2088,10 @@ class AccountsController extends Controller
             }
 
             if ($skip == false) {
+              $endDate = clone $data['end_date'];
+              $endDate->setTime(23, 59);
               $attendances = $this->getDoctrine()->getRepository
-              (OptionalsAttendance::class)->findAllForStudByInterval($data['start_date'], $data['end_date'], $student);
+              (OptionalsAttendance::class)->findAllForStudByInterval($data['start_date'], $endDate, $student);
 
               $paymentOptionals = array();
               $paymentOptionalsCount = array();

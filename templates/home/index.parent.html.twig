@@ -131,10 +131,10 @@
                 <p><strong>Status: </strong>Achitată parțial</p>
                 <p><strong>Data ultimei plăți: </strong> {{ latest_invoice.getInvoicePaidDate|localizeddate('medium','none','RO') }}</p>
                 <p><strong>Rest de plată: </strong>{{ (latest_invoice.invoiceTotal - latest_invoice.invoicePaid)|localizedcurrency('RON') }}</p>
-                <p><strong>Efectuare Plată:</strong> <a href="{{ path('myaccount_invoices') }}"><button class="btn btn-sm btn-success"><i class="fas fa-coins"></i> Achită</button></a></p>
+                <p><strong>Atașare Dovezi de Plată: </strong> <a href="{{ path('myaccount_invoices') }}"><button class="btn btn-sm btn-success"><i class="fas fa-coins"></i> Aici</button></a></p>
               {% elseif latest_invoice.invoicePaid == 0 %}
                 <p><strong>Status: </strong>Neachitată</p>
-                <p><strong>Efectuare Plată: </strong> <a href="{{ path('myaccount_invoices') }}"><button class="btn btn-sm btn-success"><i class="fas fa-coins"></i> Achită</button></a></p>
+                <p><strong>Atașare Dovezi de Plată: </strong> <a href="{{ path('myaccount_invoices') }}"><button class="btn btn-sm btn-success"><i class="fas fa-coins"></i> Aici</button></a></p>
               {% endif %}
             </div>
             {% endif %}
