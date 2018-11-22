@@ -93,6 +93,7 @@
           <th>ID</th>
           <th>Facturi</th>
           <th>Dovezi</th>
+          <th>Chitanțe</th>
           <th>Suma</th>
           <th>Avans</th>
           <th>Data</th>
@@ -120,6 +121,13 @@
                 <big><i class="fas fa-file-invoice-dollar fa-fw"></i></big>
               </a>
               {% endfor %}
+            </td>
+            <td>
+              {% if payment.getSmartReceipt is not empty %}
+              <a href="{{ path('smart_receipt_pdf',{'recId':payment.getSmartReceipt.getId}) }}" target="_blank">
+                <button class="btn-sm btn-outline-info"><i class="fas fa-eye"></i> Chitanță {{ payment.getSmartReceipt.getReceiptSerial ~ '-' ~ payment.getSmartReceipt.getReceiptNumber }}</button>
+              </a>
+              {% endif %}
             </td>
             <td>{{ payment.getPayAmount|localizedcurrency('RON') }}</td>
             <td>{{ payment.getPayAdvance|localizedcurrency('RON') }}</td>
