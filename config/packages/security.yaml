@@ -52,5 +52,6 @@ security:
         - { path: ^/smartpay/, roles: [ROLE_PARENT, ROLE_ADMIN] }
         - { path: ^/smartpay_proof/, roles: [ROLE_PARENT, ROLE_ADMIN] }
         - { path: ^/smartpay_prfrem/, roles: [ROLE_PARENT, ROLE_ADMIN] }
+        - { path: ^/smart_receipt_pdf/, roles: [ROLE_PARENT, ROLE_ADMIN] }
         - { path: ^/$, roles: [ROLE_CUSTOM,ROLE_PARENT,ROLE_ADMIN] }
         - { path: ^/, roles: [ROLE_CUSTOM, ROLE_ADMIN] }

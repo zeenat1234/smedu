@@ -1056,13 +1056,19 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/accounts/smart_receipt_pdf/{recId}", name="smart_receipt_pdf")
+     * @Route("/smart_receipt_pdf/{recId}", name="smart_receipt_pdf")
      * @Method({"GET"})
      */
     public function smart_receipt_pdf(Request $request, $recId)
     {
       $receipt = $this->getDoctrine()->getRepository
       (SmartReceipt::class)->find($recId);
+
+      if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
+        if ($receipt->getPayment()->getPayInvoices()[0]->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser() != $this->getUser()) {
+          return $this->redirectToRoute('myaccount_invoices');
+        }
+      }
 
       $students = array();
       foreach ($receipt->getPayment()->getPayInvoices() as $invoice) {

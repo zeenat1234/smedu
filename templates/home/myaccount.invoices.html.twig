@@ -69,6 +69,7 @@
                                 <i class="fas fa-eye"></i> Chitanța PDF
                               </button>
                             </a>
+
                           {% elseif invoice.getPayProof is not empty %}
                             <a href="{{ path('myacc_invoice_proof',{'invId':invoice.getId, 'action':'view'}) }}" target="_blank">
                               <button class="btn btn-primary">
@@ -161,6 +162,14 @@
                               <button disabled class="btn btn-sm btn-success" style="margin-bottom:2px">
                                 Plată confirmată pentru {{ payment.getNormalized }}
                               </button>
+                              {% if payment.getSmartReceipt is not empty %}
+                                <br>
+                                <a href="{{ path('smart_receipt_pdf',{'recId':payment.getSmartReceipt.getId}) }}" target="_blank">
+                                  <button class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Chitanța PDF
+                                  </button>
+                                </a>
+                              {% endif %}
                             {% else %}
                               <button disabled class="btn btn-sm btn-danger" style="margin-bottom:2px">
                                 Plată respinsă pentru {{ payment.getNormalized }}
