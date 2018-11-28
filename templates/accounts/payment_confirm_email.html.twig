@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PAY PROOF CONFIRMATION E-MAIL{% endblock %}
+
+{% block body %}
+<h1 class="kuraleFont">Salutare!</h1>
+
+<p>Dovada pentru plata cu numărul de înregistrare <strong>{{ payment.getId }}</strong> efectuată la data de {{ payment.getPayDate|localizeddate('long','none','RO') }}
+   a fost procesată și <strong>CONFIRMATĂ</strong>.</p>
+
+<p>Pentru a vedea detaliile, poți accesa platforma online la următorul link:</p>
+
+<p><a href="https://pc.iteachsmart.ro/">https://pc.iteachsmart.ro/</a></p>
+
+<p>Îți mulțumim că ai ales serviciile noastre.</p>
+
+<p>Cu drag,<br>
+<strong>Echipa "Planeta Copiilor"</strong></p>
+
+<p><strong>Contact Departamentul Financiar : 0724212887</strong></p>
+
+<hr>
+
+<p><small>Această platformă a fost creată cu securitatea datelor în prim plan, așadar te asigurăm că orice conexiune
+cu platforma folosește encripție SSL/2048 biți, iar baza de date este stocată pe un server securizat prin firewall,
+antivirus și alte măsuri tehnice și organizatorice adecvate și necesare pentru a vă proteja datele personale.
+Serverul se află într-un datacenter din România beneficiind de redundanță, atât pentru hardware, internet și curent electric.</small></p>
+
+<!-- This is the base template
+<h1>Planeta Copiilor - Activare Cont</h1>
+<br>
+<p><b>Utilizator: </b>{# user.email #}</p>
+<p><b>Parolă: </b>{# plainpass #}</p> -->
+
+{% endblock %}

@@ -439,7 +439,7 @@ class AccountsController extends Controller
     /**
      * @Route("/accounts/smartpay_confirm/{payId}/{accId}/{redirect?'no'}", name="smart_pay_confirm")
      */
-    public function smart_pay_confirm(Request $request, $payId, $accId, $redirect)
+    public function smart_pay_confirm(Request $request, $payId, $accId, $redirect, \Swift_Mailer $mailer)
     {
       $payment = $this->getDoctrine()->getRepository
       (Payment::class)->find($payId);
@@ -624,6 +624,33 @@ class AccountsController extends Controller
         );
       }
 
+      $parentUser = $payment->getPayInvoices()[0]->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser();
+
+      if ($payment->getIsConfirmed() == true) {
+        $message = (new \Swift_Message('Planeta Copiilor - Confirmare plată'))
+          ->setFrom('no-reply@iteachsmart.ro')
+          ->setTo($parentUser->getEmail())
+          ->setBody(
+              $this->renderView(
+                  'accounts/payment_confirm_email.html.twig',
+                  array('payment' => $payment)
+              ),
+              'text/html'
+          )
+        ;
+
+        if ($parentUser->getNotifySecond()) {
+          $secondaryEmail = $parentUser->getSecondaryEmail();
+          $message->setCc($secondaryEmail);
+        }
+
+        $mailer->send($message);
+
+        //console.log('A mers!');
+        //$response = new Response();
+        //$response->send();
+      }
+
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
@@ -637,7 +664,7 @@ class AccountsController extends Controller
     /**
      * @Route("/accounts/smartpay_deny/{payId}/{accId}/{redirect?'no'}", name="smart_pay_deny")
      */
-    public function smart_pay_deny(Request $request, $payId, $accId, $redirect)
+    public function smart_pay_deny(Request $request, $payId, $accId, $redirect, \Swift_Mailer $mailer)
     {
       $payment = $this->getDoctrine()->getRepository
       (Payment::class)->find($payId);
@@ -653,6 +680,38 @@ class AccountsController extends Controller
           'hurray',
           'Plata a fost RESPINSĂ cu succes!'
       );
+
+      if ($payment->getPaymentProofs()->count() == 0) {
+        $reason = "Ordinul de plată nu a fost atașat. Te rugăm să folosești unul din formatele suportate de platformă (PDF, JPG, JPEG, PNG)!";
+      } else {
+        if ($payment->getPayInvoices()->count() == 1) {
+          $reason = "Dovada de plată nu corespunde sumei facturii selectate. Te rugăm să urmezi cu atenție instrucțiunile din platformă.";
+        } else {
+          $reason = "Dovada de plată nu corespunde sumei facturilor selectate. Te rugăm să urmezi cu atenție instrucțiunile din platformă.";
+        }
+      }
+
+      $parentUser = $payment->getPayInvoices()[0]->getMonthAccount()->getStudent()->getUser()->getGuardian()->getUser();
+
+      $message = (new \Swift_Message('Planeta Copiilor - Plată RESPINSĂ'))
+        ->setFrom('no-reply@iteachsmart.ro')
+        ->setTo($parentUser->getEmail())
+        ->setBody(
+            $this->renderView(
+                'accounts/payment_reject_email.html.twig',
+                array('payment' => $payment, 'reason' => $reason)
+            ),
+            'text/html'
+        )
+      ;
+
+      if ($parentUser->getNotifySecond()) {
+        $secondaryEmail = $parentUser->getSecondaryEmail();
+        $message->setCc($secondaryEmail);
+      }
+
+      $mailer->send($message);
+
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
