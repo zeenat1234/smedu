@@ -1,0 +1,171 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Rute transport{% endblock %}
+
+{% block body %}
+  <h1 class="coinyFont">Înscrieri Transport - {{ current_year.getYearlabel|lower }}</h1>
+  {% for flashMessage in app.session.flashbag.get('notice') %}
+    <br>
+    <div id="message">
+      <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-danger fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ flashMessage|nl2br }}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  {% for flashMessage in app.session.flashbag.get('hurray') %}
+    <br>
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|nl2br }}
+        </div>
+    </div>
+    </div>
+  {% endfor %}
+  <br>
+  <p>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#new-route-modal">
+      <i class="fas fa-plus"></i> Înscrieri
+    </button>
+    <!-- The Modal for SmartProof START -->
+    <div class="modal fade" id="new-route-modal">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          {{ form_start(form) }}
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h4 class="modal-title kuraleFont">Înscrieri Transport</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+
+          <!-- Modal body -->
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-6">
+                {{ form_label(form.price) }}
+                {{ form_widget(form.price) }}
+              </div>
+              <div class="col-6">
+                {{ form_label(form.pricePerKm) }}
+                <br>
+                {{ form_widget(form.pricePerKm[0]) }} {{ form_label(form.pricePerKm[0]) }}
+                <br>
+                {{ form_widget(form.pricePerKm[1]) }} {{ form_label(form.pricePerKm[1]) }}
+              </div>
+            </div>
+            <hr>
+            {{ form_label(form.students) }} <br>
+            <div class="row">
+              {% for f in form.students %}
+                <div class="col-12 col-md-6">
+                  {{ form_widget(f) }} {{ form_label(f) }}
+                </div>
+              {% endfor %}
+            </div>
+            <br>
+          </div>
+
+          <!-- Modal footer -->
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success test">Salvează</button>
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+          </div>
+          {{ form_end(form) }}
+        </div>
+      </div>
+    </div>
+    <!-- The Modal for SmartProof Edit END -->
+  </p>
+
+  <br>
+  {% if routes is empty %}
+    Nu există rute definite pentru acest an școlar.
+  {% else %}
+    {% set i = 1 %}
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th>Nr.</th>
+          <th>Elev</th>
+          <th>Distanță</th>
+          <th>Taxare</th>
+          <th>Preț</th>
+          <th style="text-align: center;"><i class="fas fa-trash-alt"></i></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for route in routes %}
+          <tr id="routes_row">
+            <td>{{ i }}</td>
+            <td>
+              <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#route-modal-{{ route.id }}">
+                <i class="fas fa-eye"></i>
+              </button>
+
+              {{ route.getStudent.getUser.getRoName }}
+
+              <!-- The Modal for SmartProof START -->
+              <div class="modal fade" id="route-modal-{{ route.id }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    {{ form_start(forms[i - 1]) }}
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title kuraleFont">Opțiuni Transport - {{ route.getStudent.getUser.getRoName }}</h4>
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      {{ form_row(forms[i - 1].distance) }}
+                      {{ form_label(forms[i - 1].pricePerKm) }}
+                        {{ form_widget(forms[i - 1].pricePerKm[0]) }} {{ form_label(forms[i - 1].pricePerKm[0]) }}
+                        {{ form_widget(forms[i - 1].pricePerKm[1]) }} {{ form_label(forms[i - 1].pricePerKm[1]) }}
+
+                      {{ form_row(forms[i - 1].price) }}
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-success test">Salvează</button>
+                      <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+                    </div>
+                    {{ form_end(forms[i - 1]) }}
+                  </div>
+                </div>
+              </div>
+              <!-- The Modal for SmartProof Edit END -->
+            </td>
+            <td>{{ route.getDistance }} km</td>
+            <td>
+              {% if route.pricePerKm %}
+                Preț/km
+              {% else %}
+                Preț/drum
+              {% endif %}
+            </td>
+            <td>{{ route.getPrice|localizedcurrency('RON') }}</td>
+            <td style="text-align: center;">
+              <a href="{{ path('remove_route',{'id':route.id}) }}">
+                <button class="btn btn-sm btn-danger"><i class="fas fa-minus-circle"></i></button>
+              </a>
+            </td>
+          </tr>
+          {% set i = i + 1 %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  $('[id^="new-route-modal"]').appendTo("body");
+  $('[id^="route-modal"]').appendTo("body");
+</script>
+{% endblock %}

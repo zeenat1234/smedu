@@ -1,0 +1,51 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block extrastylesheets %}
+  <script src="{{ asset('js/bootstrap-year-calendar.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ asset('css/bootstrap-year-calendar.min.css') }}">
+{% endblock %}
+
+{% block title %}Transport{% endblock %}
+
+{% block body %}
+
+    <h2 class="coinyFont">Calendar Transport</h2>
+    <p>Alege ziua pentru care vrei să verifici sau să modifici serviciile de transport pentru elevi:</p>
+    <div id="the-dates"
+    data-min-date="{{ schoolyear.getStartDate|localizeddate('none','none','ro', null, 'yyyy-MM-dd') }}"
+    data-max-date="{{ schoolyear.getEndDate|localizeddate('none','none','ro', null, 'yyyy-MM-dd') }}"
+    />
+
+    <div class="calendar"></div>
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+
+  var minDate = new Date($('#the-dates').data('minDate'));
+  var maxDate = new Date($('#the-dates').data('maxDate'));
+
+  var studId = $(location).attr("href").substr($(location).attr("href").lastIndexOf('/') + 1);
+
+  $(function() {
+    var currentYear = new Date().getFullYear();
+
+    $('.calendar').calendar({
+        minDate: minDate,
+        maxDate: maxDate,
+    });
+  });
+
+  $('.calendar').clickDay(function(e){
+    var day = '' + e.date.getDate();
+    var month = '' + (e.date.getMonth() + 1);
+    var year = '' + e.date.getFullYear();
+
+    if (day.length < 2) day = '0' + day;
+    if (month.length < 2) month = '0' + month;
+
+    window.location.href = "/transport/trips/"+year+"-"+month+"-"+day;
+  });
+
+  </script>
+{% endblock %}

@@ -56,11 +56,22 @@ class Student
      */
     private $monthAccounts;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\TransportRoute", mappedBy="student", cascade={"persist", "remove"})
+     */
+    private $transportRoute;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\TransportTrip", mappedBy="student", orphanRemoval=true)
+     */
+    private $transportTrips;
+
     public function __construct()
     {
         $this->ClassOptionals = new ArrayCollection();
         $this->optionalsAttendances = new ArrayCollection();
         $this->monthAccounts = new ArrayCollection();
+        $this->transportTrips = new ArrayCollection();
     }
 
     public function getId()
@@ -241,6 +252,66 @@ class Student
             // set the owning side to null (unless already changed)
             if ($monthAccount->getStudent() === $this) {
                 $monthAccount->setStudent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getTransportRoute(): ?TransportRoute
+    {
+        return $this->transportRoute;
+    }
+
+    public function setTransportRoute(TransportRoute $transportRoute): self
+    {
+        $this->transportRoute = $transportRoute;
+
+        // set the owning side of the relation if necessary
+        if ($this !== $transportRoute->getStudent()) {
+            $transportRoute->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|TransportTrip[]
+     */
+    public function getTransportTrips(): Collection
+    {
+        return $this->transportTrips;
+    }
+
+    public function getTransportTripByDay($date): ?TransportTrip
+    {
+        $criteria = Criteria::create()
+          ->where(Criteria::expr()->eq("student", $this))
+          ->where(Criteria::expr()->eq("date", (new \DateTime($date))))
+          ->setFirstResult(0)
+          ->setMaxResults(1)
+        ;
+
+        return $this->transportTrips->matching($criteria)[0];
+    }
+
+    public function addTransportTrip(TransportTrip $transportTrip): self
+    {
+        if (!$this->transportTrips->contains($transportTrip)) {
+            $this->transportTrips[] = $transportTrip;
+            $transportTrip->setStudent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransportTrip(TransportTrip $transportTrip): self
+    {
+        if ($this->transportTrips->contains($transportTrip)) {
+            $this->transportTrips->removeElement($transportTrip);
+            // set the owning side to null (unless already changed)
+            if ($transportTrip->getStudent() === $this) {
+                $transportTrip->setStudent(null);
             }
         }
 

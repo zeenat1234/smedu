@@ -121,7 +121,7 @@
             <div class="col">
               <p><strong>Suma: </strong>{{ latest_invoice.invoiceTotal|localizedcurrency('RON') }}</p>
               <p><strong>Data emiterii: </strong>{{ latest_invoice.getInvoiceDate|localizeddate('medium','none','RO') }}</p>
-              <p><strong>Termen de plată: </strong> {{ latest_invoice.getInvoiceDate|date_modify("+4 weeks")|localizeddate('medium','none','RO') }}</p>
+              <p><strong>Termen de plată: </strong> {{ latest_invoice.getInvoiceDate|date_modify("+1 weeks")|localizeddate('medium','none','RO') }}</p>
             </div>
             <div class="col">
               {% if latest_invoice.isPaid and latest_invoice.invoiceTotal == latest_invoice.invoicePaid %}

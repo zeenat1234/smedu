@@ -1,0 +1,170 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Prezențe Transport{% endblock %}
+
+{% block body %}
+
+  <h1 class="coinyFont">Prezențe Transport - {{ date|localizeddate('long','none') }}</h1>
+  {% for flashMessage in app.session.flashbag.get('notice') %}
+    <br>
+    <div id="message">
+      <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ flashMessage|nl2br }}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  <table class="table">
+    <thead class="thead-dark">
+      <th>
+        Elev
+      </th>
+      <th width=7%>
+        Distanță Dus
+      </th>
+      <th width=7%>
+        Distanță Întors
+      </th>
+      <th width=5%></th>
+      <th>
+        Drum
+      </th>
+      <th width=12%>
+        Preț
+      </th>
+      <th>
+        Taxare
+      </th>
+    </thead>
+    <tbody>
+      {% set i = 0 %}
+      {{ form_start(form) }}
+      {% for f in form.trips %}
+        <tr class="trip_row" id="attendance_mod_edit_row">
+          <td>
+            {{ f.vars.value.student.getUser.getRoName|title }}
+          </td>
+          <td>
+            {{ form_widget(f.distance1) }}
+          </td>
+          <td>
+            {{ form_widget(f.distance2) }}
+          </td>
+          <td></td>
+          <td>
+            <div class="row triptype_row">
+              <div class="col-auto">
+                {{ form_widget(f.tripType[0]) }} {{ form_label(f.tripType[0]) }}
+              </div>
+              <div class="col-auto">
+                {{ form_widget(f.tripType[3]) }} {{ form_label(f.tripType[3]) }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-auto">
+                {{ form_widget(f.tripType[1]) }} {{ form_label(f.tripType[1]) }}
+              </div>
+              <div class="col">
+                {{ form_widget(f.tripType[2]) }} {{ form_label(f.tripType[2]) }}
+              </div>
+            </div>
+          </td>
+          <td>
+            {{ form_widget(f.price) }}
+          </td>
+          <td>
+            {{ form_widget(f.pricePerKm[0]) }} {{ form_label(f.pricePerKm[0]) }} <br>
+            {{ form_widget(f.pricePerKm[1]) }} {{ form_label(f.pricePerKm[1]) }}
+          </td>
+        </tr>
+        {% set i = i + 1 %}
+      {% endfor %}
+      <tr>
+        <td colspan=6 style="text-align:center;">
+          <button class="btn btn-primary" type="submit"><i class="fas fa-cloud-upload-alt"></i> Actualizează Transport</button>
+        </td>
+      </tr>
+      {{ form_end(form) }}
+    </tbody>
+  </table>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+
+  $(document).ready(function () {
+
+    $("#submitBtn").prop('disabled', true);
+
+    $(".trip_row").each(function () {
+      $(this).find("[id^='trips_form_trips_']").change(function () {
+
+        if ($(this).parent().find("[id$='pricePerKm_0']").prop('checked')) {
+          $(this).parents().eq(1).find("[id$='distance1']").prop('disabled', false);
+          $(this).parents().eq(1).find("[id$='distance2']").prop('disabled', false);
+        }
+
+        if ($(this).parent().find("[id$='tripType_0']").prop('checked')) {
+          $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', true);
+          $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', true);
+          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+        }
+        if ($(this).parent().find("[id$='tripType_1']").prop('checked')) {
+          $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', false);
+          $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', true);
+          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+        }
+        if ($(this).parent().find("[id$='tripType_2']").prop('checked')) {
+          $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', true);
+          $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', false);
+          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+        }
+        if ($(this).parent().find("[id$='tripType_3']").prop('checked')) {
+          $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', false);
+          $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', false);
+          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+        }
+
+        if ($(this).parent().find("[id$='pricePerKm_1']").prop('checked')) {
+          $(this).parents().eq(1).find("[id$='distance1']").prop('disabled', true);
+          $(this).parents().eq(1).find("[id$='distance2']").prop('disabled', true);
+          $(this).parents().eq(1).find("[id$='tripType_3']").prop('checked', true);
+        }
+
+      });
+
+      if ($(this).find("[id$='tripType_0']").prop('checked')) {
+        $(this).find("[id$='distance1']").prop('disabled', true);
+        $(this).find("[id$='distance2']").prop('disabled', true);
+      }
+      if ($(this).find("[id$='tripType_1']").prop('checked')) {
+        $(this).find("[id$='distance1']").prop('disabled', false);
+        $(this).find("[id$='distance2']").prop('disabled', true);
+      }
+      if ($(this).find("[id$='tripType_2']").prop('checked')) {
+        $(this).find("[id$='distance1']").prop('disabled', true);
+        $(this).find("[id$='distance2']").prop('disabled', false);
+      }
+      if ($(this).find("[id$='tripType_3']").prop('checked')) {
+        $(this).find("[id$='distance1']").prop('disabled', false);
+        $(this).find("[id$='distance2']").prop('disabled', false);
+      }
+
+      if ($(this).find("[id$='pricePerKm_1']").prop('checked')) {
+        $(this).find("[id$='distance1']").prop('disabled', true);
+        $(this).find("[id$='distance2']").prop('disabled', true);
+        $(this).find("[id$='tripType_3']").prop('checked', true);
+      }
+
+    });
+
+
+
+  });
+
+</script>
+{% endblock %}

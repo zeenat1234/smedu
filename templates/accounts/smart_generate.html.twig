@@ -31,7 +31,7 @@
       {% endfor %}
     </div>
     <hr>
-    <button type="button" class="btn btn-info" onclick="ShowHideFunction();return false;"><i class="fas fa-users fa-fw"></i> Studenți</button>
+    <button type="button" class="btn btn-info" onclick="ShowHideFunction();return false;"><i class="fas fa-users fa-fw"></i> Elevi</button>
     <br>
     <div id="smartGenStuds">
       <br>
@@ -135,7 +135,15 @@
     }
 
     $('#smart_generate_pay_item_type_1').change(function(){
-      if ($('#smart_generate_pay_item_type_1').prop('checked')) {
+      if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
+        document.getElementById('smartGenOptDates').style.maxHeight = "200px";
+      } else {
+        document.getElementById('smartGenOptDates').style.maxHeight = "0";
+      }
+    });
+
+    $('#smart_generate_pay_item_type_2').change(function(){
+      if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
         document.getElementById('smartGenOptDates').style.maxHeight = "200px";
       } else {
         document.getElementById('smartGenOptDates').style.maxHeight = "0";
@@ -152,7 +160,7 @@
       }
     });
 
-    if ($('#smart_generate_pay_item_type_1').prop('checked')) {
+    if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
       document.getElementById('smartGenOptDates').style.maxHeight = "200px";
     } else {
       document.getElementById('smartGenOptDates').style.maxHeight = "0";

@@ -22,6 +22,7 @@ use App\Entity\AccountReceipt;
 use App\Entity\SmartReceipt;
 use App\Entity\Payment;
 use App\Entity\PaymentProof;
+use App\Entity\TransportTrip;
 
 #form type definition
 use App\Form\PaymentItemType;
@@ -1967,7 +1968,7 @@ class AccountsController extends Controller
 
       $allActiveStudents = array();
       foreach ($allStudents as $student) {
-        if ($student->getUser()->getChildLatestEnroll()->getIsActive() == true) {
+        if ($student->getEnrollment()->getIsActive() == true) {
           $allActiveStudents[] = $student;
         }
       }
@@ -2084,7 +2085,7 @@ class AccountsController extends Controller
             $entityManager->flush();
             // END School Service Tax
             $allCreatedItems[] = $serviceTaxItem;
-            $summary = $summary."----> Taxa adăugată: ".$serviceTaxItem->getItemName()." în valoare de ".$serviceTaxItem->getItemPrice()." RON\n";
+            $summary = $summary."----> Taxă adăugată: ".$serviceTaxItem->getItemName()." în valoare de ".$serviceTaxItem->getItemPrice()." RON\n";
 
             // HANDLE ADVANCE
             foreach ($student->getMonthAccounts() as $oneAccount) {
@@ -2204,9 +2205,8 @@ class AccountsController extends Controller
                 $entityManager->persist($account);
                 $entityManager->flush();
 
-                $summary = $summary."----> Taxa opțional adăugată: ".$payItem->getItemName()." în valoare de ".$payItem->getItemPrice()*$payItem->getItemCount()." RON\n";
+                $summary = $summary."----> Taxă opțional adăugată: ".$payItem->getItemName()." în valoare de ".$payItem->getItemPrice()*$payItem->getItemCount()." RON\n";
               }
-              //TODO: Get Transport Taxes (not here, lower down)
             }
           } // finish adding optionals
 
@@ -2247,6 +2247,105 @@ class AccountsController extends Controller
             }
             $summary = $summary."----> Servicii din urmă adăugate: ".count($noninvItems)."\n";
           }
+
+          if (in_array('transport', $data['pay_item_type'])) {
+            $summary = $summary."--> Adăugăm transport! \n";
+            //check dates validity first
+            $skip = false;
+            if (!$data['start_date']) {
+              $summary = $summary."----> Nu există zi de start pentru transport \n";
+              $skip = true;
+            }
+            if (!$data['end_date']) {
+              $summary = $summary."----> Nu există zi de sfârșit pentru transport \n";
+              $skip = true;
+            }
+            if ($data['start_date'] > $data['end_date']) {
+              $summary = $summary."----> Data de start trebuie să fie înainte sau în aceeași zi cu data de sfârșit! Transportul nu va fi generat.\n";
+              $skip = true;
+            }
+
+            if ($skip == false) {
+              $endDate = clone $data['end_date'];
+              $endDate->setTime(23, 59);
+              $trips = $this->getDoctrine()->getRepository
+              (TransportTrip::class)->findAllForStudByInterval($data['start_date'], $endDate, $student);
+
+              $totalKm = 0;
+              $totalPrice = 0;
+              $totalFixedPrice = 0;
+              $tripsCount = 0;
+              $fixedTripsCount = 0;
+
+              foreach ($trips as $trip) {
+                if ($trip->getPricePerKm() == 1) {
+                  if ($trip->getTripType() == 1) {
+                    $totalKm = $totalKm + $trip->getDistance1();
+                    $totalPrice = $totalPrice + $trip->getDistance1()*$trip->getPrice();
+                    $tripsCount = $tripsCount +1;
+                  } elseif ($trip->getTripType() == 2) {
+                    $totalKm = $totalKm + $trip->getDistance2();
+                    $totalPrice = $totalPrice + $trip->getDistance2()*$trip->getPrice();
+                    $tripsCount = $tripsCount +1;
+                  } elseif ($trip->getTripType() == 3) {
+                    $totalKm = $totalKm + $trip->getDistance1() + $trip->getDistance2();
+                    $totalPrice = $totalPrice + $trip->getDistance1()*$trip->getPrice() + $trip->getDistance2()*$trip->getPrice();
+                    $tripsCount = $tripsCount +2;
+                  }
+                } else {
+                  $totalFixedPrice = $totalFixedPrice + $trip->getPrice();
+                  $fixedTripsCount = $fixedTripsCount+1;
+                }
+              }
+
+              // Creating items based on this array
+              $transportPayItems = array();
+              if ($totalPrice > 0) {
+                $payItem = new PaymentItem();
+                $payItem->setMonthAccount($account);
+                $payItem->setItemName("Taxă transport (".$tripsCount." drumuri, ".$totalKm." km)");
+                $payItem->setItemPrice($totalPrice);
+                $payItem->setItemCount(1);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($payItem);
+                $entityManager->flush();
+
+                $allCreatedItems[] = $payItem;
+                $transportPayItems[] = $payItem;
+
+                $account->addPaymentItem($payItem);
+                $account->addToTotalPrice($payItem->getItemPrice()*$payItem->getItemCount());
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($account);
+                $entityManager->flush();
+
+                $summary = $summary."----> Taxă transport adăugată: ".$payItem->getItemName()." în valoare de ".$payItem->getItemPrice()*$payItem->getItemCount()." RON\n";
+              }
+              if ($totalFixedPrice > 0) {
+                $payItem = new PaymentItem();
+                $payItem->setMonthAccount($account);
+                $payItem->setItemName("Taxă fixă transport (".$fixedTripsCount." drumuri)");
+                $payItem->setItemPrice($totalFixedPrice);
+                $payItem->setItemCount(1);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($payItem);
+                $entityManager->flush();
+
+                $allCreatedItems[] = $payItem;
+                $transportPayItems[] = $payItem;
+
+                $account->addPaymentItem($payItem);
+                $account->addToTotalPrice($payItem->getItemPrice()*$payItem->getItemCount());
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($account);
+                $entityManager->flush();
+
+                $summary = $summary."----> Taxă transport adăugată: ".$payItem->getItemName()." în valoare de ".$payItem->getItemPrice()*$payItem->getItemCount()." RON\n";
+              }
+            }
+          } // finish adding transport tax
 
           //check invoicing
           if ($data['auto_invoice']) {
@@ -2587,6 +2686,114 @@ class AccountsController extends Controller
                 }
               }
               //TODO add transport condition here
+              if (in_array('transport', $data['pay_item_type'])) {
+                if (count($transportPayItems) > 0) {
+                  $newInvoice4 = new AccountInvoice();
+                  $newInvoice4->setMonthAccount($account);
+
+                  if ($data['invoice_date']) {
+                    $newInvoice4->setInvoiceDate($data['invoice_date']);
+                  } else {
+                    $newInvoice4->setInvoiceDate(new \DateTime('now'));
+                  }
+
+                  /* INVOICE NUMBER LOGIC STARTS HERE */
+                  $theUnit = $account->getStudent()->getSchoolUnit();
+
+                  if ($data['auto_invoice'] == 'proforma') {
+                    $newInvoice4->setIsProforma(true);
+                    $iserial = 'PRFM';
+                    $inumber4 = 100;
+                    $ititle = 'Factură Proforma Nr: ';
+                  } elseif ($data['auto_invoice'] == 'fiscal') {
+                    $iserial = $theUnit->getFirstInvoiceSerial();
+                    $inumber4 = $theUnit->getFirstInvoiceNumber();
+                    $ititle = 'Factură Fiscală Nr: ';
+                  }
+
+                  $latestInvoice = $this->getDoctrine()->getRepository
+                  (AccountInvoice::class)->findLatestBySerial($iserial);
+
+                  if ($latestInvoice == null) {
+
+                    $newInvoice4->setInvoiceSerial($iserial);
+                    $newInvoice4->setInvoiceNumber($inumber4);
+
+                    $newInvoice4->setInvoiceName($ititle.$iserial.'-'.$inumber4);
+
+                  } else {
+                    $newNumber4 = $latestInvoice->getInvoiceNumber()+1;
+                    $newInvoice4->setInvoiceSerial($iserial);
+                    $newInvoice4->setInvoiceNumber($newNumber4);
+
+                    $newInvoice4->setInvoiceName($ititle.$iserial.'-'.$newNumber4);
+
+                  }
+                  /* INVOICE NUMBER LOGIC ENDS HERE */
+
+                  /* PAYEE DETAILS LOGIC STARTS HERE*/
+                  $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+                  if ($gUser->getCustomInvoicing()) {
+                    $newInvoice4->setPayeeIsCompany($gUser->getIsCompany());
+                    $newInvoice4->setPayeeName($gUser->getInvoicingName());
+                    $newInvoice4->setPayeeAddress($gUser->getInvoicingAddress());
+                    $newInvoice4->setPayeeIdent($gUser->getInvoicingIdent());
+                    $newInvoice4->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                    $newInvoice4->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+                  } else {
+                    $newInvoice4->setPayeeName($gUser->getRoName());
+                  }
+                  /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+                  $total = 0;
+
+                  foreach ($transportPayItems as $payItem) {
+                    if ($payItem->getIsInvoiced() == false) {
+                      $payItem->setIsInvoiced(true);
+
+                      $entityManager = $this->getDoctrine()->getManager();
+                      $entityManager->persist($payItem);
+                      $entityManager->flush();
+
+                      $newInvoice4->addPaymentItem($payItem);
+                      $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+                      $newInvoice4->setInvoiceTotal($total);
+                    }
+                  }
+
+                  if($data['save_invoice']) {
+                    $newInvoice4->setIsLocked(true);
+                  }
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newInvoice4);
+                  $entityManager->flush();
+
+                  if ($newInvoice4->getInvoiceTotal() == 0) {
+                    $newInvoice4->setIsPaid(1);
+                    $newInvoice4->setIsLocked(true);
+                    if ($data['invoice_date']) {
+                      $newInvoice4->setInvoicePaidDate($data['invoice_date']);
+                    } else {
+                      $newInvoice4->setInvoicePaidDate(new \DateTime('now'));
+                    }
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($newInvoice4);
+                    $entityManager->flush();
+                  }
+
+                  if($data['save_invoice']) {
+                    $summary = $summary."----> ".$newInvoice4->getInvoiceName()." a fost creată și salvată!\n";
+                  } elseif ($newInvoice4->getIsPaid() == true) {
+                    $summary = $summary."----> ".$newInvoice4->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+                  } else {
+                    $summary = $summary."----> ".$newInvoice4->getInvoiceName()." a fost creată!\n";
+                  }
+                } else {
+                  $summary = $summary."----------> Nu există drumuri făcute pentru taxa de transport!\n";
+                }
+              } // end logic for transport tax
 
             // end logic for multiple invoices
             } else {

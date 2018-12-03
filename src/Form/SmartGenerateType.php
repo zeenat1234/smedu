@@ -50,7 +50,7 @@ class SmartGenerateType extends AbstractType
                 'class'        => Student::class,
                 'choices'      => $options['students'],
                 'choice_label' => 'user.getroname',
-                'label'        => 'Alege studenții doriți:',
+                'label'        => 'Alege elevii doriți:',
                 'expanded'     => true,
                 'multiple'     => true,
                 'attr'         => array(
@@ -65,8 +65,9 @@ class SmartGenerateType extends AbstractType
               'expanded' => true,
               'multiple' => true,
               'choices'  => array(
-                'Taxa Școlară' => 'tax',
+                'Taxă Școlară' => 'tax',
                 'Opționale' => 'optionals',
+                'Transport' => 'transport',
                 'Servicii nefacturate din urmă' => 'noninvoiced',
               ),
             ))
