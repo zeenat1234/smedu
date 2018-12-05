@@ -44,6 +44,13 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+// The following PHP overrides are used with Smart_Generate,
+// as it can take up a lot of time and memory particularly
+// with a large number of students (470 studs => 300 secs)
+ini_set('max_execution_time', '-1');
+ini_set('max_input_time', '-1');
+ini_set('memory_limit', '512M');
+
 class AccountsController extends Controller
 {
     /**
@@ -1958,6 +1965,8 @@ class AccountsController extends Controller
      */
     public function smart_generate(Request $request)
     {
+      //ini_set('max_execution_time', '-1');
+
       $currentSchoolYear = $this->getDoctrine()->getRepository
       (SchoolYear::class)->findCurrentYear();
 
