@@ -567,8 +567,42 @@ class AccountsController extends Controller
         );
       }
       if ($payment->getPayMethod() == 'multiple_partial') {
+
+        $remainingSum = $payment->getPayAmount();
+
+        foreach ($payment->getPayInvoices() as $invoice) {
+          $monthAcc = $invoice->getMonthAccount();
+          $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
+          if ($remainingSum >= $invoiceRemaining) {
+            $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoiceRemaining);
+            $invoice->setIsPaid(true);
+            $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoiceRemaining);
+            $remainingSum = $remainingSum - $invoiceRemaining;
+          } elseif ($remainingSum < $invoiceRemaining && $remainingSum > 0) {
+            $invoice->setInvoicePaid($invoice->getInvoicePaid() + $remainingSum);
+            $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $remainingSum);
+            $remainingSum = 0;
+          } else {
+            $payment->removePayInvoice($invoice);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($payment);
+            $entityManager->flush();
+          }
+
+          $invoice->setInvoicePaidDate($payment->getPayDate());
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($invoice);
+          $entityManager->flush();
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($monthAcc);
+          $entityManager->flush();
+        }
+
+        // ------------- START THE OLD -------------
         //the following 2x lines are to distribute the sum equally between invoices
-        $invoiceCount = $payment->getPayInvoices()->count();
+        /*$invoiceCount = $payment->getPayInvoices()->count();
         $individualSum = $payment->getPayAmount() / $invoiceCount;
         $remainingSum = $payment->getPayAmount();
 
@@ -618,7 +652,10 @@ class AccountsController extends Controller
             }
           }
           $individualSum = $remainingSum/$invoiceCount;
-        }
+        } */
+        // ------------- END THE OLD -------------
+
+
         $payment->setIsPending(false);
         $payment->setIsConfirmed(true);
 
