@@ -1331,7 +1331,7 @@ class AccountsController extends Controller
       $newInvoice->setInvoiceNumber($newNumber);
       $newInvoice->setInvoiceTotal(0);
 
-      $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$iserial.'-'.$newNumber);
+      $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$iserial.'-'.sprintf("%'03d", $newNumber));
       /* INVOICE NUMBER LOGIC ENDS HERE */
 
       /* PAYEE DETAILS LOGIC STARTS HERE*/
@@ -1410,7 +1410,7 @@ class AccountsController extends Controller
         $invoice->setInvoiceNumber(100);
       }
 
-      $invoice->setInvoiceName('Factură Proforma Nr: '.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber());
+      $invoice->setInvoiceName('Factură Proforma Nr: '.$invoice->getInvoiceSerial().'-'.sprintf("%'03d", $invoice->getInvoiceNumber()));
 
       $entityManager = $this->getDoctrine()->getManager();
       $entityManager->flush();
@@ -1680,9 +1680,9 @@ class AccountsController extends Controller
                   $invoice->setInvoiceSerial(strtoupper($invoice->getInvoiceSerial()));
 
                   if ($invoice->getIsProforma()) {
-                    $invoice->setInvoiceName('Factură Proforma Nr: '.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber());
+                    $invoice->setInvoiceName('Factură Proforma Nr: '.$invoice->getInvoiceSerial().'-'.sprintf("%'03d", $invoice->getInvoiceNumber()));
                   } else {
-                    $invoice->setInvoiceName('Factură Fiscală Nr: '.$invoice->getInvoiceSerial().'-'.$invoice->getInvoiceNumber());
+                    $invoice->setInvoiceName('Factură Fiscală Nr: '.$invoice->getInvoiceSerial().'-'.sprintf("%'03d", $invoice->getInvoiceNumber()));
                   }
 
                   $entityManager = $this->getDoctrine()->getManager();
@@ -1901,13 +1901,13 @@ class AccountsController extends Controller
           $newInvoice->setInvoiceSerial($iserial);
           $newInvoice->setInvoiceNumber($inumber);
 
-          $newInvoice->setInvoiceName($ititle.$iserial.'-'.$inumber);
+          $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber));
         } else {
           $newNumber = $latestInvoice->getInvoiceNumber()+1;
           $newInvoice->setInvoiceSerial($iserial);
           $newInvoice->setInvoiceNumber($newNumber);
 
-          $newInvoice->setInvoiceName($ititle.$iserial.'-'.$newNumber);
+          $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber));
         }
         /* INVOICE NUMBER LOGIC ENDS HERE */
 
@@ -1985,7 +1985,7 @@ class AccountsController extends Controller
         $entityManager->persist($newInvoice);
         $entityManager->flush();
 
-        //TODO Change invoice number logic + ADD personal details logic (use comments)
+        //TODO Change invoice number logic + ADD personal details logic (use comments) + use serial-sprintf("%'03d", $newNumber)
         $newInvoice->setInvoiceName('Factură Fiscală Nr: '.$newInvoice->getId());
         //END TODO
         $entityManager = $this->getDoctrine()->getManager();
@@ -2233,7 +2233,7 @@ class AccountsController extends Controller
               foreach ($paymentOptionals as $paymentOptional) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
-                $payItem->setItemName($paymentOptional->getOptionalName());
+                $payItem->setItemName($paymentOptional->getOptionalName()." ".strtoupper($formatter->format($data['year_month'])));
                 $payItem->setItemPrice($paymentOptional->getPrice());
                 $payItem->setItemCount($paymentOptionalsCount[$paymentOptional->getOptionalName()]);
                 $payItem->setItemOptional($paymentOptional);
@@ -2437,14 +2437,14 @@ class AccountsController extends Controller
                   $newInvoice1->setInvoiceSerial($iserial);
                   $newInvoice1->setInvoiceNumber($inumber1);
 
-                  $newInvoice1->setInvoiceName($ititle.$iserial.'-'.$inumber1);
+                  $newInvoice1->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber1));
 
                 } else {
                   $newNumber1 = $latestInvoice->getInvoiceNumber()+1;
                   $newInvoice1->setInvoiceSerial($iserial);
                   $newInvoice1->setInvoiceNumber($newNumber1);
 
-                  $newInvoice1->setInvoiceName($ititle.$iserial.'-'.$newNumber1);
+                  $newInvoice1->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber1));
 
                 }
                 /* INVOICE NUMBER LOGIC ENDS HERE */
@@ -2549,14 +2549,14 @@ class AccountsController extends Controller
                     $newInvoice2->setInvoiceSerial($iserial);
                     $newInvoice2->setInvoiceNumber($inumber2);
 
-                    $newInvoice2->setInvoiceName($ititle.$iserial.'-'.$inumber2);
+                    $newInvoice2->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber2));
 
                   } else {
                     $newNumber2 = $latestInvoice->getInvoiceNumber()+1;
                     $newInvoice2->setInvoiceSerial($iserial);
                     $newInvoice2->setInvoiceNumber($newNumber2);
 
-                    $newInvoice2->setInvoiceName($ititle.$iserial.'-'.$newNumber2);
+                    $newInvoice2->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber2));
 
                   }
                   /* INVOICE NUMBER LOGIC ENDS HERE */
@@ -2658,14 +2658,14 @@ class AccountsController extends Controller
                     $newInvoice3->setInvoiceSerial($iserial);
                     $newInvoice3->setInvoiceNumber($inumber3);
 
-                    $newInvoice3->setInvoiceName($ititle.$iserial.'-'.$inumber3);
+                    $newInvoice3->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber3));
 
                   } else {
                     $newNumber3 = $latestInvoice->getInvoiceNumber()+1;
                     $newInvoice3->setInvoiceSerial($iserial);
                     $newInvoice3->setInvoiceNumber($newNumber3);
 
-                    $newInvoice3->setInvoiceName($ititle.$iserial.'-'.$newNumber3);
+                    $newInvoice3->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber3));
 
                   }
                   /* INVOICE NUMBER LOGIC ENDS HERE */
@@ -2765,14 +2765,14 @@ class AccountsController extends Controller
                     $newInvoice4->setInvoiceSerial($iserial);
                     $newInvoice4->setInvoiceNumber($inumber4);
 
-                    $newInvoice4->setInvoiceName($ititle.$iserial.'-'.$inumber4);
+                    $newInvoice4->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber4));
 
                   } else {
                     $newNumber4 = $latestInvoice->getInvoiceNumber()+1;
                     $newInvoice4->setInvoiceSerial($iserial);
                     $newInvoice4->setInvoiceNumber($newNumber4);
 
-                    $newInvoice4->setInvoiceName($ititle.$iserial.'-'.$newNumber4);
+                    $newInvoice4->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber4));
 
                   }
                   /* INVOICE NUMBER LOGIC ENDS HERE */
@@ -2877,13 +2877,13 @@ class AccountsController extends Controller
                   $newInvoice->setInvoiceSerial($iserial);
                   $newInvoice->setInvoiceNumber($inumber);
 
-                  $newInvoice->setInvoiceName($ititle.$iserial.'-'.$inumber);
+                  $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber));
                 } else {
                   $newNumber = $latestInvoice->getInvoiceNumber()+1;
                   $newInvoice->setInvoiceSerial($iserial);
                   $newInvoice->setInvoiceNumber($newNumber);
 
-                  $newInvoice->setInvoiceName($ititle.$iserial.'-'.$newNumber);
+                  $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber));
                 }
                 /* INVOICE NUMBER LOGIC ENDS HERE */
 

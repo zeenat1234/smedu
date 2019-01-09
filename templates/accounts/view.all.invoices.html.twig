@@ -110,7 +110,7 @@
                                     {% endif %}
                                     <tr valign="top">
                                       <td rowspan="{{ invoice.getPayments|length + 1 }}" width="25%">
-                                        {{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber }} <br>
+                                        {{ invoice.getInvoiceSerial ~ '-' ~ "%03d"|format(invoice.getInvoiceNumber) }} <br>
                                         {% if invoice.getInvoiceTotal - invoice.getInvoicePaid == 0 %}
                                           Plătit integral: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}
                                         {% elseif invoice.getInvoicePaid != 0 %}

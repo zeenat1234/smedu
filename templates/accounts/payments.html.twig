@@ -53,7 +53,7 @@
                   <i class="fas fa-eye fa-fw"></i>
                 </a>
                 {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
-                ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
+                ({{ invoice.getInvoiceSerial ~ '-' ~ "%03d"|format(invoice.getInvoiceNumber) ~ ', ' ~
                 invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
               {% endfor %}
             </td>
@@ -111,7 +111,7 @@
                   <i class="fas fa-eye fa-fw"></i>
                 </a>
                 {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
-                ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
+                ({{ invoice.getInvoiceSerial ~ '-' ~ "%03d"|format(invoice.getInvoiceNumber) ~ ', ' ~
                 invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
               {% endfor %}
             </td>
@@ -125,7 +125,7 @@
             <td>
               {% if payment.getSmartReceipt is not empty %}
               <a href="{{ path('smart_receipt_pdf',{'recId':payment.getSmartReceipt.getId}) }}" target="_blank">
-                <button class="btn-sm btn-outline-info"><i class="fas fa-eye"></i> Chitanță {{ payment.getSmartReceipt.getReceiptSerial ~ '-' ~ payment.getSmartReceipt.getReceiptNumber }}</button>
+                <button class="btn-sm btn-outline-info"><i class="fas fa-eye"></i> Chitanță {{ payment.getSmartReceipt.getReceiptSerial ~ '-' ~ "%03d"|format(payment.getSmartReceipt.getReceiptNumber) }}</button>
               </a>
               {% endif %}
             </td>
@@ -170,7 +170,7 @@
                   <i class="fas fa-eye fa-fw"></i>
                 </a>
                 {{ invoice.getMonthAccount.getStudent.getUser.getRoName }}
-                ({{ invoice.getInvoiceSerial ~ '-' ~ invoice.getInvoiceNumber ~ ', ' ~
+                ({{ invoice.getInvoiceSerial ~ '-' ~ "%03d"|format(invoice.getInvoiceNumber) ~ ', ' ~
                 invoice.getInvoiceTotal|localizedcurrency('RON') }}) <br>
               {% endfor %}
             </td>

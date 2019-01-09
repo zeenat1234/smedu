@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Chitanță Nr. {{ receipt.getReceiptSerial ~ '-' ~ receipt.getReceiptNumber }}</title>
+    <title>Chitanță Nr. {{ receipt.getReceiptSerial ~ '-' ~ "%03d"|format(receipt.getReceiptNumber) }}</title>
 
     <link rel="stylesheet" href="{{ app.request.scheme ~ '://' ~ app.request.host }}{{ asset('css/receipt_pdf.css') }}">
 </head>
@@ -52,7 +52,7 @@
                 <td style="vertical-align:top;">
                     <h2><strong>CHITANȚĂ</strong></h2>
                     <hr>
-                    Seria {{ receipt.getReceiptSerial }} nr {{ receipt.getReceiptNumber }} <br>
+                    Seria {{ receipt.getReceiptSerial }} nr {{ "%03d"|format(receipt.getReceiptNumber) }} <br>
                     Data emiterii: {{ receipt.getReceiptDate|localizeddate('short', 'none') }}<br>
                     <hr>
                 </td>
@@ -115,7 +115,7 @@
                       <span> reprezentând contravaloarea facturii {{ invoicetype }} seria </span>
                       <span class="grow">{{ receipt.getPayment.getPayInvoices[0].getInvoiceSerial }} </span>
                       <span> nr </span>
-                      <span class="grow" style="font-style:italic;">{{ receipt.getPayment.getPayInvoices[0].getInvoiceNumber }} </span>
+                      <span class="grow" style="font-style:italic;">{{ "%03d"|format(receipt.getPayment.getPayInvoices[0].getInvoiceNumber) }} </span>
                       <span> din data de </span>
                       <span class="grow">{{ receipt.getPayment.getPayInvoices[0].getInvoiceDate|localizeddate('short','none','RO') }}</span>
                       {% if payment.getPayAdvance != 0 %}
@@ -141,7 +141,7 @@
                         seria </span>
                         <span class="grow">{{ invoice.getInvoiceSerial }} </span>
                         <span> nr </span>
-                        <span class="grow" style="font-style:italic;">{{ invoice.getInvoiceNumber }} </span>
+                        <span class="grow" style="font-style:italic;">{{ "%03d"|format(invoice.getInvoiceNumber) }} </span>
                         <span> din data de </span>
                         <span class="grow">{{ invoice.getInvoiceDate|localizeddate('short','none','RO') }}, </span>
                         <br>
