@@ -3,6 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\OptionalsAttendance;
+use App\Entity\Student;
+use DateTime;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -58,7 +61,7 @@ class OptionalsAttendanceRepository extends ServiceEntityRepository
     /**
      * @return OptionalsAttendance[] Returns an array of OptionalsAttendance objects
      */
-    public function findAllForStudByInterval(\DateTimeInterface $start, $end, $student)
+    public function findAllForStudByInterval(\DateTimeInterface $start, \DateTimeInterface $end, Student $student)
     {
         return $this->createQueryBuilder('oa')
             ->andWhere('oa.student = :theStudent')
@@ -72,6 +75,34 @@ class OptionalsAttendanceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    /**
+     * @param Student  $student
+     * @param \DateTime $start
+     * @param \DateTime $end
+     */
+    public function getAllOptionalsByStudent($student, \DateTime $start, \DateTime $end)
+    {
+        //SELECT *, sum(has_attended) FROM `optionals_attendance` oa join optional_schedule os on oa.optional_schedule_id = os.id WHERE oa.student_id = 195 group by student_id, oa.class_optional_id
+        return $this->createQueryBuilder('oa')
+            ->select('oa as oOptionalsAttendance, SUM(oa.hasAttended) as optionalCount')
+            ->innerJoin('oa.optionalSchedule', 'os', Join::WITH, 'oa.student = :student')
+            //->innerJoin('oa.classOptional', 'co')
+            ->groupBy('oa.student')
+            ->addGroupBy('oa.classOptional')
+            ->andWhere('os.scheduledDateTime >= :startDay')
+            ->andWhere('os.scheduledDateTime <= :endDay')
+            ->setParameter('student', 195)//$student->getId())
+            ->setParameter('startDay', $start->format('Y-m-d H:i:s'))
+            ->setParameter('endDay', $end->format('Y-m-d H:i:s'))
+            ->getQuery()
+            ->getResult();
+
+        //var_dump($q->getSQL());
+
+        //return $q
+          //  ->getResult();
     }
 
 

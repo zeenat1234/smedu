@@ -2,9 +2,14 @@
 
 {% block title %}Generare Smart{% endblock %}
 
+{% block stylesheets %}
+  {{ parent() }}
+  <link href="{{ asset('lib/select2/dist/css/select2.min.css') }}" rel="stylesheet" />
+{% endblock %}
+
 {% block body %}
   <h2 class="coinyFont">Generare Smart</h2>
-  {% for flashMessage in app.session.flashbag.get('notice') %}
+  {% for flashMessage in app.session.flashbag.get('error') %}
     <br>
     <div id="message">
     <div style="padding: 5px;">
@@ -17,9 +22,10 @@
   {% endfor %}
   <br>
   {{ form_start(form) }}
-
     <div style="max-width:400px;">
       {{ form_row(form.year_month) }}
+      {{ form_row(form.school_year) }}
+      {{ form_row(form.invoice_month) }}
     </div>
     <br>
     {{ form_label(form.stud_choice) }} <br>
@@ -30,17 +36,12 @@
         </div>
       {% endfor %}
     </div>
-    <hr>
-    <button type="button" class="btn btn-info" onclick="ShowHideFunction();return false;"><i class="fas fa-users fa-fw"></i> Elevi</button>
-    <br>
+    
     <div id="smartGenStuds">
-      <br>
-      <div class="row">
-        {% for f in form.students %}
-          <div class="col-12 col-md-6 col-lg-4">
-            <span>{{ form_widget(f) }} {{ form_label(f) }}</span>
-          </div>
-        {% endfor %}
+      <hr>
+      <div class="form-group">
+        {{ form_label(form.students) }}
+        {{ form_widget(form.students) }}
       </div>
     </div>
 
@@ -110,71 +111,13 @@
 
   <br>
 
-
 {% endblock %}
 
 {% block javascripts %}
-<script>
-
-  function ShowHideFunction() {
-    if ($('#smartGenStuds').height() == "0") {
-      document.getElementById('smartGenStuds').style.maxHeight = "100%";
-    } else {
-      document.getElementById('smartGenStuds').style.maxHeight = "0";
-    }
-  }
-
-  $(document).ready(function () {
-    $("#submitBtn").click(function () {
-      setTimeout(function () { disableButton(); }, 0);
-    });
-
-    function disableButton() {
-      $("#submitBtn").prop('disabled', true);
-      $("#icon").addClass('fa-spin');
-    }
-
-    $('#smart_generate_pay_item_type_1').change(function(){
-      if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
-        document.getElementById('smartGenOptDates').style.maxHeight = "200px";
-      } else {
-        document.getElementById('smartGenOptDates').style.maxHeight = "0";
-      }
-    });
-
-    $('#smart_generate_pay_item_type_2').change(function(){
-      if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
-        document.getElementById('smartGenOptDates').style.maxHeight = "200px";
-      } else {
-        document.getElementById('smartGenOptDates').style.maxHeight = "0";
-      }
-    });
-
-    $('#autoInvoice').change(function(){
-      if ($('#smart_generate_auto_invoice_0').prop('checked')) {
-        document.getElementById('smartGenInvoicing').style.maxHeight = "0";
-        document.getElementById('smartGenInvDate').style.maxHeight = "0";
-      } else {
-        document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
-        document.getElementById('smartGenInvDate').style.maxHeight = "200px";
-      }
-    });
-
-    if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
-      document.getElementById('smartGenOptDates').style.maxHeight = "200px";
-    } else {
-      document.getElementById('smartGenOptDates').style.maxHeight = "0";
-    }
-
-    if ($('#smart_generate_auto_invoice_0').prop('checked')) {
-      document.getElementById('smartGenInvoicing').style.maxHeight = "0";
-      document.getElementById('smartGenInvDate').style.maxHeight = "0";
-    } else {
-      document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
-      document.getElementById('smartGenInvDate').style.maxHeight = "200px";
-    }
-
-  });
-
-</script>
+  <script>
+    var process_form_url = "{{ path('generate_invoices') }}";
+  </script>
+  <script src="{{ asset('lib/select2/dist/js/select2.min.js') }}"></script>
+  <script src="{{ asset('js/smart_generate.js') }}"></script> 
 {% endblock %}
+

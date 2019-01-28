@@ -46,8 +46,7 @@ class EnrollmentRepository extends ServiceEntityRepository
              ->setParameter('val', $yearId)
              ->addOrderBy('u.lastName', 'ASC')
              ->getQuery()
-             ->getResult()
-        ;
+             ->getResult();
       }
 
       public function findLatestForChild($yearId, $idChild): ?Enrollment
@@ -60,8 +59,7 @@ class EnrollmentRepository extends ServiceEntityRepository
              ->orderBy('e.enrollDate', 'DESC')
              ->setMaxResults(1)
              ->getQuery()
-             ->getOneOrNullResult()
-        ;
+             ->getOneOrNullResult();
       }
 
 

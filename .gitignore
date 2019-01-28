@@ -70,3 +70,5 @@ Thumbs.db
 
 # Using different export paths for Windows and Linux - needs a different production version
 /config/packages/knp_snappy.yaml
+
+.htaccess

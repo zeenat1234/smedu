@@ -6,6 +6,7 @@
         "ext-iconv": "*",
         "craue/formflow-bundle": "~3.0",
         "knplabs/knp-snappy-bundle": "^1.5",
+        "select2/select2": "^4.0",
         "sensio/framework-extra-bundle": "^5.1",
         "symfony/apache-pack": "^1.0",
         "symfony/asset": "^4.1",
@@ -64,7 +65,8 @@
     "scripts": {
         "auto-scripts": {
             "cache:clear": "symfony-cmd",
-            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "security-checker security:check": "script"
         },
         "post-install-cmd": [
             "@auto-scripts"

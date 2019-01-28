@@ -1,4 +1,7 @@
 {
+    "composer/ca-bundle": {
+        "version": "1.1.2"
+    },
     "craue/formflow-bundle": {
         "version": "3.0.3"
     },
@@ -110,6 +113,9 @@
             "ref": "c81bdcf4a9d4e7b1959071457f9608631865d381"
         }
     },
+    "kriswallsmith/assetic": {
+        "version": "v1.0.5"
+    },
     "monolog/monolog": {
         "version": "1.23.0"
     },
@@ -146,6 +152,12 @@
     "psr/simple-cache": {
         "version": "1.0.1"
     },
+    "robloach/component-installer": {
+        "version": "0.2.3"
+    },
+    "select2/select2": {
+        "version": "4.0.5"
+    },
     "sensio/framework-extra-bundle": {
         "version": "4.0",
         "recipe": {
@@ -153,6 +165,15 @@
             "branch": "master",
             "version": "4.0",
             "ref": "aaddfdf43cdecd4cf91f992052d76c2cadc04543"
+        }
+    },
+    "sensiolabs/security-checker": {
+        "version": "4.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "4.0",
+            "ref": "421933bf8f0e75546ac8e00cb3eb12904fa2ac1a"
         }
     },
     "swiftmailer/swiftmailer": {

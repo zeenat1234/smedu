@@ -194,11 +194,6 @@ select {
 	transition: max-height 0.8s;
 }
 
-#smartGenStuds {
-  max-height: 0px;
-  overflow: hidden;
-}
-
 #invoicingIdent, #invoicingCompanyReg, #invoicingCompanyFiscal, #customInvoicing, #isCompany, #secondPassCancel {
   max-height: 0px;
   overflow: hidden;

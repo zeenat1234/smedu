@@ -10,9 +10,11 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Doctrine\ORM\EntityRepository;
 
 use App\Entity\MonthAccount;
 use App\Entity\Student;
+use App\Entity\SchoolYear;
 
 class SmartGenerateType extends AbstractType
 {
@@ -21,6 +23,32 @@ class SmartGenerateType extends AbstractType
 
 
         $builder
+            ->add('school_year', EntityType::class, [
+                'class' => SchoolYear::class,
+                'choice_label' => 'yearlabel',
+                'label' => 'Alegeți anul școlar',
+                'expanded' => false,
+                'multiple' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('invoice_month', ChoiceType::class, [
+                'label' => 'Alegeți luna corespunzătoare facturării:',
+                'expanded' => false,
+                'multiple' => false,
+                'choices' => [
+                    'August' => 8,
+                    'Septembrie' => 9,
+                    'Octombrie' => 10,
+                    'Noiembrie' => 11,
+                    'Decembrie' => 12,
+                    'Ianuarie' => 1,
+                    'Februarie' => 2,
+                    'Martie' => 3,
+                    'Aprilie' => 4,
+                    'Mai' => 5,
+                    'Iunie' => 6,
+                ]
+            ])
             ->add('year_month', ChoiceType::class,array(
               'label'    => 'Alegere luna dorită:',
               'expanded' => false,
@@ -44,17 +72,19 @@ class SmartGenerateType extends AbstractType
                 'Studenți specifici...' => 'specific',
                 'Toți mai puțin...' => 'excluding',
               ),
-              'data' => 'specific',
+              'data' => 'all',
             ))
             ->add('students', EntityType::class, array(
                 'class'        => Student::class,
-                'choices'      => $options['students'],
+                'query_builder' => function (EntityRepository $er) use ($options) {
+                  return $er->findAllActiveStudents($options['year']);
+                },
                 'choice_label' => 'user.getroname',
                 'label'        => 'Alege elevii doriți:',
-                'expanded'     => true,
+                'expanded'     => false,
                 'multiple'     => true,
                 'attr'         => array(
-                  //'class' => 'form-check',
+                  'class' => 'form-control',
                 ),
                 'choice_attr' => function() {
                   return array('class' => '');
@@ -125,8 +155,8 @@ class SmartGenerateType extends AbstractType
     {
         $resolver->setDefaults([
           // Configure your form options here
-          'students'       => array(Student::class),
           'month_choices'  => array(DateTime::class),
+          'year'           => ''
         ]);
     }
 }

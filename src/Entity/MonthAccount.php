@@ -19,8 +19,8 @@ class MonthAccount
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Student", inversedBy="monthAccounts")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Student", cascade={"persist"}, inversedBy="monthAccounts")
+     * @ORM\JoinColumn(name="student_id", referencedColumnName="id", nullable=false)
      */
     private $student;
 

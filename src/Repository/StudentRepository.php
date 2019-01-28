@@ -36,6 +36,25 @@ class StudentRepository extends ServiceEntityRepository
         ;
       }
 
+    /**
+     * @return Student[] Returns an array of active students
+     */
+      public function findAllActiveStudents($yearId)
+      {
+        return $this->getEntityManager()->createQueryBuilder()
+             ->select('s')
+             ->from('App:Student', 's')
+             ->innerJoin('App:User', 'u', 'WITH', 's.User = u.id')
+             ->innerJoin('App:SchoolUnit', 'su', 'WITH', 's.schoolUnit = su.id AND su.schoolyear = :val')
+             ->innerJoin('App:Enrollment', 'e', 'WITH', 'e.student = s.id AND e.isActive = 1')
+             ->setParameter('val', $yearId);
+             //->addOrderBy('u.lastName', 'ASC')
+             //->addOrderBy('u.firstName', 'ASC')
+             //->getQuery();
+             //->getResult();
+      }
+
+
      /**
       * @return Student[] Returns an array of Student objects
       */
@@ -51,6 +70,24 @@ class StudentRepository extends ServiceEntityRepository
              ->getQuery()
              ->getResult()
         ;
+      }
+
+
+      /**
+      * Find all students except selected ones
+      * @param array $excludedStudents Array of excluded students
+      **/
+      public function findAllStudentsExcept($excludedStudents)
+      {
+        $excludedIds = [];
+        foreach($excludedStudents as $student){
+            $excludedIds[] = $student->getId();
+        }
+        return $this->createQueryBuilder('s')
+            ->where('s.id NOT IN (:exclIds)')
+            ->setParameter('exclIds', implode(',', $excludedIds))
+            ->getQuery()
+            ->getResult();
       }
 
 //    /**
