@@ -177,6 +177,11 @@ class AccountInvoice
      */
     private $payments;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="createdInvoices")
+     */
+    private $createdBy;
+
     public function __construct()
     {
         $this->paymentItems = new ArrayCollection();
@@ -536,6 +541,18 @@ class AccountInvoice
             $this->payments->removeElement($payment);
             $payment->removePayInvoice($this);
         }
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $createdBy): self
+    {
+        $this->createdBy = $createdBy;
 
         return $this;
     }

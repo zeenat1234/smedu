@@ -194,6 +194,16 @@ class User implements UserInterface, \Serializable
      */
     private $invoicingCompanyFiscal;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\AccountInvoice", mappedBy="createdBy")
+     */
+    private $createdInvoices;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\SmartReceipt", mappedBy="createdBy")
+     */
+    private $createdReceipts;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -201,6 +211,8 @@ class User implements UserInterface, \Serializable
         $this->students = new ArrayCollection();
         $this->classOptionals = new ArrayCollection();
         $this->accountPermissions = new ArrayCollection();
+        $this->createdInvoices = new ArrayCollection();
+        $this->createdReceipts = new ArrayCollection();
     }
 
     public function getId()
@@ -696,6 +708,68 @@ class User implements UserInterface, \Serializable
     public function setInvoicingCompanyFiscal(?string $invoicingCompanyFiscal): self
     {
         $this->invoicingCompanyFiscal = $invoicingCompanyFiscal;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AccountInvoice[]
+     */
+    public function getCreatedInvoices(): Collection
+    {
+        return $this->createdInvoices;
+    }
+
+    public function addCreatedInvoice(AccountInvoice $createdInvoice): self
+    {
+        if (!$this->createdInvoices->contains($createdInvoice)) {
+            $this->createdInvoices[] = $createdInvoice;
+            $createdInvoice->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedInvoice(AccountInvoice $createdInvoice): self
+    {
+        if ($this->createdInvoices->contains($createdInvoice)) {
+            $this->createdInvoices->removeElement($createdInvoice);
+            // set the owning side to null (unless already changed)
+            if ($createdInvoice->getCreatedBy() === $this) {
+                $createdInvoice->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|SmartReceipt[]
+     */
+    public function getCreatedReceipts(): Collection
+    {
+        return $this->createdReceipts;
+    }
+
+    public function addCreatedReceipt(SmartReceipt $createdReceipt): self
+    {
+        if (!$this->createdReceipts->contains($createdReceipt)) {
+            $this->createdReceipts[] = $createdReceipt;
+            $createdReceipt->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedReceipt(SmartReceipt $createdReceipt): self
+    {
+        if ($this->createdReceipts->contains($createdReceipt)) {
+            $this->createdReceipts->removeElement($createdReceipt);
+            // set the owning side to null (unless already changed)
+            if ($createdReceipt->getCreatedBy() === $this) {
+                $createdReceipt->setCreatedBy(null);
+            }
+        }
 
         return $this;
     }

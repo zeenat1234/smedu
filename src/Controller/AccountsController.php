@@ -1199,7 +1199,7 @@ class AccountsController extends Controller
         $snappy->getOutputFromHtml($html, array(
           'orientation' => 'Landscape',
           'page-height' => 220,
-          'page-width'  => 140,
+          'page-width'  => 150,
           'dpi' => 300,
         )),
         //ok status code
@@ -1285,6 +1285,7 @@ class AccountsController extends Controller
       return $this->redirectToRoute('account_invoices', array('accId' => $invoice->getMonthAccount()->getId()));
     }
 
+    // TEMPORARILY SUSPENDED
     /**
      * @Route("/accounts/invoice_from_proforma/{invId}", name="invoice_from_proforma")
      * @Method({"GET", "POST"})
@@ -1628,6 +1629,7 @@ class AccountsController extends Controller
 
               $newSmartRec->setPayment($payment);
               $newSmartRec->setReceiptDate(new \DateTime('now'));
+              $newSmartRec->setCreatedBy($this->getUser());
 
               $latestSmartRec = $this->getDoctrine()->getRepository
               (SmartReceipt::class)->findLatestBySerial($iserial);
@@ -1684,6 +1686,8 @@ class AccountsController extends Controller
                   } else {
                     $invoice->setInvoiceName('Factură Fiscală Nr: '.$invoice->getInvoiceSerial().'-'.sprintf("%'03d", $invoice->getInvoiceNumber()));
                   }
+
+                  $invoice->setCreatedBy($this->getUser());
 
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->flush();
@@ -1771,6 +1775,8 @@ class AccountsController extends Controller
                   $newSmartReceipt = $form3->getData();
 
                   $newSmartReceipt->setReceiptSerial(strtoupper($newSmartReceipt->getReceiptSerial()));
+                  //TODO - Activate line after creating variable
+                  //$newSmartReceipt->setCreatedBy($this->getUser());
 
                   $entityManager = $this->getDoctrine()->getManager();
                   $entityManager->persist($newSmartReceipt);
@@ -1941,6 +1947,8 @@ class AccountsController extends Controller
             }
         }
 
+        $newInvoice->setCreatedBy($this->getUser());
+
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($newInvoice);
         $entityManager->flush();
@@ -1980,6 +1988,8 @@ class AccountsController extends Controller
                 $newInvoice->setInvoiceTotal($total);
             }
         }
+
+        $newInvoice->setCreatedBy($this->getUser());
 
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($newInvoice);
@@ -2408,6 +2418,7 @@ class AccountsController extends Controller
               if (in_array('tax', $data['pay_item_type'])) {
                 $newInvoice1 = new AccountInvoice();
                 $newInvoice1->setMonthAccount($account);
+                $newInvoice1->setCreatedBy($this->getUser());
 
                 if ($data['invoice_date']) {
                   $newInvoice1->setInvoiceDate($data['invoice_date']);
@@ -2520,6 +2531,7 @@ class AccountsController extends Controller
                 if (count($optionalPayItems) > 0) {
                   $newInvoice2 = new AccountInvoice();
                   $newInvoice2->setMonthAccount($account);
+                  $newInvoice2->setCreatedBy($this->getUser());
 
                   if ($data['invoice_date']) {
                     $newInvoice2->setInvoiceDate($data['invoice_date']);
@@ -2629,6 +2641,7 @@ class AccountsController extends Controller
                 if (count($noninvItems) > 0) {
                   $newInvoice3 = new AccountInvoice();
                   $newInvoice3->setMonthAccount($account);
+                  $newInvoice3->setCreatedBy($this->getUser());
 
                   if ($data['invoice_date']) {
                     $newInvoice3->setInvoiceDate($data['invoice_date']);
@@ -2736,6 +2749,7 @@ class AccountsController extends Controller
                 if (count($transportPayItems) > 0) {
                   $newInvoice4 = new AccountInvoice();
                   $newInvoice4->setMonthAccount($account);
+                  $newInvoice4->setCreatedBy($this->getUser());
 
                   if ($data['invoice_date']) {
                     $newInvoice4->setInvoiceDate($data['invoice_date']);
@@ -2848,6 +2862,7 @@ class AccountsController extends Controller
               if ( count($allCreatedItems) > 0) {
                 $newInvoice = new AccountInvoice();
                 $newInvoice->setMonthAccount($account);
+                $newInvoice->setCreatedBy($this->getUser());
 
                 if ($data['invoice_date']) {
                   $newInvoice->setInvoiceDate($data['invoice_date']);
@@ -2966,6 +2981,7 @@ class AccountsController extends Controller
 
     }
 
+    //DEPRECATED -- test and remove, as this has been replaced with Smart Generate
     /**
      * @Route("/accounts/{monthYear}/{studId}/generate", name="accounts_stud_month_generate")
      * @Method({"GET" , "POST"})
