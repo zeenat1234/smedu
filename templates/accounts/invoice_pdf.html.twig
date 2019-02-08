@@ -187,9 +187,9 @@
                     <tr width=100%>
                       <td>
                         {% if invoice.getCreatedBy %}
-                          <small>{{ invoice.getCreatedBy.getRoName }}</small> <br>
+                          {{ invoice.getCreatedBy.getRoName }} <br>
                           {% if invoice.getCreatedBy.getInvoicingIdent %}
-                            <small>{{ invoice.getCreatedBy.getInvoicingIdent }}</small>
+                            {{ invoice.getCreatedBy.getInvoicingIdent }}
                           {% endif %}
                         {% else %}
                           -<br>
