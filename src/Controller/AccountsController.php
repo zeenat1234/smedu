@@ -2240,6 +2240,8 @@ class AccountsController extends Controller
               }
               // Array created; Now creating items based on this array
               $optionalPayItems = array();
+              $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+              $formatter->setPattern('MMMM');
               foreach ($paymentOptionals as $paymentOptional) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
