@@ -235,7 +235,7 @@ class TransportController extends AbstractController
 
           $this->get('session')->getFlashBag()->add(
               'notice',
-              'Informația pentru '.$formatter->format($date).' a fost actualizată cu succes!'
+              'Informația pentru '.$formatter->format(new \DateTime($date)).' a fost actualizată cu succes!'
           );
 
           return $this->redirectToRoute('trips_date', array('date'=>$date));

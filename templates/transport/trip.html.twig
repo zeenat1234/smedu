@@ -111,28 +111,28 @@
         if ($(this).parent().find("[id$='tripType_0']").prop('checked')) {
           $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', true);
           $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', true);
-          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+          //$(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
         }
         if ($(this).parent().find("[id$='tripType_1']").prop('checked')) {
           $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', false);
           $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', true);
-          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+          //$(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
         }
         if ($(this).parent().find("[id$='tripType_2']").prop('checked')) {
           $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', true);
           $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', false);
-          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+          //$(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
         }
         if ($(this).parent().find("[id$='tripType_3']").prop('checked')) {
           $(this).parents().eq(3).find("[id$='distance1']").prop('disabled', false);
           $(this).parents().eq(3).find("[id$='distance2']").prop('disabled', false);
-          $(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
+          //$(this).parents().eq(3).find("[id$='pricePerKm_0']").prop('checked', true);
         }
 
         if ($(this).parent().find("[id$='pricePerKm_1']").prop('checked')) {
           $(this).parents().eq(1).find("[id$='distance1']").prop('disabled', true);
           $(this).parents().eq(1).find("[id$='distance2']").prop('disabled', true);
-          $(this).parents().eq(1).find("[id$='tripType_3']").prop('checked', true);
+          //$(this).parents().eq(1).find("[id$='tripType_3']").prop('checked', true);
         }
 
       });
@@ -157,7 +157,7 @@
       if ($(this).find("[id$='pricePerKm_1']").prop('checked')) {
         $(this).find("[id$='distance1']").prop('disabled', true);
         $(this).find("[id$='distance2']").prop('disabled', true);
-        $(this).find("[id$='tripType_3']").prop('checked', true);
+        //$(this).find("[id$='tripType_3']").prop('checked', true);
       }
 
     });
