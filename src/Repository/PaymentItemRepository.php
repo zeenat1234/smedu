@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PaymentItem;
+use App\Entity\MonthAccount;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -17,6 +18,46 @@ class PaymentItemRepository extends ServiceEntityRepository
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, PaymentItem::class);
+    }
+
+    public function getOldPayItems($student, $monthYear)
+    {
+        return $this->createQueryBuilder('pi')
+            ->innerJoin('pi.monthAccount', 'ma')
+            ->where('ma.accYearMonth < :monthYear')
+            ->andWhere('ma.student = :studentId')
+            ->andWhere('pi.isInvoiced = 0')
+            ->setParameter('monthYear', $monthYear->format('Y-m-d H:i:s'))
+            ->setParameter('studentId', $student->getId())
+            ->getQuery()
+            ->getResult();
+
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "SELECT pi.id FROM month_account ma 
+            INNER JOIN payment_item pi ON ma.id = pi.month_account_id
+            WHERE ma.acc_year_month < :monthYear
+            AND ma.student_id = :studentId
+            AND pi.is_invoiced = 0";
+
+        $params = [
+            'monthYear' => $monthYear->format('Y-m-d H:i:s'),
+            'studentId' => $student->getId()
+        ];
+        
+        $q = $conn->prepare($sql);
+        $q->execute($params);
+        return $q->fetchAll();
+    }
+
+    public function getTotalPayItemByMonth(MonthAccount $monthAccount)
+    {
+        return $this->createQueryBuilder('pi')
+            ->select('SUM(pi.itemPrice) as total')
+            ->where('pi.monthAccount = :monthAccount')
+            ->setParameter('monthAccount', $monthAccount->getId())
+            ->getQuery()
+            ->getOneOrNullResult()['total'];
     }
 
 //    /**

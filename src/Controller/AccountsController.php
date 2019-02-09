@@ -2054,27 +2054,29 @@ class AccountsController extends Controller
         $transportTripRepo       = $doc->getRepository(TransportTrip::class);
         $accountInvoiceRepo      = $doc->getRepository(AccountInvoice::class);
 
-
+        $this->generateMonthAccounts($selectedStudents, $summary, $data);
         //NEW SCRIPT FOR CALCULATING THE ADVANCE BALANCE
         $monthYear = $data['year_month']->format('Y-m-d H:i:s');
-        $monthAccountRepo->calculateAdvaceBalance($monthYear);
+        $monthAccountRepo->calculateAdvanceBalance($monthYear);
 
 
 
         ///!!!!!!!!!!!!!!!!!!!!!!!!
         if (in_array('tax', $data['pay_item_type'])) {
-          //$this->generateServiceTax($selectedStudents, $data['year_month']);
+          $this->generateServiceTax($selectedStudents, $data['year_month']);
         }
 
         if (in_array('optionals', $data['pay_item_type'])) {
           $this->generateOptionals($selectedStudents, $data);
         }
 
-        foreach($selectedStudents as $student) {
-          $allCreatedItems = array();  // set array for 1x INVOICE
-          $advanceRemaining = 0; // set variable to handle Advance
-        } //finishes foreach student
+        if (in_array('noninvoiced', $data['pay_item_type'])) {
+          $this->processUninvoicedItems($selectedStudents, $data);
+        }
 
+        if (in_array('transport', $data['pay_item_type'])) {
+          $this->generateTransportTax($selectedStudents, $data);
+        }
 
         $this->get('session')->getFlashBag()->add('notice', "SUMAR: \n".$summary);
 
@@ -2233,7 +2235,10 @@ class AccountsController extends Controller
 
       foreach ($selectedStudents as $student) {
         $allOptionals = $optionalsAttendanceRepo->getAllOptionalsByStudent($student, $startDate, $endDate);
-      
+        if(!$allOptionals) {
+            continue;
+        }
+
         $account = $monthAccountRepo->findBy([
             'student' => $student, 
             'accYearMonth' => $monthYear
@@ -2246,10 +2251,6 @@ class AccountsController extends Controller
         }
         
         foreach ($allOptionals as $optional) {
-          if(!$optional) {
-            continue;
-          }
-          
           $optionalAttendance = $optional['oOptionalsAttendance'];
 
           $count = 1;
@@ -2266,7 +2267,6 @@ class AccountsController extends Controller
           $payItem->setItemCount($count);
           $em->persist($payItem);
 
-
           $account->addPaymentItem($payItem);
           $account->addToTotalPrice($payItem->getItemPrice()*$payItem->getItemCount());
           $em->persist($account);
@@ -2278,6 +2278,149 @@ class AccountsController extends Controller
       $em->clear(MonthAccount::class);
     }
 
+    /**
+     * Check Past Uninvoiced items + relabel + move to new month
+     * 
+     * @param array $selectedStudents Array of student objects
+     * @param array $data             Array containing the request data
+     *
+     * @return string
+     */
+    protected function processUninvoicedItems($selectedStudents, $data) {
+
+      $doc = $this->getDoctrine();
+      $em = $doc->getManager();
+      $monthYear = $data['year_month'];
+      $monthAccountRepo = $doc->getRepository(MonthAccount::class);
+      $paymentItemRepo = $doc->getRepository(PaymentItem::class);
+
+      $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+      $formatter->setPattern('MMMM');
+
+      $noninvItems = array();
+
+      foreach ($selectedStudents as $student) {
+        $currAccount = $monthAccountRepo->findOneBy([
+            'student' => $student, 
+            'accYearMonth' => $monthYear
+        ]);
+
+        //$oldAccounts = $monthAccountRepo->getOldAccounts($student, $monthYear);
+        $oldPayItems = $paymentItemRepo->getOldPayItems($student, $monthYear);
+       
+        foreach ($oldPayItems as $oldPayItem) {
+
+          $itemTotalPrice = $oldPayItem->getItemPrice() * $oldPayItem->getItemCount();
+          //Substract the value of the Item from the old MonthAccount
+          $oldPayItem->getMonthAccount()->setTotalPrice($oldPayItem->getMonthAccount()->getTotalPrice() - $itemTotalPrice);
+          $oldPayItem->setMonthAccount($currAccount);
+          //Update the univoiced item value to the current MonthAccount total price
+          $currAccount->addToTotalPrice($itemTotalPrice);
+
+          $em->persist($oldPayItem);
+          $em->persist($oldPayItem->getMonthAccount());
+          $em->persist($currAccount);
+          $em->flush();
+        }
+        break;
+
+      }
+      return;
+
+      foreach ($student->getMonthAccounts() as $oldAccount) {
+
+        //get all acounts
+        if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
+          foreach ($oldAccount->getPaymentItems() as $oldPayItem) {
+            if ($oldPayItem->getIsInvoiced() == false) {
+            
+            //no need -> $oldPayItem->setItemName($oldPayItem->getItemName().' '.strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+            $oldPayItem->setMonthAccount($account);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($oldPayItem);
+            $entityManager->flush();
+
+            $oldAccount->setTotalPrice($oldAccount->getTotalPrice() - $oldPayItem->getItemPrice() * $oldPayItem->getItemCount());
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($oldAccount);
+            $entityManager->flush();
+
+            $account->addToTotalPrice($oldPayItem->getItemPrice() * $oldPayItem->getItemCount());
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($account);
+            $entityManager->flush();
+
+            $noninvItems[] = $oldPayItem;
+            $allCreatedItems[] = $oldPayItem;
+            }
+          }
+        }
+      }
+    }
+
+    /**
+      *
+      *
+      *
+      */
+    protected function generateTransportTax($selectedStudents, $data)
+    {
+      $em               = $this->getDoctrine()->getManager();
+      $tripRepo         = $em->getRepository(TransportTrip::class);
+      $monthAccountRepo = $em->getRepository(MonthAccount::class);
+      $monthYear        = $data['year_month'];
+      $startDate        = $data['start_date'];
+      $endDate          = clone $data['end_date'];
+
+      $endDate->setTime(23, 59);
+
+
+      foreach ($selectedStudents as $student)
+      {
+        $transportPrices = $tripRepo->getTransportPrices($student, $startDate, $endDate);
+
+        if (!array_filter($transportPrices)) {
+          continue;
+        }
+
+        $currAccount = $monthAccountRepo->findOneBy([
+            'student' => $student, 
+            'accYearMonth' => $monthYear
+        ]);
+
+        if (isset($transportPrices['variablePrice'])) {
+          $payItem = new PaymentItem();
+          $payItem->setMonthAccount($currAccount);
+          $payItem->setItemName("Taxa transport (".$startDate->format('Y-m-d')." - ".$endDate->format('Y-m-d').")");
+          $payItem->setItemPrice($transportPrices['variablePrice']);
+          $payItem->setItemCount(1);
+
+          $em->persist($payItem);
+
+          $currAccount->addPaymentItem($payItem);
+          $currAccount->addToTotalPrice($transportPrices['variablePrice']);
+        }
+
+        if (isset($transportPrices['fixedPrice'])) {
+          $payItem = new PaymentItem();
+          $payItem->setMonthAccount($currAccount);
+          $payItem->setItemName("Taxa fixa transport (".$startDate->format('Y-m-d')." - ".$endDate->format('Y-m-d').")");
+          $payItem->setItemPrice($transportPrices['fixedPrice']);
+          $payItem->setItemCount(1);
+
+          $em->persist($payItem);
+
+          $currAccount->addPaymentItem($payItem);
+          $currAccount->addToTotalPrice($transportPrices['fixedPrice']);
+        }
+
+        $em->persist($currAccount);
+      }
+      $em->flush();
+    }
 
     protected function dataValidation($data, $formView){
       $errors = false;

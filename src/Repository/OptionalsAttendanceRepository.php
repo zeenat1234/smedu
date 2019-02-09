@@ -90,19 +90,15 @@ class OptionalsAttendanceRepository extends ServiceEntityRepository
             ->innerJoin('oa.optionalSchedule', 'os', Join::WITH, 'oa.student = :student')
             //->innerJoin('oa.classOptional', 'co')
             ->groupBy('oa.student')
+            ->having('optionalCount>0')
             ->addGroupBy('oa.classOptional')
             ->andWhere('os.scheduledDateTime >= :startDay')
             ->andWhere('os.scheduledDateTime <= :endDay')
-            ->setParameter('student', 195)//$student->getId())
+            ->setParameter('student', $student->getId())
             ->setParameter('startDay', $start->format('Y-m-d H:i:s'))
             ->setParameter('endDay', $end->format('Y-m-d H:i:s'))
             ->getQuery()
             ->getResult();
-
-        //var_dump($q->getSQL());
-
-        //return $q
-          //  ->getResult();
     }
 
 

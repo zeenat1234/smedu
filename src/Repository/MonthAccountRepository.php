@@ -76,7 +76,7 @@ class MonthAccountRepository extends ServiceEntityRepository
         $this->getEntityManager()->getConnection()->executeQuery($sql, $params);
     }
 
-    public function calculateAdvaceBalance($accYearMonth)
+    public function calculateAdvanceBalance($accYearMonth)
     {
         $conn = $this->getEntityManager()->getConnection();
 
@@ -101,6 +101,16 @@ class MonthAccountRepository extends ServiceEntityRepository
 
         $params = ['accYearMonth' => $accYearMonth];
         $conn->executeQuery($sql, $params);
+    }
+
+    public function getOldAccounts ($student, $monthYear) {
+        return $this->createQueryBuilder('ma')
+            ->where('ma.student = :studentId')
+            ->andWhere('ma.accYearMonth = :monthYear')
+            ->setParameter('studentId', $student->getId())
+            ->setParameter('monthYear', $monthYear)
+            ->getQuery()
+            ->getResult();
     }
 
 //    /**

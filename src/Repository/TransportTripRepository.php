@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\TransportTrip;
+use App\Entity\Student;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -35,6 +36,36 @@ class TransportTripRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    public function getTransportPrices (Student $student, \DateTimeInterface $start, \DateTimeInterface $end)
+    {
+        $sql = "SELECT
+            SUM(
+                CASE
+                    WHEN trip_type = 1 THEN distance1 * price
+                    WHEN trip_type = 2 THEN distance2 * price
+                    ELSE (distance1 + distance2) * price 
+                END
+            ) as variablePrice,
+            SUM(
+                CASE 
+                    WHEN price_per_km = 0 THEN price
+                END
+            ) as fixedPrice
+            FROM `transport_trip`
+            WHERE `date` >= :startDate AND `date` <= :endDate AND student_id = :studentId";
+
+        $params = [
+            'startDate' => $start->format('Y-m-d H:i:s'),
+            'endDate'   => $end->format('Y-m-d H:i:s'),
+            'studentId' => $student->getId()
+        ];
+
+        return $this->getEntityManager()
+            ->getConnection()
+            ->executeQuery($sql, $params)
+            ->fetch();
     }
 
 //    /**
