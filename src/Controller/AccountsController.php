@@ -2351,8 +2351,17 @@ class AccountsController extends Controller
                     $tripsCount = $tripsCount +2;
                   }
                 } else {
-                  $totalFixedPrice = $totalFixedPrice + $trip->getPrice();
-                  $fixedTripsCount = $fixedTripsCount+1;
+                  if ($trip->getTripType() == 1) {
+                    $totalFixedPrice = $totalFixedPrice + $trip->getPrice();
+                    $fixedTripsCount = $fixedTripsCount+1;
+                  } elseif ($trip->getTripType() == 2) {
+                    $totalFixedPrice = $totalFixedPrice + $trip->getPrice();
+                    $fixedTripsCount = $fixedTripsCount+1;
+                  } elseif ($trip->getTripType() == 3) {
+                    $totalFixedPrice = $totalFixedPrice + 2*$trip->getPrice();
+                    $fixedTripsCount = $fixedTripsCount+2;
+                  }
+
                 }
               }
 
