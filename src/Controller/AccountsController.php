@@ -2366,11 +2366,14 @@ class AccountsController extends Controller
               }
 
               // Creating items based on this array
+              $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+              $formatter->setPattern('MMMM');
+
               $transportPayItems = array();
               if ($totalPrice > 0) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
-                $payItem->setItemName("Taxă transport (".$tripsCount." drumuri, ".$totalKm." km)");
+                $payItem->setItemName("Taxă transport (".$tripsCount." drumuri, ".$totalKm." km) ".strtoupper($formatter->format($data['year_month'])));
                 $payItem->setItemPrice($totalPrice);
                 $payItem->setItemCount(1);
 
@@ -2392,7 +2395,7 @@ class AccountsController extends Controller
               if ($totalFixedPrice > 0) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
-                $payItem->setItemName("Taxă fixă transport (".$fixedTripsCount." drumuri)");
+                $payItem->setItemName("Taxă fixă transport (".$fixedTripsCount." drumuri) ".strtoupper($formatter->format($data['year_month'])));
                 $payItem->setItemPrice($totalFixedPrice);
                 $payItem->setItemCount(1);
 
