@@ -14,7 +14,7 @@
       <li>De asemeni, în situația în care este cerută renunțarea la o înscriere,
       simbolul <strong><span style="color:#500"><i class="fas fa-times-circle"></i></span></strong> va fi afișat în dreptul opționalului.</li>
       <li>Poți anula orice cerere care nu a fost încă procesată prin folosirea butonului
-      <button disabled class="btn btn-sm btn-danger">Anulează Cererea</button> din dreptul cererii dorite.</li>
+      <button disabled class="btn btn-sm btn-danger"><i class="fas fa-minus-circle"></i> Anulează Cererea</button> din dreptul cererii dorite.</li>
     </ul>
     <br>
     {% set kids = app.user.getGuardianacc.getChildren %}
@@ -138,7 +138,7 @@
                         {% if request.isPending == 1 %}
                           În curs de procesare <a href="{{ path('myaccount_optionals_revoke',{id:request.id}) }}">
                             <button class="btn btn-sm btn-danger">
-                              Anulează Cererea
+                              <i class="fas fa-minus-circle"></i> Anulează Cererea
                             </button>
                           </a>
                         {% elseif request.isConfirmed == 1 %}
