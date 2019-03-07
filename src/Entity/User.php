@@ -204,6 +204,11 @@ class User implements UserInterface, \Serializable
      */
     private $createdReceipts;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OptionalEnrollRequest", mappedBy="rUser", orphanRemoval=true)
+     */
+    private $optionalEnrollRequests;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -213,6 +218,7 @@ class User implements UserInterface, \Serializable
         $this->accountPermissions = new ArrayCollection();
         $this->createdInvoices = new ArrayCollection();
         $this->createdReceipts = new ArrayCollection();
+        $this->optionalEnrollRequests = new ArrayCollection();
     }
 
     public function getId()
@@ -768,6 +774,37 @@ class User implements UserInterface, \Serializable
             // set the owning side to null (unless already changed)
             if ($createdReceipt->getCreatedBy() === $this) {
                 $createdReceipt->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OptionalEnrollRequest[]
+     */
+    public function getOptionalEnrollRequests(): Collection
+    {
+        return $this->optionalEnrollRequests;
+    }
+
+    public function addOptionalEnrollRequest(OptionalEnrollRequest $optionalEnrollRequest): self
+    {
+        if (!$this->optionalEnrollRequests->contains($optionalEnrollRequest)) {
+            $this->optionalEnrollRequests[] = $optionalEnrollRequest;
+            $optionalEnrollRequest->setRUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOptionalEnrollRequest(OptionalEnrollRequest $optionalEnrollRequest): self
+    {
+        if ($this->optionalEnrollRequests->contains($optionalEnrollRequest)) {
+            $this->optionalEnrollRequests->removeElement($optionalEnrollRequest);
+            // set the owning side to null (unless already changed)
+            if ($optionalEnrollRequest->getRUser() === $this) {
+                $optionalEnrollRequest->setRUser(null);
             }
         }
 

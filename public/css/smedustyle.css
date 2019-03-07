@@ -218,8 +218,14 @@ select {
 
 #users_row td, #enrollments_row td,
 #class_opt_row td, #attendance_mod_edit_row td,
-#acc_invoices_row td, #routes_row td {
+#acc_invoices_row td, #routes_row td,
+#acc_transport_row td, #acc_transport_row th {
   padding: 3px;
+}
+
+#invoice_row td {
+  padding-top: 3px;
+  padding-bottom: 3px;
 }
 
 #routes_row td {
@@ -250,6 +256,39 @@ select {
   bottom:0;
   width:90%;
   text-align:center;
+}
+
+/* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  background-color: rgba(238,238,238,0.4);
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+  background-color: #ccc;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: 0 18px;
+  background-color: rgba(255,255,255,0.6);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+
+.columns3 {
+  -webkit-columns: 100px 3; /* Chrome, Safari, Opera */
+  -moz-columns: 100px 3; /* Firefox */
+  columns: 100px 3;
 }
 
 /*

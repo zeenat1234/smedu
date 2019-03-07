@@ -4,6 +4,8 @@ namespace App\Controller;
 
 #can instantiate the entity
 use App\Entity\ClassOptional;
+use App\Entity\OptionalEnrollRequest;
+use App\Entity\OptionalsAttendance;
 use App\Entity\SchoolUnit;
 use App\Entity\SchoolYear;
 use App\Entity\Student;
@@ -38,6 +40,103 @@ class ClassOptionalController extends AbstractController
             'current_year'  => $currentSchoolYear,
             'current_units' => $schoolUnits,
         ]);
+    }
+
+    /**
+     * @Route("/class/optionals_requests", name="class_optionals_requests")
+     */
+    public function optionals_requests()
+    {
+        $currentSchoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findCurrentYear();
+
+        $schoolUnits = $currentSchoolYear->getSchoolunits();
+
+        return $this->render('class_optional/class.optional.requests.html.twig', [
+            'current_year'  => $currentSchoolYear,
+            'current_units' => $schoolUnits,
+        ]);
+    }
+
+    /**
+     * @Route("/class/optionals_requests/confirm/{id}", name="optionals_request_confirm")
+     * @Method({"GET", "POST"})
+     */
+    public function optionals_request_confirm($id)
+    {
+      $theRequest = $this->getDoctrine()->getRepository
+      (OptionalEnrollRequest::class)->find($id);
+
+      $theStudent = $theRequest->getRStudent();
+
+      foreach ($theRequest->getROptionals() as $optional) {
+        if ($theRequest->getRType() == 0) {
+          $optional->removeStudent($theStudent);
+        } else {
+          $optional->addStudent($theStudent);
+        }
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->flush();
+
+        if (!$optional->isSyncd()) {
+          if ($optional->isModified()) {
+            $this->home_update_optional_attendance($optional);
+          } else {
+            $canCreate = false;
+            if ($optional->getStudents()->count() > 0) {
+              foreach($optional->getOptionalSchedules() as $schedule) {
+                if ($schedule->getScheduledDateTime() > new \DateTime('now')) {
+                  $canCreate = true;
+                }
+              }
+            }
+            if ($canCreate == true) {
+              $this->home_generate_optional_attendance($optional);
+            } else {
+              //return $this->redirectToRoute('myaccount_optionals');
+            }
+          }
+        } else {
+          //return $this->redirectToRoute('myaccount_optionals');
+        }
+      }
+
+      $theRequest->setIsPending(0);
+      $theRequest->setIsConfirmed(1);
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->flush();
+
+      $this->get('session')->getFlashBag()->add(
+        'notice',
+        'Cererea a fost confirmată cu succes!'
+      );
+
+      return $this->redirectToRoute('class_optionals_requests');
+
+    }
+
+    /**
+     * @Route("/class/optionals_requests/deny/{id}", name="optionals_request_deny")
+     * @Method({"GET", "POST"})
+     */
+    public function optionals_request_deny($id)
+    {
+      $theRequest = $this->getDoctrine()->getRepository
+      (OptionalEnrollRequest::class)->find($id);
+
+      $theRequest->setIsPending(0);
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->persist($theRequest);
+      $entityManager->flush();
+
+      $this->get('session')->getFlashBag()->add(
+        'notice',
+        'Cererea a fost RESPINSĂ!'
+      );
+
+      return $this->redirectToRoute('class_optionals_requests');
     }
 
     /**
@@ -219,5 +318,66 @@ class ClassOptionalController extends AbstractController
               'form' => $form->createView(),
           ]);
 
+      }
+
+      public function home_update_optional_attendance($currentOptional) { // MUST MATCH CODE FROM ATTENDANCE CONTROLLER!!!!
+        //the following checks for new schedules or students and adds them accordingly
+        foreach ($currentOptional->getOptionalSchedules() as $sched) {
+            foreach ($currentOptional->getStudents() as $stud) {
+                $result = $this->getDoctrine()->getRepository(OptionalsAttendance::class)->findOneBy(
+                    array('optionalSchedule' => $sched, 'student' => $stud)
+                );
+                if (!$result && ($sched->getScheduledDateTime() > (new \DateTime('now'))) ) {
+                    $attendanceRecord = new OptionalsAttendance();
+                    $attendanceRecord->setClassOptional($currentOptional);
+                    $attendanceRecord->setOptionalSchedule($sched);
+                    $attendanceRecord->setStudent($stud);
+                    $attendanceRecord->setHasAttended(0);
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($attendanceRecord);
+                    $entityManager->flush();
+                } else {
+                    //do nothing
+                }
+            }
+        }
+
+        //the following checks for removed students and removes attendance entries accordingly
+        $currentAttendances = $currentOptional->getOptionalsAttendances();
+        //orphan removal should work for schedules, otherwise create logic here
+        foreach ($currentAttendances as $attendance) {
+            $student = $attendance->getStudent();
+
+            if (!$currentOptional->getStudents()->contains($student)) {
+                if ($attendance->getOptionalSchedule()->getScheduledDateTime() > (new \DateTime('now'))) {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->remove($attendance);
+                    $entityManager->flush();
+                }
+            } else {
+                //do nothing
+            }
+        }
+      }
+
+      public function home_generate_optional_attendance($currentOptional) { // MUST MATCH CODE FROM ATTENDANCE CONTROLLER!!!!
+        if (count($currentOptional->getOptionalsAttendances()) == 0) {
+          foreach ($currentOptional->getOptionalSchedules() as $sched) {
+            if ($sched->getScheduledDateTime() > (new \DateTime('now'))) {
+              foreach ($currentOptional->getStudents() as $stud) {
+                  $attendanceRecord = new OptionalsAttendance();
+                  $attendanceRecord->setClassOptional($currentOptional);
+                  $attendanceRecord->setOptionalSchedule($sched);
+                  $attendanceRecord->setStudent($stud);
+                  $attendanceRecord->setHasAttended(0);
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($attendanceRecord);
+                  $entityManager->flush();
+              }
+            }
+          }
+        }
       }
 }

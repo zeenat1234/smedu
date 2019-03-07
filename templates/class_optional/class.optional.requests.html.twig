@@ -1,0 +1,102 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Administrare Opționale -> Cereri și Confirmări {% endblock %}
+
+{% block body %}
+    <h2 class="coinyFont">Cereri și Confirmări</h2>
+    <br>
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    <br>
+    {% endfor %}
+    {% if current_units is empty %}
+      <p>Nu există unitatăți școlare definite în acest an școlar!</p>
+    {% else %}
+      {% for schoolUnit in current_units %}
+        <h4 class="kuraleFont">{{ schoolUnit.getUnitname }}</h4>
+        <hr>
+        {% if schoolUnit.getClassOptionals is not empty %}
+          {% for optional in schoolUnit.getClassOptionals %}
+            {% if optional.getOptionalEnrollRequests is not empty %}
+              {% set pendingRequests = false %}
+              {% for request in optional.getOptionalEnrollRequests %}
+                {% if request.getIsPending == true or date(request.getRDateTime) > date('-31days') %}
+                  {% set pendingRequests = true %}
+                {% endif %}
+              {% endfor %}
+
+              {% if pendingRequests == true %}
+                <h5 class="kuraleFont">{{ optional.getOptionalName }}</h5>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Elev</th>
+                      <th>Data cererii</th>
+                      <th>Tip Cerere</th>
+                      <th>Opționale</th>
+                      <th>Operațiuni/Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for request in optional.getOptionalEnrollRequests %}
+                    {% if request.isPending or date(request.getRDateTime) > date('-31days') %}
+                      <tr>
+                        <td>
+                          {{ request.getRStudent.getUser.getRoName }}
+                        </td>
+                        <td>
+                          {{ date(request.getRDateTime)|localizeddate('medium','medium','RO') }}
+                        </td>
+                        <td>
+                          {% if request.getRType == 1 %}
+                            <span style="weight:bold; color:#060;">Înscriere</span>
+                          {% else %}
+                            <span style="weight:bold; color:#600;">Anulare Înscriere</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% for optional in request.getROptionals %}
+                            {{ optional.getOptionalName }}{% if loop.last %}{% else %}<br>{% endif %}
+                          {% endfor %}
+                        </td>
+                        <td>
+                          {% if request.isPending == 1 %}
+                            <a href="{{ path('optionals_request_confirm', {'id':request.id}) }}">
+                              <button class="btn btn-success">
+                                CONFIRMĂ
+                              </button>
+                            </a>
+                            <a href="{{ path('optionals_request_deny', {'id':request.id}) }}">
+                              <button class="button btn btn-danger">
+                                RESPINGE
+                              </button>
+                            </a>
+                          {% elseif request.isConfirmed == 1 %}
+                            Confirmat
+                          {% else %}
+                            Respins
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endif %}
+                  {% endfor %}
+                  </tbody>
+                </table>
+                <br>
+              {% else %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+        <br>
+      {% endfor %}
+    {% endif %}
+
+{% endblock %}

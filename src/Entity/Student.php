@@ -66,12 +66,18 @@ class Student
      */
     private $transportTrips;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OptionalEnrollRequest", mappedBy="rStudent", orphanRemoval=true)
+     */
+    private $optionalEnrollRequests;
+
     public function __construct()
     {
         $this->ClassOptionals = new ArrayCollection();
         $this->optionalsAttendances = new ArrayCollection();
         $this->monthAccounts = new ArrayCollection();
         $this->transportTrips = new ArrayCollection();
+        $this->optionalEnrollRequests = new ArrayCollection();
     }
 
     public function getId()
@@ -283,6 +289,18 @@ class Student
         return $this->transportTrips;
     }
 
+    /**
+     * @return Collection|TransportTrip[]
+     */
+    public function getTransportTripsDesc(): Collection
+    {
+        $criteria = Criteria::create()
+          ->orderBy(array('date' => Criteria::DESC))
+          ->setFirstResult(0)
+        ;
+        return $this->transportTrips->matching($criteria);
+    }
+
     public function getTransportTripByDay($date): ?TransportTrip
     {
         $criteria = Criteria::create()
@@ -312,6 +330,37 @@ class Student
             // set the owning side to null (unless already changed)
             if ($transportTrip->getStudent() === $this) {
                 $transportTrip->setStudent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OptionalEnrollRequest[]
+     */
+    public function getOptionalEnrollRequests(): Collection
+    {
+        return $this->optionalEnrollRequests;
+    }
+
+    public function addOptionalEnrollRequest(OptionalEnrollRequest $optionalEnrollRequest): self
+    {
+        if (!$this->optionalEnrollRequests->contains($optionalEnrollRequest)) {
+            $this->optionalEnrollRequests[] = $optionalEnrollRequest;
+            $optionalEnrollRequest->setRStudent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOptionalEnrollRequest(OptionalEnrollRequest $optionalEnrollRequest): self
+    {
+        if ($this->optionalEnrollRequests->contains($optionalEnrollRequest)) {
+            $this->optionalEnrollRequests->removeElement($optionalEnrollRequest);
+            // set the owning side to null (unless already changed)
+            if ($optionalEnrollRequest->getRStudent() === $this) {
+                $optionalEnrollRequest->setRStudent(null);
             }
         }
 

@@ -35,6 +35,7 @@
     {% if kids|length > 0 %}
       {% for kid in kids %}
         {% if kid.getChildLatestEnroll.getId is not null %}
+        {% set student = kid.getChildLatestEnroll.getStudent %}
           <div class="col-12">
             <div class="indexParentHolder {{ holderColors[i] }}">
               <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
@@ -47,19 +48,102 @@
                 <div class="row">
                   {% for f in forms[i].classOptionals %}
                     <div class="col-12 col-lg-6 col-xl-4">
-                      <div class="kuraleFont" style="font-size: 20px;"><span class="double">{{ form_widget(f) }}</span>{{ form_label(f) }}</div>
                       {% set index = f.vars.value %}
                       {% set entity = forms[i].classOptionals.vars.choices[index].data %}
+                      {% set editable = true %}
+                      <div class="kuraleFont" style="font-size: 20px;"><span class="double">
+                        {% set rtype = 1 %}
+                        {% for request in student.getOptionalEnrollRequests %}
+                          {% if entity in request.getROptionals %}
+                            {% if request.isPending %}
+                              {% set editable = false %}
+                              {% set rtype = request.getRType %}
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                        {% if editable == false %}
+                          {% if rtype == 0 %}
+                            <i class="fas fa-times-circle"></i>
+                          {% else %}
+                            <i class="fas fa-check-circle"></i>
+                          {% endif %}
+                          <!--{{ form_widget(f) }}-->
+                        {% else %}
+                          {{ form_widget(f) }}
+                        {% endif %}
+                      </span>{{ form_label(f) }}</div>
                       <strong>Descriere: </strong>{{ entity.getDescription }}<br>
                       <strong>Preț: </strong>{{ entity.getPrice }} RON/{% if entity.useAttend %}ședință{% else %}lună{% endif %}
                       <hr>
                     </div>
                   {% endfor %}
                   <div class="col-12">
-                    <button style="vertical-align: text-bottom;" disabled class="btn-sm btn btn-success mt-3"><i class="fas fa-angle-double-up"></i> Actualizează</button> <code>Funcționalitate temporar suspendată</code>
+                    <button style="vertical-align: text-bottom;" class="btn-sm btn btn-success mt-3">
+                      <i class="fas fa-angle-double-up"></i> Actualizează
+                    </button> <!--<code>Funcționalitate temporar suspendată</code>-->
                   </div>
                 </div>
               {{ form_end(forms[i]) }}
+              <br>
+
+              {% set pendingRequests = false %}
+              {% if student.getOptionalEnrollRequests is not empty %}
+                {% for request in student.getOptionalEnrollRequests %}
+                  {% if request.getIsPending == true or date(request.getRDateTime) > date('-14days') %}
+                    {% set pendingRequests = true %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+
+              {% if pendingRequests == true %}
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Data cererii</th>
+                    <th>Tip Cerere</th>
+                    <th>Opționale</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for request in student.getOptionalEnrollRequests %}
+                  {% if request.isPending or date(request.getRDateTime) > date('-14days') %}
+                    <tr>
+                      <td>
+                        {{ date(request.getRDateTime)|localizeddate('medium','medium','RO') }}
+                      </td>
+                      <td>
+                        {% if request.getRType == 1 %}
+                          Înscriere
+                        {% else %}
+                          Anulare Înscriere
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% for optional in request.getROptionals %}
+                          {{ optional.getOptionalName }}{% if loop.last %}.{% else %}, {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% if request.isPending == 1 %}
+                          În curs de procesare <a href="{{ path('myaccount_optionals_revoke',{id:request.id}) }}">
+                            <button class="btn btn-xs btn-danger">
+                              Anulează Cererea
+                            </button>
+                          </a>
+                        {% elseif request.isConfirmed == 1 %}
+                          Confirmat
+                        {% else %}
+                          Revocat
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+                </tbody>
+              </table>
+              {% endif %}
+
             </div>
           </div>
           {# SUPPORTS UP TO 4 CHILDREN #}

@@ -1,0 +1,388 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Facturile Mele{% endblock %}
+
+{% block body %}
+
+  <div class="myaccount-settings-wrapper">
+
+    <h1 class="coinyFont"><i class="fas fa-coins fa-fw"></i> Administrare facturi</h1>
+
+    {% set kids = app.user.getGuardianacc.getChildren %}
+    {% set count = 0 %}
+    {% for kid in kids %}
+      {% if kid.getChildLatestEnroll.getId is not null %}
+        {% set count = count + 1 %}
+      {% endif %}
+    {% endfor %}
+
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-danger fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+
+    <div class="row">
+      {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
+      {% set i = 0 %}
+      {% set fi = 0 %}
+      {% if kids|length > 0 %}
+        {% for kid in kids %}
+          {% if kid.getChildLatestEnroll.getId is not null %}
+            <div class="col-12">
+              <div class="indexParentHolder {{ holderColors[i] }}">
+                <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
+                <hr>
+                <div class="row row-eq-height">
+                {% if all_accounts[kid.getUsername] is not empty %}
+
+                  {% set paidInvoices = [] %}
+                  {% set unpaidInvoices = [] %}
+
+                  {% for account in all_accounts[kid.getUsername] %}
+
+                    {% for invoice in account.getAccountInvoices %}
+                      {% if invoice.isLocked %}
+                        {% if invoice.isPaid %}
+                          {% set paidInvoices = paidInvoices|merge([invoice]) %}
+                        {% else %}
+                          {% set unpaidInvoices = unpaidInvoices|merge([invoice]) %}
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+
+                  {% endfor %}
+
+                  {% set invoices = unpaidInvoices|merge(paidInvoices) %}
+
+                  {% for invoice in invoices %}
+
+                    {% set account = invoice.getMonthAccount %}
+
+                    <div class="col-12" style="margin-bottom:1em;">
+
+                      <button class="accordion">
+                        <div class="row">
+                          <div class="col-12 col-md-5">
+                            <h5>Factură {{ invoice.getInvoiceDate|localizeddate('medium','none') }} <br>
+                              (seria: <strong>{{ invoice.getInvoiceSerial }}</strong> nr <strong>{{ invoice.getInvoiceNumber }})</strong></h5>
+                          </div>
+                          <div class="col-6 col-md-5">
+                            <strong>TOTAL:</strong> <big>{{ invoice.getInvoiceTotal|localizedcurrency('RON') }}</big>
+                            <br>
+                            {% if invoice.isPaid %}
+                              {% if invoice.getInvoiceTotal <= invoice.getInvoicePaid %}
+                              Achitat <strong style="color:#060">INTEGRAL</strong> la data de: {{ invoice.getInvoicePaidDate|localizeddate('medium','none') }} <br>
+                              {% else %}
+                              Achitat <strong style="color:#660">PARȚIAL</strong> suma de: {{ invoice.getInvoicePaid|localizedcurrency('RON') }}, la data de {{ invoice.getInvoicePaidDate|localizeddate('medium','none') }} <br>
+                              Rest de plată: <strong>{{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</strong> <br>
+                              {% endif %}
+                            {% else %}
+                              {% if invoice.getInvoicePaid > 0 %}
+                                Achitat <strong style="color:#660">PARȚIAL</strong> suma de: {{ invoice.getInvoicePaid|localizedcurrency('RON') }}, la data de {{ invoice.getInvoicePaidDate|localizeddate('medium','none') }} <br>
+                                Rest de plată: <strong>{{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</strong> <br>
+                              {% else %}
+                                <strong style="color:#600">NEACHITAT</strong>
+                              {% endif %}
+                            {% endif %}
+                          </div>
+                          <div class="col-6 col-md-2">
+                            <p style="text-align:right;"><span style="font-size:1.5em;"><i class="fas fa-caret-down"></i></span></p>
+                          </div>
+
+                        </div>
+                      </button>
+
+                      <div class="panel">
+                        <h3 class="kuraleFont">Operațiuni</h3>
+                        {% if invoice.getInvoiceTotal - invoice.getInvoicePaid > 0 %}
+                          <a href="{{ path('smart_pay',{'accId':account.id, 'edit':'add'}) }}">
+                            <button class="btn btn-primary" type="button">
+                              <i class="fas fa-coins fa-fw"></i> Atașare Dovezi de Plată
+                            </button>
+                          </a>
+                        {% endif %}
+                        <a href="{{ path('myacc_invoice_pdf',{'invId':invoice.getId}) }}" target="_blank">
+                          <button class="btn btn-warning">
+                            <i class="fas fa-eye fa-fw"></i> Factură PDF
+                          </button>
+                        </a>
+
+                        <!-- START Historical items -->
+                        {% if invoice.getIsPaid %}
+                          {% if invoice.getAccountReceipt is not empty %}
+                            <a href="{{ path('myacc_receipt_pdf',{'recId':invoice.getAccountReceipt.getId}) }}" target="_blank">
+                              <button class="btn btn-primary">
+                                <i class="fas fa-eye fa-fw"></i> Chitanța PDF
+                              </button>
+                            </a>
+
+                          {% elseif invoice.getPayProof is not empty %}
+                            <a href="{{ path('myacc_invoice_proof',{'invId':invoice.getId, 'action':'view'}) }}" target="_blank">
+                              <button class="btn btn-primary">
+                                <i class="fas fa-eye fa-fw"></i> Dovadă de Plată
+                              </button>
+                            </a>
+                          {% endif %}
+                        {% endif %}
+                        <!-- END Historical items -->
+
+                        <br><hr>
+
+                        <h3 class="kuraleFont">Plăți</h3>
+                        {% if invoice.getPayments is not empty %}
+
+                          <table class="table table-striped">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th>
+                                  Număr Plată
+                                </th>
+                                <th>
+                                  Tip Plată
+                                </th>
+                                <th>
+                                  Dovezi
+                                </th>
+                                <th>
+                                  Status
+                                </th>
+                                <th>
+                                  Chitanță
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for payment in invoice.getPayments %}
+                                <tr>
+                                  <td>
+                                    <button disabled class="btn btn-sm btn-info">
+                                      {{ payment.id }}
+                                    </button>
+                                  </td>
+                                  <td>
+                                    {{ payment.getNormalized }}
+                                  </td>
+                                  <td>
+                                    {% set pi = 1 %}
+                                    {% for proof in payment.getPaymentProofs %}
+                                      {{ pi }}) <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">
+                                        <button type="button" class="btn btn-sm btn-primary"><i class="fas fa-eye fa-fw"></i></button>
+                                      </a>
+                                      <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'download'}) }}" target="_blank">
+                                        <button type="button" class="btn btn-sm btn-info"><i class="fas fa-file-download fa-fw"></i></button>
+                                      </a>
+                                      {% set pi = pi + 1 %}
+                                    {% endfor %}
+
+                                  </td>
+                                  <td>
+                                    {% if payment.isPending %}
+                                      <a href="{{ path('smart_pay',{'accId':account.id, 'edit':payment.id}) }}">
+                                        <button class="btn btn-sm btn-warning" style="margin-bottom:2px">
+                                          <i class="fas fa-edit fa-fw"></i> Plată în așteptare
+                                        </button>
+                                      </a>
+                                      &nbsp
+                                      <!-- Button to Open the Modal -->
+                                      <button class="btn btn-sm btn-info" type="button" data-toggle="modal" data-target="#invoiceModal-{{ payment.getId }}">
+                                        <i class="fas fa-plus fa-fw"></i> Modifică Dovezi plată
+                                      </button>
+
+                                      <!-- The Modal for Invoice Edit START -->
+                                      <div class="modal fade" id="invoiceModal-{{ payment.getId }}">
+                                        <div class="modal-dialog">
+                                          <div class="modal-content">
+                                            {{ form_start(forms[fi]) }}
+                                            <!-- Modal Header -->
+                                            <div class="modal-header">
+                                              <h4 class="modal-title kuraleFont">Dovezi de Plată</h4>
+                                              <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            </div>
+
+                                            <!-- Modal body -->
+                                            <div class="modal-body">
+                                              Dovezile de plată pot fi vizualizate și modificate aici. <br>
+                                              <code>ATENȚIE: </code> Plățile care nu conțin dovezi vor fi respinse. <br>
+                                              {% set pi = 1 %}
+                                              {% for proof in payment.getPaymentProofs %}
+                                                {{ pi }}) <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'view'}) }}" target="_blank">
+                                                  <button type="button" class="btn btn-sm btn-primary"><i class="fas fa-eye fa-fw"></i></button>
+                                                </a>
+                                                <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'download'}) }}" target="_blank">
+                                                  <button type="button" class="btn btn-sm btn-info"><i class="fas fa-file-download fa-fw"></i></button>
+                                                </a>
+                                                <a href="{{ path('smartpay_prfrem',{'prfId':proof.getId,'accId':account.getId}) }}">
+                                                  <button type="button" class="btn btn-sm btn-danger"><i class="fas fa-trash fa-fw"></i></button>
+                                                </a>
+                                                {% set pi = pi + 1 %}
+                                              {% endfor %}
+                                              <br>
+                                              <br>
+                                              Total achitat: <strong>{{ payment.getPayAmount|localizedcurrency('RON') }}</strong>
+                                              {% if payment.getPayAdvance != 0 %}
+                                               + avans: <strong>{{ payment.getPayAdvance|localizedcurrency('RON') }}</strong>
+                                              {% endif %}
+                                              <br>
+                                              În data de: <strong>{{ payment.getPayDate|localizeddate('long', 'short') }}</strong>
+                                              <hr>
+                                              <ul>
+                                              <li>Dacă există o dovadă de plată invalidă, poți să o ștergi.</li>
+                                              <li>Dacă dorești să adaugi o dovadă de plată, te rugăm să folosești unul din formatele suportate</li>
+                                              </ul>
+                                              <code><small>{{ form_errors(forms[fi]) }}</small></code>
+                                              <hr>
+                                              {{ form_row(forms[fi].payProof) }}
+                                            </div>
+
+                                            <!-- Modal footer -->
+                                            <div class="modal-footer">
+                                              <button type="submit" class="btn btn-success test">Salvează</button>
+                                              <button type="button" class="btn btn-danger" data-dismiss="modal">Renunță</button>
+                                            </div>
+                                            {{ form_end(forms[fi]) }}
+                                            {% set fi = fi + 1 %}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <!-- The Modal for Invoice Edit END -->
+
+                                    {% elseif payment.isConfirmed %}
+                                      <button disabled class="btn btn-sm btn-success" style="margin-bottom:2px">
+                                        <i class="fas fa-check fa-fw"></i> Plată confirmată
+                                      </button>
+
+                                    {% else %}
+                                      <button disabled class="btn btn-sm btn-danger" style="margin-bottom:2px">
+                                        Plată respinsă
+                                      </button>
+                                    {% endif %}
+                                  </td>
+                                  <td>
+                                    {% if payment.getSmartReceipt is not empty %}
+                                      <a href="{{ path('smart_receipt_pdf',{'recId':payment.getSmartReceipt.getId}) }}" target="_blank">
+                                        <button class="btn btn-sm btn-primary">
+                                          <i class="fas fa-eye fa-fw"></i> Chitanța PDF
+                                        </button>
+                                      </a>
+                                    {% endif %}
+                                  </td>
+                                </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+
+                          <br><hr>
+
+                        {% else %}
+                          <p>Nu există nicio plată atașată acestei facturi.</p>
+                        {% endif %}
+                        <br>
+                        <h3 class="kuraleFont">Detalii Factură</h3>
+                        <table class="table">
+                          <thead>
+                            <th>
+                              Nr.
+                            </th>
+                            <th>
+                              Denumire Serviciu
+                            </th>
+                            <th style="text-align:right;">
+                              Cant
+                            </th>
+                            <th>
+                              Preț
+                            </th>
+                          </thead>
+                          <tbody>
+                            {% set nrCrt = 1 %}
+                            {% set total = 0 %}
+                            {% for item in invoice.getPaymentItems %}
+                              <tr id="invoice_row">
+                                <td>
+                                  {{ nrCrt }}
+                                </td>
+                                <td>
+                                  {{ item.getItemName }}
+                                </td>
+                                <td style="text-align:right;">
+                                  x{{ item.getItemCount }}
+                                </td>
+                                <td>
+                                  {{ item.getItemPrice|localizedcurrency('RON') }}
+                                  {% set total = total + item.getItemPrice %}
+                                </td>
+                              </tr>
+                              {% set nrCrt = nrCrt + 1 %}
+                            {% endfor %}
+                            <tr>
+                              <td colspan="2"></td>
+                              <td style="text-align:right;"><strong>TOTAL:</strong></td>
+                              <td>{{ total|localizedcurrency('RON') }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                  {% endfor %}
+
+
+                {% else %}
+                <div class="col-12">
+                  Nu există nicio factură generată pentru acest elev
+                </div>
+                {% endif %}
+                </div>
+              </div>
+            </div>
+            {% set i = i + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% if i == 0 %}
+          <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+
+
+  </div>
+
+  <hr>
+  {% include('home/myaccount.terms.cond.html.twig') %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  $('[id^="invoiceModal"]').appendTo("body");
+
+  ScrollReveal({ reset: false }).reveal('.myaccount-settings-wrapper', { duration:800, delay:0 });
+  ScrollReveal({ reset: false }).reveal('.indexParentHolder', { duration:1500, delay:0 });
+  ScrollReveal({ reset: false }).reveal('.indexParentHolder2', { duration:1500, delay:50 });
+
+</script>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight){
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    }
+  });
+}
+</script>
+
+{% endblock %}

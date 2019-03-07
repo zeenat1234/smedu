@@ -76,6 +76,11 @@ class ClassOptional
      */
     private $paymentItems;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\OptionalEnrollRequest", mappedBy="rOptionals")
+     */
+    private $optionalEnrollRequests;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
@@ -83,6 +88,7 @@ class ClassOptional
         $this->optionalSchedules = new ArrayCollection();
         $this->optionalsAttendances = new ArrayCollection();
         $this->paymentItems = new ArrayCollection();
+        $this->optionalEnrollRequests = new ArrayCollection();
     }
 
     public function getId()
@@ -408,6 +414,34 @@ class ClassOptional
             if ($paymentItem->getItemOptional() === $this) {
                 $paymentItem->setItemOptional(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OptionalEnrollRequest[]
+     */
+    public function getOptionalEnrollRequests(): Collection
+    {
+        return $this->optionalEnrollRequests;
+    }
+
+    public function addOptionalEnrollRequest(OptionalEnrollRequest $optionalEnrollRequest): self
+    {
+        if (!$this->optionalEnrollRequests->contains($optionalEnrollRequest)) {
+            $this->optionalEnrollRequests[] = $optionalEnrollRequest;
+            $optionalEnrollRequest->addROptional($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOptionalEnrollRequest(OptionalEnrollRequest $optionalEnrollRequest): self
+    {
+        if ($this->optionalEnrollRequests->contains($optionalEnrollRequest)) {
+            $this->optionalEnrollRequests->removeElement($optionalEnrollRequest);
+            $optionalEnrollRequest->removeROptional($this);
         }
 
         return $this;

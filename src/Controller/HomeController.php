@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Entity\ClassOptional;
 use App\Entity\MonthAccount;
 use App\Entity\OptionalsAttendance;
+use App\Entity\OptionalEnrollRequest;
 use App\Entity\AccountInvoice;
 use App\Entity\AccountReceipt;
 use App\Entity\PaymentProof;
@@ -251,44 +252,103 @@ class HomeController extends Controller
               foreach ($forms as $form) {
                 if ($form->isSubmitted()) {
                   $student = $form->getData();
+                  $optionals = $student->getSchoolUnit()->getClassOptionals();
+
+                  $addRequest = new OptionalEnrollRequest();
+                  $addRequest->setRUser($this->getUser());
+                  $addRequest->setRDateTime(new \DateTime('now'));
+                  $addRequest->setRStudent($student);
+                  $addRequest->setIsPending(1);
+                  $addRequest->setRType(1);
+
+                  $removeRequest = new OptionalEnrollRequest();
+                  $removeRequest->setRUser($this->getUser());
+                  $removeRequest->setRDateTime(new \DateTime('now'));
+                  $removeRequest->setRStudent($student);
+                  $removeRequest->setIsPending(1);
+                  $removeRequest->setRType(0);
 
                   foreach ($optionals as $optional) {
-                    if ($student->getClassOptionals()->contains($optional)) {
-                      $optional->addStudent($student);
-                    } else {
-                      $optional->removeStudent($student);
-                    }
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->flush();
-
-                    if (!$optional->isSyncd()) {
-                      if ($optional->isModified()) {
-                        $this->home_update_optional_attendance($optional);
-                      } else {
-                        $canCreate = false;
-                        if ($optional->getStudents()->count() > 0) {
-                          foreach($optional->getOptionalSchedules() as $schedule) {
-                            if ($schedule->getScheduledDateTime() > new \DateTime('now')) {
-                              $canCreate = true;
-                            }
-                          }
-                        }
-                        if ($canCreate == true) {
-                          $this->home_generate_optional_attendance($optional);
-                        } else {
-                          //return $this->redirectToRoute('myaccount_optionals');
+                    if (!$optional->getStudents()->contains($student) && $student->getClassOptionals()->contains($optional) ) {
+                      //create add request
+                      $editable = true;
+                      foreach ($student->getOptionalEnrollRequests() as $enrollRequest) {
+                        if ($enrollRequest->getROptionals()->contains($optional) && $enrollRequest->getIsPending() == true) {
+                          $editable = false;
                         }
                       }
-                    } else {
-                      //return $this->redirectToRoute('myaccount_optionals');
+                      if ($editable == true) {
+                        $addRequest->addROptional($optional);
+                      }
+                    }
+
+                    elseif ($optional->getStudents()->contains($student) && !$student->getClassOptionals()->contains($optional)) {
+                      //create remove request
+                      $editable = true;
+                      foreach ($student->getOptionalEnrollRequests() as $enrollRequest) {
+                        if ($enrollRequest->getROptionals()->contains($optional) && $enrollRequest->getIsPending() == true) {
+                          $editable = false;
+                        }
+                      }
+                      if ($editable == true) {
+                        $removeRequest->addROptional($optional);
+                      }
                     }
                   }
 
-                  $this->get('session')->getFlashBag()->add(
-                    'notice',
-                    'Informația a fost salvată cu succes!'
-                  );
+                  if ($addRequest->getROptionals()->count() > 0) {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($addRequest);
+                    $entityManager->flush();
 
+                    $this->get('session')->getFlashBag()->add(
+                      'notice',
+                      'Cererea ta pentru înscriere a fost înregistrată cu succes!'
+                    );
+                  }
+
+                  if ($removeRequest->getROptionals()->count() > 0) {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($removeRequest);
+                    $entityManager->flush();
+
+                    $this->get('session')->getFlashBag()->add(
+                      'notice',
+                      'Cererea ta pentru anularea înscrierii a fost înregistrată cu succes!'
+                    );
+                  }
+
+                  // foreach ($optionals as $optional) {
+                  //   if ($student->getClassOptionals()->contains($optional)) {
+                  //     $optional->addStudent($student);
+                  //   } else {
+                  //     $optional->removeStudent($student);
+                  //   }
+                  //   $entityManager = $this->getDoctrine()->getManager();
+                  //   $entityManager->flush();
+                  //
+                  //   if (!$optional->isSyncd()) {
+                  //     if ($optional->isModified()) {
+                  //       $this->home_update_optional_attendance($optional);
+                  //     } else {
+                  //       $canCreate = false;
+                  //       if ($optional->getStudents()->count() > 0) {
+                  //         foreach($optional->getOptionalSchedules() as $schedule) {
+                  //           if ($schedule->getScheduledDateTime() > new \DateTime('now')) {
+                  //             $canCreate = true;
+                  //           }
+                  //         }
+                  //       }
+                  //       if ($canCreate == true) {
+                  //         $this->home_generate_optional_attendance($optional);
+                  //       } else {
+                  //         //return $this->redirectToRoute('myaccount_optionals');
+                  //       }
+                  //     }
+                  //   } else {
+                  //     //return $this->redirectToRoute('myaccount_optionals');
+                  //   }
+                  // }
 
                   return $this->redirectToRoute('myaccount_optionals');
 
@@ -297,10 +357,54 @@ class HomeController extends Controller
 
           }
 
-        return $this->render('home/myaccount.optionals.html.twig', [
+          return $this->render('home/myaccount.optionals.html.twig', [
             'forms' => $views,
           ]);
         }
+    }
+
+    /**
+     * @Route("/account/optionals/revoke/{id}", name="myaccount_optionals_revoke")
+     * @Method({"GET", "POST"})
+     */
+    public function myaccount_optionals_revoke($id)
+    {
+      $theRequest = $this->getDoctrine()->getRepository
+      (OptionalEnrollRequest::class)->find($id);
+
+      $theRequest->setIsPending(0);
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->persist($theRequest);
+      $entityManager->flush();
+
+      $this->get('session')->getFlashBag()->add(
+        'notice',
+        'Cererea a fost ANULATĂ!'
+      );
+
+      return $this->redirectToRoute('myaccount_optionals');
+    }
+
+    /**
+     * @Route("/account/opt_attendance", name="opt_attendance")
+     * @Method({"GET", "POST"})
+     */
+    public function opt_attendance()
+    {
+      return $this->render('home/myaccount.attendance.opt.html.twig', [
+        //'vars' => $vars,
+      ]);
+    }
+
+    /**
+     * @Route("/account/transp_attendance", name="transp_attendance")
+     * @Method({"GET", "POST"})
+     */
+    public function transp_attendance()
+    {
+      return $this->render('home/myaccount.attendance.transp.html.twig', [
+        //'vars' => $vars,
+      ]);
     }
 
     /**
@@ -327,25 +431,28 @@ class HomeController extends Controller
 
                 $allAccounts[$student->getUser()->getUsername()] = $accounts;
 
+                $paidInvoices = array();
+                $unpaidInvoices = array();
+
                 foreach ($accounts as $account) {
                   foreach ($account->getAccountInvoices() as $invoice) {
-                    foreach ($invoice->getPayments() as $payment) {
-                      if ($payment->getIsPending()) {
-                        $form = $this->createForm(UserMyaccountSmartProofType::Class, $payment);
-                        $forms[] = $form;
-                        $views[] = $form->createView();
-                      }
+                    if ($invoice->getIsPaid()) {
+                      $paidInvoices[] = $invoice;
+                    } else {
+                      $unpaidInvoices[] = $invoice;
                     }
-                    // TODO DEPRECATED - old payment system
-                    // $invoice->setInvoicePaid($invoice->getInvoiceTotal());
-                    //
-                    // $form = $this->createForm(UserMyaccountInvoiceType::Class, $invoice, array(
-                    //   //'optionals' => $optionals,
-                    // ));
-                    // $pricePaid[$invoice->getId()] = $invoice->getInvoicePaid();
-                    // $forms[] = $form;
-                    // $views[] = $form->createView();
+                  }
+                }
 
+                $allInvoices = array_merge($unpaidInvoices, $paidInvoices);
+
+                foreach ($allInvoices as $invoice) {
+                  foreach ($invoice->getPayments() as $payment) {
+                    if ($payment->getIsPending()) {
+                      $form = $this->createForm(UserMyaccountSmartProofType::Class, $payment);
+                      $forms[] = $form;
+                      $views[] = $form->createView();
+                    }
                   }
                 }
             }
@@ -418,10 +525,16 @@ class HomeController extends Controller
               }
           }
 
-          return $this->render('home/myaccount.invoices.html.twig', [
+          return $this->render('home/myaccount.invoices.new.html.twig', [
               'all_accounts' => $allAccounts,
               'forms' => $views,
             ]);
+
+          // DEPRECATED - old interface
+          // return $this->render('home/myaccount.invoices.html.twig', [
+          //     'all_accounts' => $allAccounts,
+          //     'forms' => $views,
+          //   ]);
 
         }
     }
@@ -523,64 +636,5 @@ class HomeController extends Controller
       );
     }
 
-    public function home_update_optional_attendance($currentOptional) { // MUST MATCH CODE FROM ATTENDANCE CONTROLLER!!!!
-      //the following checks for new schedules or students and adds them accordingly
-      foreach ($currentOptional->getOptionalSchedules() as $sched) {
-          foreach ($currentOptional->getStudents() as $stud) {
-              $result = $this->getDoctrine()->getRepository(OptionalsAttendance::class)->findOneBy(
-                  array('optionalSchedule' => $sched, 'student' => $stud)
-              );
-              if (!$result && ($sched->getScheduledDateTime() > (new \DateTime('now'))) ) {
-                  $attendanceRecord = new OptionalsAttendance();
-                  $attendanceRecord->setClassOptional($currentOptional);
-                  $attendanceRecord->setOptionalSchedule($sched);
-                  $attendanceRecord->setStudent($stud);
-                  $attendanceRecord->setHasAttended(0);
 
-                  $entityManager = $this->getDoctrine()->getManager();
-                  $entityManager->persist($attendanceRecord);
-                  $entityManager->flush();
-              } else {
-                  //do nothing
-              }
-          }
-      }
-
-      //the following checks for removed students and removes attendance entries accordingly
-      $currentAttendances = $currentOptional->getOptionalsAttendances();
-      //orphan removal should work for schedules, otherwise create logic here
-      foreach ($currentAttendances as $attendance) {
-          $student = $attendance->getStudent();
-
-          if (!$currentOptional->getStudents()->contains($student)) {
-              if ($attendance->getOptionalSchedule()->getScheduledDateTime() > (new \DateTime('now'))) {
-                  $entityManager = $this->getDoctrine()->getManager();
-                  $entityManager->remove($attendance);
-                  $entityManager->flush();
-              }
-          } else {
-              //do nothing
-          }
-      }
-    }
-
-    public function home_generate_optional_attendance($currentOptional) { // MUST MATCH CODE FROM ATTENDANCE CONTROLLER!!!!
-      if (count($currentOptional->getOptionalsAttendances()) == 0) {
-        foreach ($currentOptional->getOptionalSchedules() as $sched) {
-          if ($sched->getScheduledDateTime() > (new \DateTime('now'))) {
-            foreach ($currentOptional->getStudents() as $stud) {
-                $attendanceRecord = new OptionalsAttendance();
-                $attendanceRecord->setClassOptional($currentOptional);
-                $attendanceRecord->setOptionalSchedule($sched);
-                $attendanceRecord->setStudent($stud);
-                $attendanceRecord->setHasAttended(0);
-
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($attendanceRecord);
-                $entityManager->flush();
-            }
-          }
-        }
-      }
-    }
 }

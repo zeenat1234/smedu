@@ -1,0 +1,207 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Transport{% endblock %}
+
+{% block body %}
+    <h2 class="coinyFont"><i class="fas fa-book-reader fa-fw"></i> Prezențe transport</h2>
+    <br>
+    <strong>Instrucțiuni: </strong>Aici puteți vizualiza ruta și drumurile efectuate. Ruta este șablonul folosit pentru
+      cel mai frecvent drum efectuat. Vă rugăm să verificați drumurile individuale pentru drumuri efectuate pe alte rute.
+    <br><br>
+    {% set kids = app.user.getGuardianacc.getChildren %}
+    {% set count = 0 %}
+    <strong>Atenție: </strong> Aceste date sunt actualizate periodic. Vă rugăm să așteptați 1 săptămână în cazul în care prezențele nu au fost actualizate.
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+    <br>
+    <div class="row">
+    {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
+    {% set i = 0 %}
+    {% if kids|length > 0 %}
+      {% for kid in kids %}
+        {% if kid.getChildLatestEnroll.getId is not null %}
+        {% set student = kid.getChildLatestEnroll.getStudent %}
+          <div class="col-12">
+            <div class="indexParentHolder {{ holderColors[i] }}">
+              <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
+              <hr>
+              <b>Unitate școlară: </b>{{ kid.getChildLatestEnroll.getIdUnit.getUnitname }}
+              <br>
+              <b>Serviciu: </b>{{ kid.getChildLatestEnroll.getIdService.getServicename }}
+              <hr>
+
+              {% if student.getTransportRoute is empty %}
+                <p>Elevul nu este înscris pentru serviciul de transport.</p>
+              {% else %}
+                {% set route = student.getTransportRoute %}
+                <strong>Ruta principală:</strong><br>
+                <table class="table" id="acc_transport_row">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>
+                        Distanță
+                      </th>
+                      <th>
+                        Tip Taxare
+                      </th>
+
+                      {% if route.getPricePerKm %}
+                        <th>
+                          Preț pe km
+                        </th>
+                        <th>
+                          Preț Drum
+                        </th>
+                      {% else %}
+                        <th>
+                          Preț pe drum
+                        </th>
+                      {% endif %}
+                    </tr>
+                  </thead>
+                  <tr>
+                    <td>
+                      {{ route.getDistance }} km
+                    </td>
+                    <td>
+                      {% if route.getPricePerKm %}
+                        Taxare pe km
+                      {% else %}
+                        Taxare pe drum
+                      {% endif %}
+                    </td>
+                    {% if route.getPricePerKm %}
+                      <td>
+                        {{ route.getPrice|localizedcurrency('RON') }}
+                      </td>
+                      <td>
+                        {{ (route.getPrice * route.getDistance)|localizedcurrency('RON') }}
+                      </td>
+                    {% else %}
+                      <td>
+                        {{ route.getPrice|localizedcurrency('RON') }}
+                      </td>
+                    {% endif %}
+                  </tr>
+                </table>
+                <hr>
+                <strong>Drumuri:</strong><br>
+                {% if student.getTransportTrips is empty %}
+                  <p>Nu există drumuri efectuate în cadrul serviciului de transport.</p>
+                {% else %}
+                <table class="table" id="acc_transport_row">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>
+                        Dată
+                      </th>
+                      <th>
+                        Tip Drum
+                      </th>
+                      <th>
+                        Dus
+                      </th>
+                      <th>
+                        Întors
+                      </th>
+                      <th>
+                        Preț
+                      </th>
+                      <th>
+                        Taxare
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for trip in student.getTransportTripsDesc %}
+                      {% if trip.getTripType != 0 %}
+                      <tr>
+                        <td>
+                          {{ trip.getDate|localizeddate('short','none','RO') }}
+                        </td>
+                        <td>
+                          {% if trip.getTripType == 1 %}
+                            Dus
+                          {% elseif trip.getTripType == 2 %}
+                            Întors
+                          {% elseif trip.getTripType == 3 %}
+                            Dus/Întors
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if trip.getTripType == 1 or trip.getTripType == 3 %}
+                            {{ trip.getDistance1 }} km
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if trip.getTripType == 2 or trip.getTripType == 3 %}
+                            {{ trip.getDistance2 }} km
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if trip.getPricePerKm == 1 %}
+                            {% if trip.getTripType == 1 %}
+                              {{ (trip.getPrice * trip.getDistance1)|localizedcurrency('RON') }}
+                            {% elseif trip.getTripType == 2 %}
+                              {{ (trip.getPrice * trip.getDistance2)|localizedcurrency('RON') }}
+                            {% elseif trip.getTripType == 3 %}
+                              {{ (trip.getPrice * (trip.getDistance1 + trip.getDistance2))|localizedcurrency('RON') }}
+                            {% endif %}
+                          {% else %}
+                            {% if trip.getTripType == 1 or trip.getTripType == 2 %}
+                              {{ trip.price|localizedcurrency('RON') }}
+                            {% elseif trip.getTripType == 3 %}
+                              {{ (trip.price * 2)|localizedcurrency('RON') }}
+                            {% endif %}
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if trip.getPricePerKm %}
+                            {{ trip.getPrice|localizedcurrency('RON') }} / km
+                          {% else %}
+                            {{ trip.getPrice|localizedcurrency('RON') }} / drum
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% endif %}
+              {% endif %}
+
+            </div>
+          </div>
+          {# SUPPORTS UP TO 4 CHILDREN #}
+          {% set i = i + 1 %}
+        {% endif %}
+      {% endfor %}
+      {% if i == 0 %}
+        <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+      {% endif %}
+    {% endif %}
+    </div>
+
+    <hr>
+    {% include('home/myaccount.terms.cond.html.twig') %}
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder', { duration:800, delay:0 });
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder2', { duration:1500, delay:50 });
+  </script>
+{% endblock %}

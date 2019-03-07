@@ -1,0 +1,64 @@
+{% extends 'base.nav.parent.html.twig' %}
+
+{% block title %}Opționale{% endblock %}
+
+{% block body %}
+    <h2 class="coinyFont"><i class="fas fa-book-reader fa-fw"></i> Prezențe opționale</h2>
+    <br>
+    <strong>Instrucțiuni: </strong>Lorem ipsum ...
+    <br><br>
+    {% set kids = app.user.getGuardianacc.getChildren %}
+    {% set count = 0 %}
+    <strong>Atenție: </strong> Aceste date sunt actualizate ...
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage }}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+    <br>
+    <div class="row">
+    {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
+    {% set i = 0 %}
+    {% if kids|length > 0 %}
+      {% for kid in kids %}
+        {% if kid.getChildLatestEnroll.getId is not null %}
+        {% set student = kid.getChildLatestEnroll.getStudent %}
+          <div class="col-12">
+            <div class="indexParentHolder {{ holderColors[i] }}">
+              <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
+              <hr>
+              <b>Unitate școlară: </b>{{ kid.getChildLatestEnroll.getIdUnit.getUnitname }}
+              <br><br>
+              <b>Serviciu: </b>{{ kid.getChildLatestEnroll.getIdService.getServicename }}
+              <hr>
+
+              <!--INSERT YOUR DATA HERE-->
+              
+            </div>
+          </div>
+          {# SUPPORTS UP TO 4 CHILDREN #}
+          {% set i = i + 1 %}
+        {% endif %}
+      {% endfor %}
+      {% if i == 0 %}
+        <p>Nu aveți niciun elev înscris! Vă rugăm să ne contactați telefonic pentru mai multe detalii.</p>
+      {% endif %}
+    {% endif %}
+    </div>
+
+    <hr>
+    {% include('home/myaccount.terms.cond.html.twig') %}
+
+{% endblock %}
+
+{% block javascripts %}
+  <script>
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder', { duration:800, delay:0 });
+    ScrollReveal({ reset: true }).reveal('.indexParentHolder2', { duration:1500, delay:50 });
+  </script>
+{% endblock %}
