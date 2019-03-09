@@ -39,7 +39,7 @@ class User implements UserInterface, \Serializable
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=32, unique=true)
+     * @ORM\Column(type="string", length=64, unique=true)
      * @Assert\NotBlank(message = "Acest câmp (username) nu poate fi gol")
      * @Assert\Length(
      *     min=4, minMessage = "Numele de utilizator trebuie să conțină cel puțin '{{ limit }}' caractere",
