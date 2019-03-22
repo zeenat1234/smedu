@@ -136,6 +136,12 @@
                 <p><strong>Status: </strong>Neachitată</p>
                 <p><strong>Atașare Dovezi de Plată: </strong> <a href="{{ path('myaccount_invoices') }}"><button class="btn btn-sm btn-success"><i class="fas fa-coins"></i> Aici</button></a></p>
               {% endif %}
+              {% if latest_invoice.getPenaltyDays > 0 %}
+                <p>Zile penalizare: {{ latest_invoice.getPenaltyDays }} x {{ latest_invoice.getPenaltySum|localizedcurrency('RON') }}/zi, Total: {{ (latest_invoice.getPenaltyDays * latest_invoice.getPenaltySum)|localizedcurrency('RON') }}</p>
+              {% endif %}
+              {% if latest_invoice.getPartialPenaltyDays > 0 %}
+                <p>Zile penalizare parțială: {{ latest_invoice.getPartialPenaltyDays }} x {{ latest_invoice.getPartialPenaltySum|localizedcurrency('RON') }}/zi, Total: {{ (latest_invoice.getPartialPenaltyDays * latest_invoice.getPartialPenaltySum)|localizedcurrency('RON') }}</p>
+              {% endif %}
             </div>
             {% endif %}
           </div>

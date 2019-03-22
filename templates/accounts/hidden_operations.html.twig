@@ -1,0 +1,27 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}HIDDEN MENU{% endblock %}
+
+{% block body %}
+
+  <div class="enrollment-wrapper">
+    <h2>HIDDEN MENU - do not use if you're not a developer!!!</h2>
+    <br>
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+      <br>
+      <div id="message">
+      <div style="padding: 5px;">
+          <div id="inner-message" class="alert alert-danger fade show">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              {{ flashMessage }}
+          </div>
+      </div>
+      </div>
+    {% endfor %}
+    <br>
+    <a href="{{ path('calculate_penalties') }}">
+      <button><i class="fas fa-info"></i> Calculate Penalties!</button>
+    </a>
+  </div>
+
+{% endblock %}

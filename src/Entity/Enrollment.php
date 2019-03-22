@@ -75,6 +75,12 @@ class Enrollment
      */
     private $student;
 
+    /**
+     * @ORM\Column(type="smallint")
+     * @Assert\GreaterThan(0)
+     */
+    private $daysToPay = 14;
+
     public function getId()
     {
         return $this->id;
@@ -184,6 +190,18 @@ class Enrollment
     public function setStudent(Student $student): self
     {
         $this->student = $student;
+
+        return $this;
+    }
+
+    public function getDaysToPay(): ?int
+    {
+        return $this->daysToPay;
+    }
+
+    public function setDaysToPay(int $daysToPay): self
+    {
+        $this->daysToPay = $daysToPay;
 
         return $this;
     }

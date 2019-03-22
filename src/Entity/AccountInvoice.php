@@ -182,6 +182,36 @@ class AccountInvoice
      */
     private $createdBy;
 
+    /**
+     * @ORM\Column(type="smallint")
+     */
+    private $penaltyDays = 0;
+
+    /**
+     * @ORM\Column(type="decimal", precision=7, scale=2)
+     */
+    private $penaltySum = 0.0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $penaltyInvoiced = false;
+
+    /**
+     * @ORM\Column(type="smallint")
+     */
+    private $partialPenaltyDays = 0;
+
+    /**
+     * @ORM\Column(type="decimal", precision=7, scale=2)
+     */
+    private $partialPenaltySum = 0.0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $partialPenaltyInvoiced = false;
+
     public function __construct()
     {
         $this->paymentItems = new ArrayCollection();
@@ -553,6 +583,78 @@ class AccountInvoice
     public function setCreatedBy(?User $createdBy): self
     {
         $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getPenaltyDays(): ?int
+    {
+        return $this->penaltyDays;
+    }
+
+    public function setPenaltyDays(int $penaltyDays): self
+    {
+        $this->penaltyDays = $penaltyDays;
+
+        return $this;
+    }
+
+    public function getPenaltySum(): ?int
+    {
+        return $this->penaltySum;
+    }
+
+    public function setPenaltySum(int $penaltySum): self
+    {
+        $this->penaltySum = $penaltySum;
+
+        return $this;
+    }
+
+    public function getPenaltyInvoiced(): ?bool
+    {
+        return $this->penaltyInvoiced;
+    }
+
+    public function setPenaltyInvoiced(bool $penaltyInvoiced): self
+    {
+        $this->penaltyInvoiced = $penaltyInvoiced;
+
+        return $this;
+    }
+
+    public function getPartialPenaltyDays(): ?int
+    {
+        return $this->partialPenaltyDays;
+    }
+
+    public function setPartialPenaltyDays(int $partialPenaltyDays): self
+    {
+        $this->partialPenaltyDays = $partialPenaltyDays;
+
+        return $this;
+    }
+
+    public function getPartialPenaltySum()
+    {
+        return $this->partialPenaltySum;
+    }
+
+    public function setPartialPenaltySum($partialPenaltySum): self
+    {
+        $this->partialPenaltySum = $partialPenaltySum;
+
+        return $this;
+    }
+
+    public function getPartialPenaltyInvoiced(): ?bool
+    {
+        return $this->partialPenaltyInvoiced;
+    }
+
+    public function setPartialPenaltyInvoiced(bool $partialPenaltyInvoiced): self
+    {
+        $this->partialPenaltyInvoiced = $partialPenaltyInvoiced;
 
         return $this;
     }

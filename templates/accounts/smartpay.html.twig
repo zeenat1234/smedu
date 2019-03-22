@@ -84,7 +84,7 @@
     </div>
     <div class="col-12">
       <hr>
-      <button type="submit" id="btnsubmit"> Trimite Dovada </button>
+      <button type="submit" class="btn btn-lg btn-success" id="btnsubmit"><i class="fas fa-redo" id="icon"></i> Trimite Dovada</button>
     </div>
   </div>
   {{ form_end(form) }}
@@ -153,6 +153,17 @@
   }
 
   $( document ).ready(function() {
+
+
+    $("#btnsubmit").click(function () {
+      setTimeout(function () { disableButton(); }, 0);
+    });
+
+    function disableButton() {
+      $("#btnsubmit").prop('disabled', true);
+      $("#icon").addClass('fa-spin');
+    }
+
     //UPDATE TOTAL
     total = 0;
     $('input[type=checkbox]').each(function () {

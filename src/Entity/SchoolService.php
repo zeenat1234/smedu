@@ -60,10 +60,16 @@ class SchoolService
      */
     private $inAdvance = true;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PaymentItem", mappedBy="itemService")
+     */
+    private $paymentItems;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
         $this->classOptionals = new ArrayCollection();
+        $this->paymentItems = new ArrayCollection();
     }
 
     public function getId()
@@ -198,6 +204,37 @@ class SchoolService
     public function setInAdvance(bool $inAdvance): self
     {
         $this->inAdvance = $inAdvance;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PaymentItem[]
+     */
+    public function getPaymentItems(): Collection
+    {
+        return $this->paymentItems;
+    }
+
+    public function addPaymentItem(PaymentItem $paymentItem): self
+    {
+        if (!$this->paymentItems->contains($paymentItem)) {
+            $this->paymentItems[] = $paymentItem;
+            $paymentItem->setItemService($this);
+        }
+
+        return $this;
+    }
+
+    public function removePaymentItem(PaymentItem $paymentItem): self
+    {
+        if ($this->paymentItems->contains($paymentItem)) {
+            $this->paymentItems->removeElement($paymentItem);
+            // set the owning side to null (unless already changed)
+            if ($paymentItem->getItemService() === $this) {
+                $paymentItem->setItemService(null);
+            }
+        }
 
         return $this;
     }

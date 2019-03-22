@@ -62,6 +62,11 @@ class PaymentItem
      */
     private $isInvoiced = false;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\SchoolService", inversedBy="paymentItems")
+     */
+    private $itemService;
+
     public function getId()
     {
         return $this->id;
@@ -171,6 +176,18 @@ class PaymentItem
     public function setIsInvoiced(bool $isInvoiced): self
     {
         $this->isInvoiced = $isInvoiced;
+
+        return $this;
+    }
+
+    public function getItemService(): ?SchoolService
+    {
+        return $this->itemService;
+    }
+
+    public function setItemService(?SchoolService $itemService): self
+    {
+        $this->itemService = $itemService;
 
         return $this;
     }

@@ -65,7 +65,7 @@ class SmartGenerateType extends AbstractType
               'expanded' => true,
               'multiple' => true,
               'choices'  => array(
-                'Taxă Școlară' => 'tax',
+                'Taxă Școlară (+Penalități)' => 'tax',
                 'Opționale' => 'optionals',
                 'Transport' => 'transport',
                 'Servicii nefacturate din urmă' => 'noninvoiced',

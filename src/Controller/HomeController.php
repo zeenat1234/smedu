@@ -85,7 +85,7 @@ class HomeController extends Controller
             if (count($invoices) > 0) {
               $latestInvoice = false;
               foreach ($invoices as $invoice) {
-                if ($invoice != null && ($latestInvoice == false || $latestInvoice->getId() < $invoice->getId())) {
+                if (($invoice != null) && ($invoice->getIsLocked() == true) && ($latestInvoice == false || $latestInvoice->getId() < $invoice->getId())) {
                   $latestInvoice = $invoice;
                 }
               }

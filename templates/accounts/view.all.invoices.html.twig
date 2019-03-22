@@ -119,6 +119,14 @@
                                         {% else %}
                                           De plătit: {{ invoice.getInvoiceTotal|localizedcurrency('RON') }}
                                         {% endif %}
+                                        {% if invoice.getPenaltyDays > 0 %}
+                                          <br><strong style="color:#600">Zile penalizare: </strong>{{ invoice.getPenaltyDays }} x {{ invoice.getPenaltySum|localizedcurrency('RON') }}/zi
+                                          <br><strong>Total: </strong>{{ (invoice.getPenaltyDays * invoice.getPenaltySum)|localizedcurrency('RON') }}
+                                        {% endif %}
+                                        {% if invoice.getPartialPenaltyDays > 0 %}
+                                          <br><strong style="color:#600">Zile penalizare parțială: </strong>{{ invoice.getPartialPenaltyDays }} x {{ invoice.getPartialPenaltySum|localizedcurrency('RON') }}/zi
+                                          <br><strong>Total: </strong>{{ (invoice.getPartialPenaltyDays * invoice.getPartialPenaltySum)|localizedcurrency('RON') }}
+                                        {% endif %}
                                       </td>
                                       {% if invoice.getPayments|length == 0 %}
                                         {% if invoice.getInvoiceTotal - invoice.getInvoicePaid == 0 %}

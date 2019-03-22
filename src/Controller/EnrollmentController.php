@@ -218,7 +218,7 @@ class EnrollmentController extends AbstractController
 
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->flush();
-          // After a child is deactivated, we also remove it from any existing optional class
+          // After a child is deactivated, we also remove it from any existing optional class then from the class group
           if ($enrollment->getIsActive() == 0) {
              foreach ($enrollment->getStudent()->getClassOptionals() as $optional) {
                 $optional->removeStudent($enrollment->getStudent());
@@ -226,6 +226,11 @@ class EnrollmentController extends AbstractController
                 $entityManager->persist($optional);
                 $entityManager->flush();
              }
+             $group = $enrollment->getStudent()->getClassGroup();
+             $group->removeStudent($enrollment->getStudent());
+             $entityManager->persist($group);
+             $entityManager->flush();
+
           }
           if ($redirect == 'all_enrollments_year') {
             return $this->redirectToRoute('all_enrollments_year', array('yearId'=>$enrollment->getSchoolyear()->getId()));

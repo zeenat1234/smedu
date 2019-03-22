@@ -7,7 +7,26 @@
   <div class="myaccount-settings-wrapper">
 
     <h1 class="coinyFont"><i class="fas fa-coins fa-fw"></i> Administrare facturi</h1>
-
+    <br>
+    <strong>Instrucțiuni: </strong>
+    <p>Această pagină conține toate facturile emise pentru înscrierile active din instituție. Pentru a vedea mai multe detalii despre o anumită factură
+    sau pentru a efectua operațiuni precum descărcare sau atașare dovezi de plată, te rugăm să faci click sau tap pe factura respectivă.</p>
+    <strong>Informații despre penalități: </strong>
+    <p>
+      Termenul de plată stabilit prin contract este înscris sub numele fiecărui elev. Acest termen reprezintă numărul de zile până la data scadentă a facturilor
+      începând cu data emiterii.
+      <br> În urma depășirii termenului de plată, fiecare zi adițională va genera o penalizare în cuantum de 1% din suma <u>totală</u> a taxei de școlarizare.
+      <br> În cazul unei plăți parțiale, termenul va fi aplicat din nou începând cu data ultimei plăți. În urma depășirii acestui termen,
+      fiecare zi adițională va genera o penalizare în cuantum de 1% din suma <u>rămasă</u> a taxei de școlarizare.
+    </p>
+    {% set kids = app.user.getGuardianacc.getChildren %}
+    {% set count = 0 %}
+    <strong>Atenție: </strong>
+    <p>Facturile sunt actualizate zilnic, precum si recalcularea zilelor și sumelor de penalizare. </p>
+    <p>
+      În cazul în care ai nelămuriri despre sumele înscrise în facturi, te rugăm să contactezi instituția școlară. <br>
+      În cazul în care întâlnești probleme tehnice, te rugăm să ne trimiți un e-mail pe adresa <a href="mailto:office@iteachsmart.ro">office@iteachsmart.ro</a>
+    </p>
     {% set kids = app.user.getGuardianacc.getChildren %}
     {% set count = 0 %}
     {% for kid in kids %}
@@ -26,7 +45,7 @@
     </div>
     </div>
     {% endfor %}
-
+    <br>
     <div class="row">
       {% set holderColors = ['holderBlue','holderYellow','holderGreen','holderRed'] %}
       {% set i = 0 %}
@@ -37,6 +56,7 @@
             <div class="col-12">
               <div class="indexParentHolder {{ holderColors[i] }}">
                 <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
+                <strong>TERMEN DE PLATĂ:</strong> {{ kid.getChildLatestEnroll.getDaysToPay }} zile
                 <hr>
                 <div class="row row-eq-height">
                 {% if all_accounts[kid.getUsername] is not empty %}
@@ -69,8 +89,11 @@
                       <button class="accordion">
                         <div class="row">
                           <div class="col-12 col-md-5">
-                            <h5>Factură {{ invoice.getInvoiceDate|localizeddate('medium','none') }} <br>
-                              (seria: <strong>{{ invoice.getInvoiceSerial }}</strong> nr <strong>{{ invoice.getInvoiceNumber }})</strong></h5>
+                            <h5>Factură {{ invoice.getInvoiceDate|localizeddate('medium','none','RO') }} <br>
+                              Data scandentă: {{ invoice.getInvoiceDate|date_modify("+"~account.getStudent.getEnrollment.getDaysToPay~" days")|localizeddate('medium','none','RO') }}
+                              <br>
+                              (seria: <strong>{{ invoice.getInvoiceSerial }}</strong> nr <strong>{{ invoice.getInvoiceNumber }})</strong>
+                            </h5>
                           </div>
                           <div class="col-6 col-md-5">
                             <strong>TOTAL:</strong> <big>{{ invoice.getInvoiceTotal|localizedcurrency('RON') }}</big>
@@ -87,8 +110,14 @@
                                 Achitat <strong style="color:#660">PARȚIAL</strong> suma de: {{ invoice.getInvoicePaid|localizedcurrency('RON') }}, la data de {{ invoice.getInvoicePaidDate|localizeddate('medium','none') }} <br>
                                 Rest de plată: <strong>{{ (invoice.getInvoiceTotal - invoice.getInvoicePaid)|localizedcurrency('RON') }}</strong> <br>
                               {% else %}
-                                <strong style="color:#600">NEACHITAT</strong>
+                                <strong style="color:#600">NEACHITAT</strong> <br>
                               {% endif %}
+                            {% endif %}
+                            {% if invoice.getPenaltyDays > 0 %}
+                              <br><strong style="color:#600">Zile penalizare: </strong>{{ invoice.getPenaltyDays }} x {{ invoice.getPenaltySum|localizedcurrency('RON') }}/zi, Total: {{ (invoice.getPenaltyDays * invoice.getPenaltySum)|localizedcurrency('RON') }}
+                            {% endif %}
+                            {% if invoice.getPartialPenaltyDays > 0 %}
+                              <br><strong style="color:#600">Zile penalizare parțială: </strong>{{ invoice.getPartialPenaltyDays }} x {{ invoice.getPartialPenaltySum|localizedcurrency('RON') }}/zi, Total: {{ (invoice.getPartialPenaltyDays * invoice.getPartialPenaltySum)|localizedcurrency('RON') }}
                             {% endif %}
                           </div>
                           <div class="col-6 col-md-2">

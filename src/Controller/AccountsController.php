@@ -2128,6 +2128,7 @@ class AccountsController extends Controller
             $serviceTaxItem->setItemName($schoolService->getServicename().' '.strtoupper($formatter->format($displayMonth)) );
 
             $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
+            $serviceTaxItem->setItemService($schoolService);
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($serviceTaxItem);
@@ -2141,6 +2142,96 @@ class AccountsController extends Controller
             $entityManager->flush();
             // END School Service Tax
             $allCreatedItems[] = $serviceTaxItem;
+
+            // START Penalties
+            $summary = $summary."--> Verificăm penalizări \n";
+
+            $containsPenalty = false;
+            $containsPartPenalty = false;
+
+            foreach ($student->getMonthAccounts() as $oldAccount) {
+              if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
+                foreach ($oldAccount->getAccountInvoices() as $invoice) {
+                  if (($invoice->getPenaltyDays()>0 && $invoice->getPenaltySum()>0 && $invoice->getPenaltyInvoiced()==false) ||
+                  ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltySum() && $invoice->getPenaltyInvoiced()==false)) {
+
+                    if ($invoice->getIsPaid() == true) {
+
+                      $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+                      $formatter->setPattern('MMMM'); //strtoupper($formatter->format($oldAccount->getAccYearMonth()))
+
+                      if ($invoice->getPenaltyDays()>0) {
+                        $containsPenalty = true;
+
+                        $penaltyItem = new PaymentItem();
+                        $penaltyItem->setMonthAccount($account);
+                        $penaltyItem->setItemName("Penalizări factură ".$invoice->getInvoiceSerial()."-".$invoice->getInvoiceNumber().
+                          " ".strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                        $penaltyItem->setItemPrice($invoice->getPenaltySum());
+                        $penaltyItem->setItemCount($invoice->getPenaltyDays());
+
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($penaltyItem);
+                        $entityManager->flush();
+
+                        $allCreatedItems[] = $penaltyItem;
+
+                        $invoice->setPenaltyInvoiced(true);
+
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($invoice);
+                        $entityManager->flush();
+
+                        $account->addPaymentItem($penaltyItem);
+                        $account->addToTotalPrice($penaltyItem->getItemPrice() * $penaltyItem->getItemCount());
+
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($account);
+                        $entityManager->flush();
+
+                        $summary = $summary."----> Adăugat penalizare: ".($penaltyItem->getItemPrice() * $penaltyItem->getItemCount())." RON\n";
+                      }
+
+                      if ($invoice->getPartialPenaltyDays()>0) {
+                        $containsPartPenalty = true;
+
+                        $partPenaltyItem = new PaymentItem();
+                        $partPenaltyItem->setMonthAccount($account);
+                        $partPenaltyItem->setItemName("Penalizări factură parțială ".$invoice->getInvoiceSerial()."-".$invoice->getInvoiceNumber().
+                          " ".strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                        $partPenaltyItem->setItemPrice($invoice->getPartialPenaltySum());
+                        $partPenaltyItem->setItemCount($invoice->getPartialPenaltyDays());
+
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($partPenaltyItem);
+                        $entityManager->flush();
+
+                        $allCreatedItems[] = $partPenaltyItem;
+
+                        $invoice->setPartialPenaltyInvoiced(true);
+
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($invoice);
+                        $entityManager->flush();
+
+                        $account->addPaymentItem($partPenaltyItem);
+                        $account->addToTotalPrice($partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount());
+
+                        $entityManager = $this->getDoctrine()->getManager();
+                        $entityManager->persist($account);
+                        $entityManager->flush();
+
+                        $summary = $summary."----> Adăugat penalizare parțială: ".($partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount())." RON\n";
+                      }
+
+                    }
+
+                  }
+                }
+              }
+            }
+            // END Penalties
+
             $summary = $summary."----> Taxă adăugată: ".$serviceTaxItem->getItemName()." în valoare de ".$serviceTaxItem->getItemPrice()." RON\n";
 
             // HANDLE ADVANCE
@@ -2495,7 +2586,32 @@ class AccountsController extends Controller
                 $entityManager->flush();
 
                 $newInvoice1->addPaymentItem($serviceTaxItem);
-                $newInvoice1->setInvoiceTotal($serviceTaxItem->getItemPrice() * $serviceTaxItem->getItemCount());
+
+                $invoiceTotal = $serviceTaxItem->getItemPrice() * $serviceTaxItem->getItemCount();
+                $newInvoice1->setInvoiceTotal($invoiceTotal);
+
+                // add existing penalties to total
+                if ($containsPenalty) {
+                  $penaltyItem->setIsInvoiced(true);
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($penaltyItem);
+                  $entityManager->flush();
+
+                  $newInvoice1->addPaymentItem($penaltyItem);
+                  $invoiceTotal = $invoiceTotal + $penaltyItem->getItemPrice() * $penaltyItem->getItemCount();
+                }
+
+                if ($containsPartPenalty) {
+                  $partPenaltyItem->setIsInvoiced(true);
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($partPenaltyItem);
+                  $entityManager->flush();
+
+                  $newInvoice1->addPaymentItem($partPenaltyItem);
+                  $invoiceTotal = $invoiceTotal + $partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount();
+                }
+
+                $newInvoice1->setInvoiceTotal($invoiceTotal);
 
                 // HANDLE ADVANCE
                 if ($advanceRemaining > 0) {
@@ -2506,7 +2622,7 @@ class AccountsController extends Controller
                   $entityManager->flush();
 
                   $newInvoice1->addPaymentItem($advanceItem);
-                  $newInvoice1->setInvoiceTotal($serviceTaxItem->getItemPrice() * $serviceTaxItem->getItemCount() + $advanceItem->getItemPrice());
+                  $newInvoice1->setInvoiceTotal($invoiceTotal + $advanceItem->getItemPrice());
 
                 }
 
@@ -2758,7 +2874,6 @@ class AccountsController extends Controller
                   $summary = $summary."----------> Nu există servicii nefacturate!\n";
                 }
               }
-              //TODO add transport condition here
               if (in_array('transport', $data['pay_item_type'])) {
                 if (count($transportPayItems) > 0) {
                   $newInvoice4 = new AccountInvoice();
@@ -3166,7 +3281,96 @@ class AccountsController extends Controller
         ]);
     }
 
+    /**
+     * @Route("/accounts/calculatePenalties", name="calculate_penalties")
+     */
+    public function calculate_penalties()
+    {
+      $currentSchoolYear = $this->getDoctrine()->getRepository
+      (SchoolYear::class)->findCurrentYear();
 
+      foreach ($currentSchoolYear->getSchoolunits() as $unit ) {
+        foreach ($unit->getEnrollments() as $enrollment) {
+          if ($enrollment->getIsActive() && $enrollment->getDaysToPay() > 0) {
+            $student = $enrollment->getStudent();
+            foreach ($student->getMonthAccounts() as $monthAccount) {
+              //the following is a special request for one of our clients
+              if ($monthAccount->getAccYearMonth() > (new \DateTime('2019/01/01'))) {
+                foreach ($monthAccount->getAccountInvoices() as $invoice) {
+                  $hasServiceTax = false;
+                  $serviceTaxSum = 0;
+                  foreach ($invoice->getPaymentItems() as $payItem) {
+                    if (!empty($payItem->getItemService()) && $invoice->getIsLocked()) {
+                      $hasServiceTax = true;
+                      $serviceTaxSum = $serviceTaxSum + $payItem->getItemPrice() * $payItem->getItemCount();
+                    }
+                  }
+                  if ($hasServiceTax && ($serviceTaxSum > 0)) {
+                    $now = new \DateTime('now');
+                    if ($invoice->getIsPaid() == false) {
+                      if ($invoice->getInvoiceDate()->diff($now)->format("%a") > $enrollment->getDaysToPay()) {
+                        //verify if we have any pending payments
+                        $hasPendingPay = false;
+                        foreach ($invoice->getPayments() as $payment) {
+                          if ($payment->getIsPending() == true) {
+                            $hasPendingPay = true;
+                          }
+                        }
+                        if (!$hasPendingPay) {
+                          // give another grace period if a partial payment was made
+                          $penaltyDays = 0;
+                          $penaltySum = 0;
+                          $partialPenaltyDays = 0;
+                          $partialPenaltySum = 0;
+
+                          if (!empty($invoice->getInvoicePaidDate())) {
+                            if ($invoice->getInvoicePaid() < $serviceTaxSum) {
+                              if ($invoice->getInvoicePaidDate()->diff($now)->format("%a") > $enrollment->getDaysToPay()) {
+                                $partialPenaltyDays = $invoice->getInvoicePaidDate()->diff($now)->format("%a") - $enrollment->getDaysToPay();
+                                $partialPenaltySum = 0.01 * ($serviceTaxSum - $invoice->getInvoicePaid());
+                                $invoice->setPartialPenaltyDays($partialPenaltyDays);
+                                $invoice->setPartialPenaltySum($partialPenaltySum);
+                              }
+                            }
+                          } else {
+                            $penaltyDays = $invoice->getInvoiceDate()->diff($now)->format("%a") - $enrollment->getDaysToPay();
+                            $penaltySum = 0.01 * $serviceTaxSum;
+                            $invoice->setPenaltyDays($penaltyDays);
+                            $invoice->setPenaltySum($penaltySum);
+                          }
+                          $entityManager = $this->getDoctrine()->getManager();
+                          $entityManager->persist($invoice);
+                          $entityManager->flush();
+
+                          $this->get('session')->getFlashBag()->add(
+                            'notice',
+                            "SUMAR: \n".$student->getUser()->getRoName()." --> Zile: ".$invoice->getPenaltyDays()." (".$invoice->getPartialPenaltyDays().")\n".
+                            "--------> "."Suma pe zi: ".$invoice->getPenaltySum()." (".$invoice->getPartialPenaltySum().")"
+                          );
+
+                        }
+                      }
+                    }
+                  } //end if has service tax
+                } //end foreach $invoice
+              }
+            }
+          }
+        }
+      }
+
+      return $this->redirectToRoute('hidden_operations');
+    }
+
+    /**
+     * @Route("/hidden_operations", name="hidden_operations")
+     */
+    public function hidden_operations()
+    {
+      return $this->render('accounts/hidden_operations.html.twig', array(
+        //additional parameters
+      ));
+    }
 
 
 }
