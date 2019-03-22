@@ -77,7 +77,7 @@ class Enrollment
 
     /**
      * @ORM\Column(type="smallint")
-     * @Assert\GreaterThan(0)
+     * @Assert\GreaterThanOrEqual(0)
      */
     private $daysToPay = 14;
 
