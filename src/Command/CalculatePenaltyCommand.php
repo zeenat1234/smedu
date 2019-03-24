@@ -53,7 +53,7 @@ class CalculatePenaltyCommand extends ContainerAwareCommand
             $student = $enrollment->getStudent();
             foreach ($student->getMonthAccounts() as $monthAccount) {
               //the following is a special request for one of our clients
-              if ($monthAccount->getAccYearMonth() > (new \DateTime('2019/01/01'))) {
+              if ($monthAccount->getAccYearMonth() > (new \DateTime('2018/12/15'))) {
                 foreach ($monthAccount->getAccountInvoices() as $invoice) {
                   $hasServiceTax = false;
                   $serviceTaxSum = 0;
