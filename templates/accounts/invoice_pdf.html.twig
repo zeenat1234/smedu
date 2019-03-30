@@ -24,8 +24,13 @@
                     {% endif %}
                     <hr>
                     Seria {{ invoice.getInvoiceSerial }} nr {{ "%03d"|format(invoice.getInvoiceNumber) }} <br>
-                    Data emiterii: {{ invoice.getInvoiceDate|localizeddate('short', 'none') }}<br>
-                    Data Scadentă: {{ invoice.getInvoiceDate|date_modify("+1 week")|localizeddate('short', 'none') }}
+                    Data emiterii: {{ invoice.getInvoiceDate|localizeddate('short', 'none','RO') }}<br>
+                    Data scandentă:
+                    {% if invoice.getMonthAccount.getStudent.getEnrollment.getDaysToPay == 0 %}
+                      -
+                    {% else %}
+                      {{ invoice.getInvoiceDate|date_modify("+"~invoice.getMonthAccount.getStudent.getEnrollment.getDaysToPay~" days")|localizeddate('short','none','RO') }}
+                    {% endif %}
                     <hr>
 
                 </td>
