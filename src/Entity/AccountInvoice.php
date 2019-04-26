@@ -599,12 +599,12 @@ class AccountInvoice
         return $this;
     }
 
-    public function getPenaltySum(): ?int
+    public function getPenaltySum()
     {
         return $this->penaltySum;
     }
 
-    public function setPenaltySum(int $penaltySum): self
+    public function setPenaltySum($penaltySum): self
     {
         $this->penaltySum = $penaltySum;
 
