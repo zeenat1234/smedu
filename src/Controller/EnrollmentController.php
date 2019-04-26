@@ -227,9 +227,11 @@ class EnrollmentController extends AbstractController
                 $entityManager->flush();
              }
              $group = $enrollment->getStudent()->getClassGroup();
-             $group->removeStudent($enrollment->getStudent());
-             $entityManager->persist($group);
-             $entityManager->flush();
+             if ($group) {
+               $group->removeStudent($enrollment->getStudent());
+               $entityManager->persist($group);
+               $entityManager->flush();
+             }
 
           }
           if ($redirect == 'all_enrollments_year') {
