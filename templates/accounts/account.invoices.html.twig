@@ -64,7 +64,7 @@
             <small>Zile Penalități: </small>{{ invoice.getPenaltyDays }}
             <small>Sumă pe zi: </small>{{ invoice.getPenaltySum|localizedcurrency('RON') }} ==>
             <small>TOTAL: </small>{{ (invoice.getPenaltySum * invoice.getPenaltyDays)|localizedcurrency('RON') }}
-            <small>Facturat? </small> {% if invoice.getPenaltyInvoiced %} DA {% else %} NU {% endif %}
+            <small>Facturat? </small> {% if invoice.getPenaltyInvoiced %} DA {% else %} NU; <a href="{{ path('penalty_undo_main', {'invId':invoice.id, 'accId':account.id, 'redirect':"account_invoices"}) }}" style="text-decoration:underline;">Resetează</a> {% endif %}
           </code></h4>
         {% endif %}
 
@@ -73,7 +73,7 @@
             <small>Zile Penalități Parțiale: </small>{{ invoice.getPartialPenaltyDays }}
             <small>Sumă pe zi: </small>{{ invoice.getPartialPenaltySum|localizedcurrency('RON') }} ==>
             <small>TOTAL: </small>{{ (invoice.getPartialPenaltySum * invoice.getPartialPenaltyDays)|localizedcurrency('RON') }}
-            <small>Facturat? </small> {% if invoice.getPartialPenaltyInvoiced %} DA {% else %} NU {% endif %}
+            <small>Facturat? </small> {% if invoice.getPartialPenaltyInvoiced %} DA {% else %} NU; <a href="{{ path('penalty_undo_part', {'invId':invoice.id, 'accId':account.id, 'redirect':"account_invoices"}) }}" style="text-decoration:underline;">Resetează</a> {% endif %}
           </code></h4>
         {% endif %}
 

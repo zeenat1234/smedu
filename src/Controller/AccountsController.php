@@ -767,6 +767,146 @@ class AccountsController extends Controller
     }
 
     /**
+     * @Route("/accounts/smartpay_undo/{payId}/{accId}/{redirect?'no'}", name="smart_pay_undo")
+     */
+    public function smart_pay_undo(Request $request, $payId, $accId, $redirect)
+    {
+      $payment = $this->getDoctrine()->getRepository
+      (Payment::class)->find($payId);
+
+      $totalPaid = $payment->getPayAmount() + $payment->getPayAdvance(); //not really needed
+      $invoicePaid = $payment->getPayAmount();
+      $invoiceAdvance = $payment->getPayAdvance();
+
+      if ($payment->getPayMethod() == 'single' || $payment->getPayMethod() == 'partial') {
+        $invoice = $payment->getPayInvoices()->first();
+        $invoice->setInvoicePaid($invoice->getInvoicePaid() - $invoicePaid);
+        if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal()) {
+          $invoice->setInvoicePaidDate(NULL);
+          $invoice->setIsPaid(false);
+        }
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($invoice);
+        $entityManager->flush();
+
+        $monthAcc = $invoice->getMonthAccount();
+        $monthAcc->setTotalPaid($monthAcc->getTotalPaid() - $invoicePaid);
+        $monthAcc->setAdvanceBalance($monthAcc->getAdvanceBalance() - $invoiceAdvance);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($monthAcc);
+        $entityManager->flush();
+
+        $payment->setIsPending(true);
+        $payment->setIsConfirmed(false);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($payment);
+        $entityManager->flush();
+
+        $this->get('session')->getFlashBag()->add(
+            'hurray',
+            'Plata a fost ANULATĂ și contul a fost actualizat!'
+        );
+      }
+
+      if ($payment->getPayMethod() == 'multiple') {
+
+        //first check for multiple partial payments
+        $continue = true;
+        foreach($payment->getPayInvoices() as $invoice) {
+          foreach ($invoice->getPayments() as $invPayment) {
+            if ($invPayment->getPayMenthod() == 'multiple_partial') {
+              $continue = false;
+            }
+          }
+        }
+
+        if($continue) {
+          foreach($payment->getPayInvoices() as $invoice) {
+
+            //check how many confirmed payments we already have
+            $confirmed_payments_count = 0;
+            foreach ($invoice->getPayments() as $invPayment) {
+              if ($invPayment->getIsConfirmed()) {
+                $confirmed_payments_count = $confirmed_payments_count + 1;
+              }
+            }
+
+            if ($confirmed_payments_count == 1) {
+
+              //set invoice total to 0
+              $invoice->setInvoicePaid(0);
+              $invoice->setInvoicePaidDate(NULL);
+              $invoice->setIsPaid(false);
+
+            } elseif ($confirmed_payments_count > 1) {
+              $existingPayTotal = 0;
+              $existingPayDate = NULL;
+              foreach ($invoice->getPayments() as $invPayment) {
+                if (($invPayment->getPayMenthod() == 'partial' || $invPayment->getPayMenthod() == 'single') && $invPayment->getIsConfirmed()) {
+                  $existingPayTotal = $existingPayTotal + $invPayment->getPayAmount();
+                  $existingPayDate = $invPayment->getPayDate();
+                }
+              }
+              $invoice->setInvoicePaid($existingPayTotal);
+              if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal()) {
+                $invoice->setInvoicePaidDate($existingPayDate);
+                $invoice->setIsPaid(false);
+              }
+            }
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($invoice);
+            $entityManager->flush();
+
+            $invoicePaid = $invoice->getInvoicePaid();
+
+            //the following 2x lines are to distribute advance equally between invoice accounts
+            $invoiceCount = $payment->getPayInvoices()->count();
+            $individualAdvance = $payment->getPayAdvance() / $invoiceCount;
+
+            $monthAcc = $invoice->getMonthAccount();
+            $monthAcc->setTotalPaid($monthAcc->getTotalPaid() - $invoicePaid);
+            $monthAcc->setAdvanceBalance($monthAcc->getAdvanceBalance() - $individualAdvance);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($monthAcc);
+            $entityManager->flush();
+          }
+
+          $payment->setIsPending(true);
+          $payment->setIsConfirmed(false);
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($payment);
+          $entityManager->flush();
+
+          $this->get('session')->getFlashBag()->add(
+              'hurray',
+              'Plata a fost ANULATĂ și conturile au fost actualizate!'
+          );
+        } else {
+          $this->get('session')->getFlashBag()->add(
+              'notice',
+              'Una din facturi are asociată o plată parțială multiplă și nu poate fi procesată!!!'
+          );
+        }
+
+      }
+
+
+      if ($redirect == 'payments') {
+        return $this->redirectToRoute('payments');
+      } else if ($redirect == 'invoices') {
+        return $this->redirectToRoute('invoices');
+      } else {
+        return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+      }
+    }
+
+    /**
      * @Route("/smartpay_proof/{prfId}/{action}", name="smartpay_proof")
      * @Method({"GET", "POST"})
      */
@@ -3282,6 +3422,56 @@ class AccountsController extends Controller
     }
 
     /**
+     * @Route("/accounts/penalty_undo_main/{invId}/{accId}/{redirect?'no'}", name="penalty_undo_main")
+     */
+    public function penalty_undo_main(Request $request, $invId, $accId, $redirect)
+    {
+      $invoice = $this->getDoctrine()->getRepository
+      (AccountInvoice::class)->find($invId);
+
+      if ($invoice->getPenaltyInvoiced() == false) {
+        $invoice->setPenaltySum(0);
+        $invoice->setPenaltyDays(0);
+      }
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->flush();
+
+      if ($redirect == 'payments') {
+        return $this->redirectToRoute('payments');
+      } else if ($redirect == 'invoices') {
+        return $this->redirectToRoute('invoices');
+      } else {
+        return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+      }
+    }
+
+    /**
+     * @Route("/accounts/penalty_undo_part/{invId}/{accId}/{redirect?'no'}", name="penalty_undo_part")
+     */
+    public function penalty_undo_part(Request $request, $invId, $accId, $redirect)
+    {
+      $invoice = $this->getDoctrine()->getRepository
+      (AccountInvoice::class)->find($invId);
+
+      if ($invoice->getPartialPenaltyInvoiced() == false) {
+        $invoice->setPartialPenaltySum(0);
+        $invoice->setPartialPenaltyDays(0);
+      }
+
+      $entityManager = $this->getDoctrine()->getManager();
+      $entityManager->flush();
+
+      if ($redirect == 'payments') {
+        return $this->redirectToRoute('payments');
+      } else if ($redirect == 'invoices') {
+        return $this->redirectToRoute('invoices');
+      } else {
+        return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+      }
+    }
+
+    /**
      * @Route("/accounts/calculatePenalties", name="calculate_penalties")
      */
     public function calculate_penalties()
@@ -3295,7 +3485,7 @@ class AccountsController extends Controller
             $student = $enrollment->getStudent();
             foreach ($student->getMonthAccounts() as $monthAccount) {
               //the following is a special request for one of our clients
-              if ($monthAccount->getAccYearMonth() > (new \DateTime('2019/01/01'))) {
+              if ($monthAccount->getAccYearMonth() > (new \DateTime('2018/12/15'))) {
                 foreach ($monthAccount->getAccountInvoices() as $invoice) {
                   $hasServiceTax = false;
                   $serviceTaxSum = 0;
@@ -3363,7 +3553,7 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/hidden_operations", name="hidden_operations")
+     * @Route("/hbd", name="hidden_operations")
      */
     public function hidden_operations()
     {
