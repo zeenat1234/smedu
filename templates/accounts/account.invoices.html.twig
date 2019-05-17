@@ -304,6 +304,11 @@
                   <td colspan="2">
                     {% if payment.getIsConfirmed %}
                       <button class="btn btn-sm btn-success" disabled>Confirmat</button>
+                      {% if payment.getPayMethod != 'multiple_partial' %}
+                        <a href="{{ path('smart_pay_undo',{'payId':payment.getId,'accId':invoice.getMonthAccount.id,'redirect':'account_invoices'}) }}">
+                          <button class="btn btn-sm btn-primary"><i class="fas fa-backspace"></i></button>
+                        </a>
+                      {% endif %}
                     {% else %}
                       {% if payment.getIsPending %}
                         <a href="{{ path('smart_pay_confirm',{'payId':payment.getId,'accId':account.getId}) }}">

@@ -458,62 +458,71 @@ class AccountsController extends Controller
 
       if ($payment->getPayMethod() == 'single') {
         $invoice = $payment->getPayInvoices()->first();
-        $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
-        $invoice->setInvoicePaidDate($payment->getPayDate());
-        $invoice->setIsPaid(true);
+        if ($invoice->getInvoiceTotal() >= $invoice->getInvoicePaid() + $invoicePaid) {
+          $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
+          $invoice->setInvoicePaidDate($payment->getPayDate());
+          $invoice->setIsPaid(true);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($invoice);
-        $entityManager->flush();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($invoice);
+          $entityManager->flush();
 
-        $monthAcc = $invoice->getMonthAccount();
-        $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoicePaid);
-        $monthAcc->setAdvanceBalance($monthAcc->getAdvanceBalance() + $invoiceAdvance);
+          $monthAcc = $invoice->getMonthAccount();
+          $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoicePaid);
+          $monthAcc->setAdvanceBalance($monthAcc->getAdvanceBalance() + $invoiceAdvance);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($monthAcc);
-        $entityManager->flush();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($monthAcc);
+          $entityManager->flush();
 
-        $payment->setIsPending(false);
-        $payment->setIsConfirmed(true);
+          $payment->setIsPending(false);
+          $payment->setIsConfirmed(true);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($payment);
-        $entityManager->flush();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($payment);
+          $entityManager->flush();
 
-        $this->get('session')->getFlashBag()->add(
-            'hurray',
-            'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
-        );
+          $this->get('session')->getFlashBag()->add(
+              'hurray',
+              'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
+          );
+        } else {
+          $this->get('session')->getFlashBag()->add(
+              'notice',
+              'Plata nu corespunde în mod corect facturilor asociate!'
+          );
+        }
       }
       if ($payment->getPayMethod() == 'partial') {
         $invoice = $payment->getPayInvoices()->first();
-        $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
-        $invoice->setInvoicePaidDate($payment->getPayDate());
-        $invoice->setIsPaid(false);
+        if ($invoice->getInvoiceTotal() >= $invoice->getInvoicePaid() + $invoicePaid) {
+          $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
+          $invoice->setInvoicePaidDate($payment->getPayDate());
+          $invoice->setIsPaid(false);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($invoice);
-        $entityManager->flush();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($invoice);
+          $entityManager->flush();
 
-        $monthAcc = $invoice->getMonthAccount();
-        $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoicePaid);
+          $monthAcc = $invoice->getMonthAccount();
+          $monthAcc->setTotalPaid($monthAcc->getTotalPaid() + $invoicePaid);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($monthAcc);
-        $entityManager->flush();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($monthAcc);
+          $entityManager->flush();
 
-        $payment->setIsPending(false);
-        $payment->setIsConfirmed(true);
+          $payment->setIsPending(false);
+          $payment->setIsConfirmed(true);
 
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($payment);
-        $entityManager->flush();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($payment);
+          $entityManager->flush();
 
-        $this->get('session')->getFlashBag()->add(
-            'hurray',
-            'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
-        );
+          $this->get('session')->getFlashBag()->add(
+              'hurray',
+              'Plata a fost CONFIRMATĂ și contul a fost actualizat!'
+          );
+        }
       }
       if ($payment->getPayMethod() == 'multiple') {
 
@@ -805,6 +814,14 @@ class AccountsController extends Controller
         $entityManager->persist($payment);
         $entityManager->flush();
 
+        $smartReceipt = $payment->getSmartReceipt();
+        if ($smartReceipt) {
+          $smartReceipt->setPayment();
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->remove($smartReceipt);
+          $entityManager->flush();
+        }
+
         $this->get('session')->getFlashBag()->add(
             'hurray',
             'Plata a fost ANULATĂ și contul a fost actualizat!'
@@ -817,7 +834,7 @@ class AccountsController extends Controller
         $continue = true;
         foreach($payment->getPayInvoices() as $invoice) {
           foreach ($invoice->getPayments() as $invPayment) {
-            if ($invPayment->getPayMenthod() == 'multiple_partial') {
+            if ($invPayment->getPayMethod() == 'multiple_partial') {
               $continue = false;
             }
           }
@@ -834,7 +851,12 @@ class AccountsController extends Controller
               }
             }
 
+            //initialize variable to be substracted from month account after all operations
+            $invoicePaid = 0;
+
             if ($confirmed_payments_count == 1) {
+
+              $invoicePaid = $invoice->getInvoicePaid();
 
               //set invoice total to 0
               $invoice->setInvoicePaid(0);
@@ -845,11 +867,12 @@ class AccountsController extends Controller
               $existingPayTotal = 0;
               $existingPayDate = NULL;
               foreach ($invoice->getPayments() as $invPayment) {
-                if (($invPayment->getPayMenthod() == 'partial' || $invPayment->getPayMenthod() == 'single') && $invPayment->getIsConfirmed()) {
+                if (($invPayment->getPayMethod() == 'partial' || $invPayment->getPayMethod() == 'single') && $invPayment->getIsConfirmed()) {
                   $existingPayTotal = $existingPayTotal + $invPayment->getPayAmount();
                   $existingPayDate = $invPayment->getPayDate();
                 }
               }
+              $invoicePaid = $invoice->getInvoicePaid() - $existingPayTotal;
               $invoice->setInvoicePaid($existingPayTotal);
               if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal()) {
                 $invoice->setInvoicePaidDate($existingPayDate);
@@ -860,8 +883,6 @@ class AccountsController extends Controller
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($invoice);
             $entityManager->flush();
-
-            $invoicePaid = $invoice->getInvoicePaid();
 
             //the following 2x lines are to distribute advance equally between invoice accounts
             $invoiceCount = $payment->getPayInvoices()->count();
@@ -882,6 +903,14 @@ class AccountsController extends Controller
           $entityManager = $this->getDoctrine()->getManager();
           $entityManager->persist($payment);
           $entityManager->flush();
+
+          $smartReceipt = $payment->getSmartReceipt();
+          if ($smartReceipt) {
+            $smartReceipt->setPayment();
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($smartReceipt);
+            $entityManager->flush();
+          }
 
           $this->get('session')->getFlashBag()->add(
               'hurray',

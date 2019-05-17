@@ -25,8 +25,8 @@ class SmartReceipt
     private $id;
 
     /**
-    * @ORM\OneToOne(targetEntity="App\Entity\Payment", inversedBy="smartReceipt", cascade={"persist", "remove"})
-    * @ORM\JoinColumn(nullable=false)
+    * @ORM\OneToOne(targetEntity="App\Entity\Payment", inversedBy="smartReceipt")
+    * @ORM\JoinColumn(nullable=true)
     */
     private $payment;
 
@@ -82,7 +82,7 @@ class SmartReceipt
       return $this->payment;
     }
 
-    public function setPayment(Payment $payment): self
+    public function setPayment(Payment $payment=NULL): self
     {
       $this->payment = $payment;
 

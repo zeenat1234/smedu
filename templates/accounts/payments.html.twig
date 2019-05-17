@@ -134,6 +134,11 @@
             <td>{{ payment.getPayDate|localizeddate('medium', 'none') }}</td>
             <td>
               <button disabled class="btn btn-sm btn-success">Confirmat</button>
+              {% if payment.getPayMethod != 'multiple_partial' %}
+                <a href="{{ path('smart_pay_undo',{'payId':payment.getId,'accId':0,'redirect':'payments'}) }}">
+                  <button class="btn btn-sm btn-primary"><i class="fas fa-backspace"></i></button>
+                </a>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}

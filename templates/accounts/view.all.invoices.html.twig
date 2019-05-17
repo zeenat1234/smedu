@@ -174,6 +174,11 @@
                                             {% set payNoPending = payNoPending + 1 %}
                                           {% elseif payment.isConfirmed %}
                                             <button class="btn btn-sm btn-success" disabled>Confirmat</button>
+                                            {% if payment.getPayMethod != 'multiple_partial' %}
+                                              <a href="{{ path('smart_pay_undo',{'payId':payment.getId,'accId':0,'redirect':'invoices'}) }}">
+                                                <button class="btn btn-sm btn-primary"><i class="fas fa-backspace"></i></button>
+                                              </a>
+                                            {% endif %}
                                           {% else %}
                                             <button class="btn btn-sm btn-danger" disabled>Respins</button>
                                           {% endif %}
