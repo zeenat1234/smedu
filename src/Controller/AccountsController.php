@@ -2677,6 +2677,52 @@ class AccountsController extends Controller
             }
           } // finish adding transport tax
 
+          if (in_array('newitem', $data['pay_item_type'])) {
+            $summary = $summary."--> Adăugăm un serviciu NOU! \n";
+            //check validity first
+            $skip = false;
+            if ($data['itemName']=='') {
+              $summary = $summary."----> Seriviciul dorit trebuie să conțină o denumire \n";
+              $skip = true;
+            }
+            if (!$data['itemCount'] || $data['itemCount'] <= 0) {
+              $summary = $summary."----> Cantitatea pentru un serviciu nou trebuie să fie 1 sau mai mare \n";
+              $skip = true;
+            }
+            if (!$data['itemPrice'] || $data['itemPrice'] < 0) {
+              $summary = $summary."----> Prețul pentru un serviciu nou trebuie să fie 0 sau mai mare \n";
+              $skip = true;
+            }
+
+            $smartgen_payitem = NULL;
+
+            if ($skip == false) {
+
+              //make new PayItem
+              $smartgen_payitem = new PaymentItem();
+              $smartgen_payitem->setMonthAccount($account);
+              $smartgen_payitem->setItemName($data['itemName']);
+              $smartgen_payitem->setItemCount($data['itemCount']);
+              $smartgen_payitem->setItemPrice($data['itemPrice']);
+              $smartgen_payitem->setEditNote($data['editNote']);
+
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($smartgen_payitem);
+              $entityManager->flush();
+
+              $allCreatedItems[] = $smartgen_payitem;
+
+              $account->addPaymentItem($smartgen_payitem);
+              $account->addToTotalPrice($smartgen_payitem->getItemPrice()*$smartgen_payitem->getItemCount());
+              $entityManager = $this->getDoctrine()->getManager();
+              $entityManager->persist($account);
+              $entityManager->flush();
+
+              $summary = $summary."----> Serviciu nou adăugat: ".$smartgen_payitem->getItemName()." în valoare de ".$smartgen_payitem->getItemPrice()*$smartgen_payitem->getItemCount()." RON\n";
+
+            }
+          } // finish adding optionals
+
           //check invoicing
           if ($data['auto_invoice']) {
             if ($data['auto_invoice'] == 'proforma') {
@@ -3152,6 +3198,111 @@ class AccountsController extends Controller
                   $summary = $summary."----------> Nu există drumuri făcute pentru taxa de transport!\n";
                 }
               } // end logic for transport tax
+
+              if (in_array('newitem', $data['pay_item_type'])) {
+                if ($smartgen_payitem) {
+                  $newInvoice5 = new AccountInvoice();
+                  $newInvoice5->setMonthAccount($account);
+                  $newInvoice5->setCreatedBy($this->getUser());
+
+                  if ($data['invoice_date']) {
+                    $newInvoice5->setInvoiceDate($data['invoice_date']);
+                  } else {
+                    $newInvoice5->setInvoiceDate(new \DateTime('now'));
+                  }
+
+                  /* INVOICE NUMBER LOGIC STARTS HERE */
+                  $theUnit = $account->getStudent()->getSchoolUnit();
+
+                  if ($data['auto_invoice'] == 'proforma') {
+                    $newInvoice5->setIsProforma(true);
+                    $iserial = 'PRFM';
+                    $inumber5 = 100;
+                    $ititle = 'Factură Proforma Nr: ';
+                  } elseif ($data['auto_invoice'] == 'fiscal') {
+                    $iserial = $theUnit->getFirstInvoiceSerial();
+                    $inumber5 = $theUnit->getFirstInvoiceNumber();
+                    $ititle = 'Factură Fiscală Nr: ';
+                  }
+
+                  $latestInvoice = $this->getDoctrine()->getRepository
+                  (AccountInvoice::class)->findLatestBySerial($iserial);
+
+                  if ($latestInvoice == null) {
+
+                    $newInvoice5->setInvoiceSerial($iserial);
+                    $newInvoice5->setInvoiceNumber($inumber5);
+
+                    $newInvoice5->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber5));
+
+                  } else {
+                    $newNumber5 = $latestInvoice->getInvoiceNumber()+1;
+                    $newInvoice5->setInvoiceSerial($iserial);
+                    $newInvoice5->setInvoiceNumber($newNumber5);
+
+                    $newInvoice5->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber5));
+
+                  }
+                  /* INVOICE NUMBER LOGIC ENDS HERE */
+
+                  /* PAYEE DETAILS LOGIC STARTS HERE*/
+                  $gUser = $account->getStudent()->getUser()->getGuardian()->getUser();
+                  if ($gUser->getCustomInvoicing()) {
+                    $newInvoice5->setPayeeIsCompany($gUser->getIsCompany());
+                    $newInvoice5->setPayeeName($gUser->getInvoicingName());
+                    $newInvoice5->setPayeeAddress($gUser->getInvoicingAddress());
+                    $newInvoice5->setPayeeIdent($gUser->getInvoicingIdent());
+                    $newInvoice5->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+                    $newInvoice5->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+                  } else {
+                    $newInvoice5->setPayeeName($gUser->getRoName());
+                  }
+                  /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+                  if ($smartgen_payitem->getIsInvoiced() == false) {
+                    $smartgen_payitem->setIsInvoiced(true);
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($smartgen_payitem);
+                    $entityManager->flush();
+
+                    $newInvoice5->addPaymentItem($smartgen_payitem);
+                    $newInvoice5->setInvoiceTotal($smartgen_payitem->getItemPrice() * $smartgen_payitem->getItemCount());
+                  }
+
+                  if($data['save_invoice']) {
+                    $newInvoice5->setIsLocked(true);
+                  }
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($newInvoice5);
+                  $entityManager->flush();
+
+                  if ($newInvoice5->getInvoiceTotal() == 0) {
+                    $newInvoice5->setIsPaid(1);
+                    $newInvoice5->setIsLocked(true);
+                    if ($data['invoice_date']) {
+                      $newInvoice5->setInvoicePaidDate($data['invoice_date']);
+                    } else {
+                      $newInvoice5->setInvoicePaidDate(new \DateTime('now'));
+                    }
+
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($newInvoice5);
+                    $entityManager->flush();
+                  }
+
+                  if($data['save_invoice']) {
+                    $summary = $summary."----> ".$newInvoice5->getInvoiceName()." a fost creată și salvată!\n";
+                  } elseif ($newInvoice5->getIsPaid() == true) {
+                    $summary = $summary."----> ".$newInvoice5->getInvoiceName()." a fost creată, salvată și marcată PLĂTITĂ!\n";
+                  } else {
+                    $summary = $summary."----> ".$newInvoice5->getInvoiceName()." a fost creată!\n";
+                  }
+                } else {
+                  $summary = $summary."----------> Serviciul nou nu a fost creeat!\n";
+                }
+              } // end logic for new item tax
 
             // end logic for multiple invoices
             } else {

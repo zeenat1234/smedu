@@ -9,6 +9,10 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 use App\Entity\MonthAccount;
@@ -69,6 +73,7 @@ class SmartGenerateType extends AbstractType
                 'Opționale' => 'optionals',
                 'Transport' => 'transport',
                 'Servicii nefacturate din urmă' => 'noninvoiced',
+                'Serviciu NOU' => 'newitem',
               ),
             ))
             ->add('start_date', DateType::class, array(
@@ -84,6 +89,28 @@ class SmartGenerateType extends AbstractType
               'input' => 'datetime',
               'widget' => 'single_text',
               'attr' => array('type' => 'datetime', 'class' => 'form-control'),
+            ))
+            ->add('itemName', TextType::class, array(
+              'label' => 'Denumire Produs',
+              'required' => false,
+              'attr'  => array('class' => 'form-control')
+            ))
+            ->add('itemCount', NumberType::class, array(
+              'label' => 'Cantitate',
+              'data'  => 1,
+              'attr' => array('class' => 'form-control'),
+            ))
+            ->add('itemPrice', MoneyType::class, array(
+              'label'    => 'Preț/Produs',
+              'currency' => 'RON',
+              'scale' => 2,
+              'data'  => 0,
+              'attr' => array('class' => 'form-control'),
+            ))
+            ->add('editNote', TextareaType::class, array(
+              'label' => 'Detalii Adăugare',
+              'data'  => 'Adăugat cu Generare Smart',
+              'attr'  => array('class' => 'form-control'),
             ))
             ->add('auto_invoice', ChoiceType::class,array(
               'label'    => 'Facturare automată:',

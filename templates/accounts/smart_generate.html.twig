@@ -66,6 +66,23 @@
       </div>
     </div>
     <br>
+    <div id="smartGenNewItem">
+      <div class="row">
+        <div class="col-12">
+          {{ form_row(form.itemName) }}
+        </div>
+        <div class="col-9">
+          {{ form_row(form.itemPrice) }}
+        </div>
+        <div class="col-3">
+          {{ form_row(form.itemCount) }}
+        </div>
+        <div class="col-12">
+          {{ form_row(form.editNote) }}
+        </div>
+      </div>
+    </div>
+    <br>
 
     <div class="row">
       <div class="col-12 col-md-6">
@@ -147,6 +164,14 @@
         document.getElementById('smartGenOptDates').style.maxHeight = "200px";
       } else {
         document.getElementById('smartGenOptDates').style.maxHeight = "0";
+      }
+    });
+
+    $('#smart_generate_pay_item_type_4').change(function(){
+      if ($('#smart_generate_pay_item_type_4').prop('checked')) {
+        document.getElementById('smartGenNewItem').style.maxHeight = "300px";
+      } else {
+        document.getElementById('smartGenNewItem').style.maxHeight = "0";
       }
     });
 
