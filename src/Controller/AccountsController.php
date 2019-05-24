@@ -2682,15 +2682,15 @@ class AccountsController extends Controller
             //check validity first
             $skip = false;
             if ($data['itemName']=='') {
-              $summary = $summary."----> Seriviciul dorit trebuie să conțină o denumire \n";
+              $summary = $summary."----> Seriviciul dorit trebuie să conțină o denumire! \n";
               $skip = true;
             }
             if (!$data['itemCount'] || $data['itemCount'] <= 0) {
-              $summary = $summary."----> Cantitatea pentru un serviciu nou trebuie să fie 1 sau mai mare \n";
+              $summary = $summary."----> Cantitatea pentru un serviciu nou trebuie să fie 1 sau mai mare! \n";
               $skip = true;
             }
-            if (!$data['itemPrice'] || $data['itemPrice'] < 0) {
-              $summary = $summary."----> Prețul pentru un serviciu nou trebuie să fie 0 sau mai mare \n";
+            if (!$data['itemPrice'] || $data['itemPrice'] == 0) {
+              $summary = $summary."----> Prețul pentru un serviciu nou nu poate să fie 0! \n";
               $skip = true;
             }
 
