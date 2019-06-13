@@ -57,7 +57,7 @@ class SmartPayType extends AbstractType
                 '1x Factură (integral)' => 'single',
                 '1x Factură (parțial)' => 'partial',
                 'Facturi multiple (integral)' => 'multiple',
-                'Facturi multiple (parțial)' => 'multiple_partial'
+                //'Facturi multiple (parțial)' => 'multiple_partial'
               ),
             ))
             ->add('payAmount', MoneyType::class, array(
