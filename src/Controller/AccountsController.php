@@ -2322,7 +2322,7 @@ class AccountsController extends Controller
               if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
                 foreach ($oldAccount->getAccountInvoices() as $invoice) {
                   if (($invoice->getPenaltyDays()>0 && $invoice->getPenaltySum()>0 && $invoice->getPenaltyInvoiced()==false) ||
-                  ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltySum() && $invoice->getPenaltyInvoiced()==false)) {
+                  ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltySum() && $invoice->getPartialPenaltyInvoiced()==false)) {
 
                     if ($invoice->getIsPaid() == true) {
 
@@ -3426,8 +3426,501 @@ class AccountsController extends Controller
 
       return $this->render('accounts/smart_generate.html.twig', [
           'form' => $view,
+          'school_year' => $currentSchoolYear,
       ]);
 
+    }
+
+    /**
+     * @Route("/accounts/end_of_year/{yearId}", name="end_of_year")
+     * @Method({"GET" , "POST"})
+     */
+    public function end_of_year($yearId)
+    {
+      $school_year = $this->getDoctrine()->getRepository
+      (SchoolYear::class)->find($yearId);
+
+      $allStudents = $this->getDoctrine()->getRepository
+      (Student::class)->findAllYear($school_year);
+
+      $allActiveStudents = array();
+      foreach ($allStudents as $student) {
+        if ($student->getEnrollment()->getIsActive() == true) {
+          $allActiveStudents[] = $student;
+        }
+      }
+
+      $remainingStudents = array();
+      $penalties = array();
+      $partPenalties = array();
+      $pending = array();
+
+      //check penalties status
+      foreach ($allActiveStudents as $student) {
+        // START Penalties
+
+        $containsPenalty = false;
+        $containsPartPenalty = false;
+        $pendingInvoices = 0;
+
+        foreach ($student->getMonthAccounts() as $oldAccount) {
+
+          $latestAccount = $student->getLatestMonthAccount();
+          $allPenalties = array();
+
+          foreach ($oldAccount->getAccountInvoices() as $invoice) {
+            if (($invoice->getPenaltyDays()>0 && $invoice->getPenaltySum()>0 && $invoice->getPenaltyInvoiced()==false) ||
+            ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltySum() && $invoice->getPartialPenaltyInvoiced()==false)) {
+
+              if ($invoice->getIsPaid() == true) {
+                if ($invoice->getPenaltyDays()>0 && $invoice->getPenaltyInvoiced()==false) {
+                  $containsPenalty = true;
+                }
+                if ($invoice->getPartialPenaltyDays()>0 && $invoice->getPenaltyInvoiced()==false) {
+                  $containsPartPenalty = true;
+                }
+              } else {
+                $pendingInvoices = $pendingInvoices + 1;
+              }
+
+              // USE THE FOLLOWING SEQUENCE INSTEAD TO VIEW PENALTIES THAT CANNOT BE INVOICED
+              // if ($invoice->getIsPaid() == false) {
+              //   $pendingInvoices = $pendingInvoices + 1;
+              // }
+              //
+              // if ($invoice->getPenaltyDays()>0) {
+              //   $containsPenalty = true;
+              // }
+              // if ($invoice->getPartialPenaltyDays()>0) {
+              //   $containsPartPenalty = true;
+              // }
+
+            }
+          }
+
+          //TODO check uninvoiced items status
+
+        }
+
+        $studId = $student->getId();
+        if ($containsPenalty == true || $containsPartPenalty == true || $pendingInvoices > 0) {
+          $remainingStudents[] = $student;
+          $penalties[$studId] = $containsPenalty;
+          $partPenalties[$studId] = $containsPartPenalty;
+          $pending[$studId] = $pendingInvoices;
+        }
+      }
+
+      //sort em
+      $remSortStudents = array();
+      $sortedStudents = $this->getDoctrine()->getRepository
+      (Student::class)->findAllYear($school_year->getId());
+
+      foreach ($sortedStudents as $stud) {
+        if (in_array($stud, $remainingStudents)) {
+          $remSortStudents[] = $stud;
+        }
+      }
+
+      return $this->render('accounts/end.of.year.html.twig', [
+          'school_year' => $school_year,
+          'remaining_students' => $remSortStudents,
+          'penalties' => $penalties,
+          'part_penalties' => $partPenalties,
+          'pending' => $pending,
+      ]);
+    }
+
+    /**
+     * @Route("/accounts/end_of_year_pengen/{yearId}/{invType}", name="end_of_year_pengen")
+     * @Method({"GET" , "POST"})
+     */
+    public function end_of_year_pengen($yearId, $invType)
+    {
+      $school_year = $this->getDoctrine()->getRepository
+      (SchoolYear::class)->find($yearId);
+
+      $allStudents = $this->getDoctrine()->getRepository
+      (Student::class)->findAllYear($school_year);
+
+      $allActiveStudents = array();
+      foreach ($allStudents as $student) {
+        if ($student->getEnrollment()->getIsActive() == true) {
+          $allActiveStudents[] = $student;
+        }
+      }
+      $summary = "";
+      foreach ($allActiveStudents as $student) {
+        // START Penalties
+        $summary = $summary."--> Verificăm penalizări pentru ".$student->getUser()->getRoName()." \n";
+
+        $containsPenalty = false;
+        $containsPartPenalty = false;
+
+        $allPenalties = array();
+        $latestAccount = $student->getLatestMonthAccount();
+
+        foreach ($student->getMonthAccounts() as $oldAccount) {
+
+          foreach ($oldAccount->getAccountInvoices() as $invoice) {
+            if (($invoice->getPenaltyDays()>0 && $invoice->getPenaltySum()>0 && $invoice->getPenaltyInvoiced()==false) ||
+            ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltySum() && $invoice->getPartialPenaltyInvoiced()==false)) {
+
+              if ($invoice->getIsPaid() == true) {
+
+                $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+                $formatter->setPattern('MMMM'); //strtoupper($formatter->format($oldAccount->getAccYearMonth()))
+
+                if ($invoice->getPenaltyDays()>0 && $invoice->getPenaltyInvoiced()==false) {
+                  $containsPenalty = true;
+
+                  $penaltyItem = new PaymentItem();
+                  $penaltyItem->setMonthAccount($latestAccount);
+                  $penaltyItem->setItemName("Penalizări factură ".$invoice->getInvoiceSerial()."-".$invoice->getInvoiceNumber().
+                    " ".strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                  $penaltyItem->setItemPrice($invoice->getPenaltySum());
+                  $penaltyItem->setItemCount($invoice->getPenaltyDays());
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($penaltyItem);
+                  $entityManager->flush();
+
+                  $allPenalties[] = $penaltyItem;
+
+                  $invoice->setPenaltyInvoiced(true);
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($invoice);
+                  $entityManager->flush();
+
+                  $latestAccount->addPaymentItem($penaltyItem);
+                  $latestAccount->addToTotalPrice($penaltyItem->getItemPrice() * $penaltyItem->getItemCount());
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($latestAccount);
+                  $entityManager->flush();
+
+                  $summary = $summary."----> Adăugat penalizare: ".($penaltyItem->getItemPrice() * $penaltyItem->getItemCount())." RON\n";
+                }
+
+                if ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltyInvoiced()==false) {
+                  $containsPartPenalty = true;
+
+                  $partPenaltyItem = new PaymentItem();
+                  $partPenaltyItem->setMonthAccount($latestAccount);
+                  $partPenaltyItem->setItemName("Penalizări factură parțială ".$invoice->getInvoiceSerial()."-".$invoice->getInvoiceNumber().
+                    " ".strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                  $partPenaltyItem->setItemPrice($invoice->getPartialPenaltySum());
+                  $partPenaltyItem->setItemCount($invoice->getPartialPenaltyDays());
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($partPenaltyItem);
+                  $entityManager->flush();
+
+                  $allPenalties[] = $partPenaltyItem;
+
+                  $invoice->setPartialPenaltyInvoiced(true);
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($invoice);
+                  $entityManager->flush();
+
+                  $latestAccount->addPaymentItem($partPenaltyItem);
+                  $latestAccount->addToTotalPrice($partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount());
+
+                  $entityManager = $this->getDoctrine()->getManager();
+                  $entityManager->persist($latestAccount);
+                  $entityManager->flush();
+
+                  $summary = $summary."----> Adăugat penalizare parțială: ".($partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount())." RON\n";
+                }
+
+              }
+
+            }
+          }
+        }
+        // END Penalties
+
+        // START Invoice Creation
+        // use $allPenalties
+        if ( count($allPenalties) > 0) {
+          $summary = $summary." - 1x factură\n";
+
+          $newInvoice = new AccountInvoice();
+          $newInvoice->setMonthAccount($latestAccount);
+          $newInvoice->setCreatedBy($this->getUser());
+          $newInvoice->setInvoiceDate(new \DateTime('now'));
+
+          /* INVOICE NUMBER LOGIC STARTS HERE */
+          $theUnit = $latestAccount->getStudent()->getSchoolUnit();
+
+          if ($invType == 'proforma') {
+            $newInvoice->setIsProforma(true);
+            $iserial = 'PRFM';
+            $inumber = 100;
+            $ititle = 'Factură Proforma Nr: ';
+          } elseif ($invType == 'fiscal') {
+            $iserial = $theUnit->getFirstInvoiceSerial();
+            $inumber = $theUnit->getFirstInvoiceNumber();
+            $ititle = 'Factură Fiscală Nr: ';
+          }
+
+          $latestInvoice = $this->getDoctrine()->getRepository
+          (AccountInvoice::class)->findLatestBySerial($iserial);
+
+          if ($latestInvoice == null) {
+
+            $newInvoice->setInvoiceSerial($iserial);
+            $newInvoice->setInvoiceNumber($inumber);
+
+            $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber));
+          } else {
+            $newNumber = $latestInvoice->getInvoiceNumber()+1;
+            $newInvoice->setInvoiceSerial($iserial);
+            $newInvoice->setInvoiceNumber($newNumber);
+
+            $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber));
+          }
+          /* INVOICE NUMBER LOGIC ENDS HERE */
+
+          /* PAYEE DETAILS LOGIC STARTS HERE*/
+          $gUser = $latestAccount->getStudent()->getUser()->getGuardian()->getUser();
+          if ($gUser->getCustomInvoicing()) {
+            $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
+            $newInvoice->setPayeeName($gUser->getInvoicingName());
+            $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
+            $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
+            $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+            $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+          } else {
+            $newInvoice->setPayeeName($gUser->getRoName());
+          }
+          /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+          $total = 0;
+
+          foreach ($allPenalties as $payItem) {
+            $payItem->setIsInvoiced(true);
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($payItem);
+            $entityManager->flush();
+
+            $newInvoice->addPaymentItem($payItem);
+            $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+            $newInvoice->setInvoiceTotal($total);
+          }
+
+          $newInvoice->setIsLocked(true);
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($newInvoice);
+          $entityManager->flush();
+
+          $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată și salvată!\n";
+        }
+        //end invoice creation
+        $summary = $summary."------------------------------------\n";
+      }
+
+      $this->get('session')->getFlashBag()->add(
+        'notice',
+        "SUMAR: \n".$summary
+      );
+
+      return $this->redirectToRoute('end_of_year', array('yearId' => $student->getSchoolUnit()->getSchoolyear()->getId()));
+    }
+
+    /**
+     * @Route("/accounts/end_of_year_upengen/{studId}/{invType}", name="end_of_year_upengen")
+     * @Method({"GET" , "POST"})
+     */
+    public function end_of_year_upengen($studId, $invType)
+    {
+      $student = $this->getDoctrine()->getRepository
+      (Student::class)->find($studId);
+
+      $summary = "";
+
+      // START Penalties
+      $summary = $summary."--> Verificăm penalizări pentru ".$student->getUser()->getRoName()." \n";
+
+      $containsPenalty = false;
+      $containsPartPenalty = false;
+
+      $allPenalties = array();
+      $latestAccount = $student->getLatestMonthAccount();
+
+      foreach ($student->getMonthAccounts() as $oldAccount) {
+
+        foreach ($oldAccount->getAccountInvoices() as $invoice) {
+          if (($invoice->getPenaltyDays()>0 && $invoice->getPenaltySum()>0 && $invoice->getPenaltyInvoiced()==false) ||
+          ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltySum() && $invoice->getPartialPenaltyInvoiced()==false)) {
+
+            if ($invoice->getIsPaid() == true) {
+
+              $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
+              $formatter->setPattern('MMMM'); //strtoupper($formatter->format($oldAccount->getAccYearMonth()))
+
+              if ($invoice->getPenaltyDays()>0 && $invoice->getPenaltyInvoiced()==false) {
+                $containsPenalty = true;
+
+                $penaltyItem = new PaymentItem();
+                $penaltyItem->setMonthAccount($latestAccount);
+                $penaltyItem->setItemName("Penalizări factură ".$invoice->getInvoiceSerial()."-".$invoice->getInvoiceNumber().
+                  " ".strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                $penaltyItem->setItemPrice($invoice->getPenaltySum());
+                $penaltyItem->setItemCount($invoice->getPenaltyDays());
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($penaltyItem);
+                $entityManager->flush();
+
+                $allPenalties[] = $penaltyItem;
+
+                $invoice->setPenaltyInvoiced(true);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($invoice);
+                $entityManager->flush();
+
+                $latestAccount->addPaymentItem($penaltyItem);
+                $latestAccount->addToTotalPrice($penaltyItem->getItemPrice() * $penaltyItem->getItemCount());
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($latestAccount);
+                $entityManager->flush();
+
+                $summary = $summary."----> Adăugat penalizare: ".($penaltyItem->getItemPrice() * $penaltyItem->getItemCount())." RON\n";
+              }
+
+              if ($invoice->getPartialPenaltyDays()>0 && $invoice->getPartialPenaltyInvoiced()==false) {
+                $containsPartPenalty = true;
+
+                $partPenaltyItem = new PaymentItem();
+                $partPenaltyItem->setMonthAccount($latestAccount);
+                $partPenaltyItem->setItemName("Penalizări factură parțială ".$invoice->getInvoiceSerial()."-".$invoice->getInvoiceNumber().
+                  " ".strtoupper($formatter->format($oldAccount->getAccYearMonth())));
+                $partPenaltyItem->setItemPrice($invoice->getPartialPenaltySum());
+                $partPenaltyItem->setItemCount($invoice->getPartialPenaltyDays());
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($partPenaltyItem);
+                $entityManager->flush();
+
+                $allPenalties[] = $partPenaltyItem;
+
+                $invoice->setPartialPenaltyInvoiced(true);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($invoice);
+                $entityManager->flush();
+
+                $latestAccount->addPaymentItem($partPenaltyItem);
+                $latestAccount->addToTotalPrice($partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount());
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($latestAccount);
+                $entityManager->flush();
+
+                $summary = $summary."----> Adăugat penalizare parțială: ".($partPenaltyItem->getItemPrice() * $partPenaltyItem->getItemCount())." RON\n";
+              }
+
+            }
+
+          }
+        }
+      }
+      // END Penalties
+
+      // START Invoice Creation
+      // use $allPenalties
+      if ( count($allPenalties) > 0) {
+        $summary = $summary." - 1x factură\n";
+
+        $newInvoice = new AccountInvoice();
+        $newInvoice->setMonthAccount($latestAccount);
+        $newInvoice->setCreatedBy($this->getUser());
+        $newInvoice->setInvoiceDate(new \DateTime('now'));
+
+        /* INVOICE NUMBER LOGIC STARTS HERE */
+        $theUnit = $latestAccount->getStudent()->getSchoolUnit();
+
+        if ($invType == 'proforma') {
+          $newInvoice->setIsProforma(true);
+          $iserial = 'PRFM';
+          $inumber = 100;
+          $ititle = 'Factură Proforma Nr: ';
+        } elseif ($invType == 'fiscal') {
+          $iserial = $theUnit->getFirstInvoiceSerial();
+          $inumber = $theUnit->getFirstInvoiceNumber();
+          $ititle = 'Factură Fiscală Nr: ';
+        }
+
+        $latestInvoice = $this->getDoctrine()->getRepository
+        (AccountInvoice::class)->findLatestBySerial($iserial);
+
+        if ($latestInvoice == null) {
+
+          $newInvoice->setInvoiceSerial($iserial);
+          $newInvoice->setInvoiceNumber($inumber);
+
+          $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $inumber));
+        } else {
+          $newNumber = $latestInvoice->getInvoiceNumber()+1;
+          $newInvoice->setInvoiceSerial($iserial);
+          $newInvoice->setInvoiceNumber($newNumber);
+
+          $newInvoice->setInvoiceName($ititle.$iserial.'-'.sprintf("%'03d", $newNumber));
+        }
+        /* INVOICE NUMBER LOGIC ENDS HERE */
+
+        /* PAYEE DETAILS LOGIC STARTS HERE*/
+        $gUser = $latestAccount->getStudent()->getUser()->getGuardian()->getUser();
+        if ($gUser->getCustomInvoicing()) {
+          $newInvoice->setPayeeIsCompany($gUser->getIsCompany());
+          $newInvoice->setPayeeName($gUser->getInvoicingName());
+          $newInvoice->setPayeeAddress($gUser->getInvoicingAddress());
+          $newInvoice->setPayeeIdent($gUser->getInvoicingIdent());
+          $newInvoice->setPayeeCompanyReg($gUser->getInvoicingCompanyReg());
+          $newInvoice->setPayeeCompanyFiscal($gUser->getInvoicingCompanyFiscal());
+        } else {
+          $newInvoice->setPayeeName($gUser->getRoName());
+        }
+        /* PAYEE DETAILS LOGIC ENDS HERE*/
+
+        $total = 0;
+
+        foreach ($allPenalties as $payItem) {
+          $payItem->setIsInvoiced(true);
+
+          $entityManager = $this->getDoctrine()->getManager();
+          $entityManager->persist($payItem);
+          $entityManager->flush();
+
+          $newInvoice->addPaymentItem($payItem);
+          $total = $total + $payItem->getItemPrice() * $payItem->getItemCount();
+          $newInvoice->setInvoiceTotal($total);
+        }
+
+        $newInvoice->setIsLocked(true);
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($newInvoice);
+        $entityManager->flush();
+
+        $summary = $summary."----> ".$newInvoice->getInvoiceName()." a fost creată și salvată!\n";
+      }
+      //end invoice creation
+      $summary = $summary."------------------------------------\n";
+
+      $this->get('session')->getFlashBag()->add(
+        'notice',
+        "SUMAR: \n".$summary
+      );
+
+      return $this->redirectToRoute('end_of_year', array('yearId' => $yearId));
     }
 
     //DEPRECATED -- test and remove, as this has been replaced with Smart Generate

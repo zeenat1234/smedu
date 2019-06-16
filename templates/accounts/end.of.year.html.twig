@@ -1,0 +1,108 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Încheiere Situație{% endblock %}
+
+{% block body %}
+  <h2 class="coinyFont">Încheiere Situație Anuală {{ school_year.getYearname }}</h2>
+  {% for flashMessage in app.session.flashbag.get('notice') %}
+    <br>
+    <div id="message">
+    <div style="padding: 5px;">
+        <div id="inner-message" class="alert alert-primary fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|nl2br }}
+        </div>
+    </div>
+    </div>
+  {% endfor %}
+  <br>
+  <a href="{{ path('end_of_year_pengen', {'yearId':school_year.id, 'invType':'proforma'}) }}">
+    <button type="button" class="btn btn-primary" id="submitBtn1"><i class="fas fa-redo" id="icon1"></i> Facturează toate penalitățile (PROFORME)</button>
+  </a>
+  <a href="{{ path('end_of_year_pengen', {'yearId':school_year.id, 'invType':'fiscal'}) }}">
+    <button type="button" class="btn btn-info" id="submitBtn2"><i class="fas fa-redo" id="icon2"></i> Facturează toate penalitățile (FISCALE)</button>
+  </a>
+  <br>
+  <br>
+  <p>Detalii și instrucțiuni:</p>
+  <ul>
+    <li>Tabela de mai jos conține informații referitoare la penalități și facturile care conțin penalități.</li>
+    <li>Elevii care apar în această listă au penalități nefacturate sau facturi neachitate care conțin penalități.</li>
+    <li>Lista NU conține elevii care au facturi neachitate dacă aceste facturi nu generează penalități.</li>
+    <li>Elevii care au un DA marcat în coloanele pentru Penalități sau Penalități parțiale vor fi facturați în momentul
+    folosirii funcției <button type="button" class="btn btn-sm btn-primary" disabled>Facturează toate penalitățile</button></li>
+    <li>Elevii cu una sau mai multe facturi neplătite trebuie să plătească facturile aferente înainte de generarea facturilor
+    pentru penalitățile rămase.</li>
+    <li>Pentru a încheia situația doar pentru un singur elev, puteți folosi butonul aferent tipului de factură dorit
+    din dreptul elevului respectiv. Aceste butoane apar doar în situația când elevul are penalități facturabile.</li>
+  </ul>
+  <hr>
+  {% for schoolunit in school_year.getSchoolunits %}
+    <h4 class="kuraleFont">{{ schoolunit.getUnitname }}</h4>
+    {% set unitStudents = schoolunit.getStudents %}
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr id="pengen_row">
+          <th>Nume</th>
+          <th>Penalități </th>
+          <th>Penalități parțiale</th>
+          <th>Facturi neîncheiate</th>
+          <th>Facturi</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for student in remaining_students %}
+        {% if student in unitStudents %}
+        <tr id="pengen_row">
+          <td>{{ student.getUser.getRoName }}</td>
+          <td>{% if penalties[student.id] %}<span style="color:#500">DA</span>{% else %}<span style="color:#050">NU</span>{% endif %}</td>
+          <td>{% if part_penalties[student.id] %}<span style="color:#500">DA</span>{% else %}<span style="color:#050">NU</span>{% endif %}</td>
+          <td>{% if pending[student.id] > 0 %}<span style="color:#500">{{ pending[student.id] }}</span>{% else %}<span style="color:#050">{{ pending[student.id] }}</span>{% endif %}</td>
+          <td>
+            {% if penalties[student.id] or part_penalties[student.id] %}
+              <a href="{{ path('end_of_year_upengen', {'studId':student.id, 'invType':'proforma'}) }}">
+                <button type="button" class="btn btn-sm btn-primary">Proformă</button>
+              </a>
+              <a href="{{ path('end_of_year_upengen', {'studId':student.id, 'invType':'fiscal'}) }}">
+                <button type="button" class="btn btn-sm btn-info">Fiscală</button>
+              </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <br>
+  {% endfor %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+
+
+  $(document).ready(function () {
+    $("#submitBtn1").click(function () {
+      setTimeout(function () { disableButton1(); }, 0);
+    });
+
+    $("#submitBtn2").click(function () {
+      setTimeout(function () { disableButton2(); }, 0);
+    });
+
+    function disableButton1() {
+      $("#submitBtn1").prop('disabled', true);
+      $("#submitBtn2").prop('disabled', true);
+      $("#icon1").addClass('fa-spin');
+    }
+
+    function disableButton2() {
+      $("#submitBtn2").prop('disabled', true);
+      $("#submitBtn1").prop('disabled', true);
+      $("#icon2").addClass('fa-spin');
+    }
+  });
+</script>
+{% endblock %}

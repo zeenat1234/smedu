@@ -4,6 +4,8 @@
 
 {% block body %}
   <h2 class="coinyFont">Generare Smart</h2>
+  <code><a href="{{ path('end_of_year',{'yearId':school_year.id}) }}" style="text-decoration:underline;">Încheiere situație anuală</a></code>
+  <br>
   {% for flashMessage in app.session.flashbag.get('notice') %}
     <br>
     <div id="message">
@@ -21,6 +23,7 @@
     <div style="max-width:400px;">
       {{ form_row(form.year_month) }}
     </div>
+
     <br>
     {{ form_label(form.stud_choice) }} <br>
     <div class="row">

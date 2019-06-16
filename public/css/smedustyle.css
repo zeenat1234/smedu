@@ -220,7 +220,8 @@ select {
 #users_row td, #enrollments_row td,
 #class_opt_row td, #attendance_mod_edit_row td,
 #acc_invoices_row td, #routes_row td,
-#acc_transport_row td, #acc_transport_row th {
+#acc_transport_row td, #acc_transport_row th,
+#pengen_row td, #pengen_row th {
   padding: 3px;
 }
 
