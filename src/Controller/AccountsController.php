@@ -214,17 +214,17 @@ class AccountsController extends Controller
           }
           $invoice = $thePayment->getPayInvoices()->first();
           $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
-          if (round($thePayment->getPayAmount(),2) < round($invoiceRemaining,2))) {
+          if (round($thePayment->getPayAmount(),2) < round($invoiceRemaining,2)) {
             $this->get('session')->getFlashBag()->add(
                 'notice',
                 'Plata făcută este mai mică decât suma totală a facturii. Te rugăm să corectezi suma sau să selectezi 1x Factură (parțial).'
             );
             return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
-          } elseif (round($thePayment->getPayAmount(),2) > round($invoiceRemaining,2))) {
+          } elseif (round($thePayment->getPayAmount(),2) > round($invoiceRemaining,2)) {
             $this->get('session')->getFlashBag()->add(
                 'notice',
                 'Plata făcută este mai mare decât suma totală a facturii. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
-                .(round($thePayment->getPayAmount(),2) - round($invoiceRemaining,2))).' RON în căsuța Avans.'
+                .(round($thePayment->getPayAmount(),2) - round($invoiceRemaining,2)).' RON în căsuța Avans.'
             );
             return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
           }
