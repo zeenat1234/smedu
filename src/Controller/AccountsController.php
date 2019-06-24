@@ -203,6 +203,8 @@ class AccountsController extends Controller
           $thePayment->setPayAmount($thePayment->getPayAmount() - $thePayment->getPayAdvance());
         }
 
+        $thePayment->setPayAmount(round($thePayment->getPayAmount(), 2));
+
         if ($thePayment->getPayMethod() == 'single') {
           //START checks
           if ($thePayment->getPayInvoices()->count() == 0) {
