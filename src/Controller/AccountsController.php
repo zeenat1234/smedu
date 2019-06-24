@@ -277,7 +277,7 @@ class AccountsController extends Controller
             return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
           }
           $invoices = $thePayment->getPayInvoices();
-          $invoicesRemaining = 0;
+          $invoicesRemaining = 0.0;
           $invoiceUnits = array(); //check different units
           foreach ($invoices as $invoice) {
             $invoicesRemaining = $invoicesRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
@@ -301,6 +301,7 @@ class AccountsController extends Controller
           } elseif ($thePayment->getPayAmount() > $invoicesRemaining) {
               $this->get('session')->getFlashBag()->add(
                   'notice',
+                  'DEBUG: '.$thePayment->getPayAmount().' === '.$invoicesRemaining.' === '.
                   'Plata făcută este mai mare decât suma totală a facturilor. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
                   .($thePayment->getPayAmount() - $invoicesRemaining).' RON în căsuța Avans.'
               );
@@ -309,7 +310,7 @@ class AccountsController extends Controller
           //END checks
         }
 
-        if ($thePayment->getPayMethod() == 'multiple_partial') {
+        /*if ($thePayment->getPayMethod() == 'multiple_partial') {
           //START checks
           if ($thePayment->getPayInvoices()->count() == 1) {
             $this->get('session')->getFlashBag()->add(
@@ -356,7 +357,7 @@ class AccountsController extends Controller
             return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
           }
           //END checks
-        }
+        } */
 
         $addAdvance = $form->get('addAdvance')->getData();
         if($addAdvance == false) {
