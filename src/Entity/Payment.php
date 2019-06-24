@@ -86,12 +86,12 @@ class Payment
         return $this;
     }
 
-    public function getPayAmount(): ?int
+    public function getPayAmount()
     {
         return $this->payAmount;
     }
 
-    public function setPayAmount(int $payAmount): self
+    public function setPayAmount($payAmount): self
     {
         $this->payAmount = $payAmount;
 
