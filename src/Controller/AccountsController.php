@@ -298,10 +298,11 @@ class AccountsController extends Controller
                 'Plata făcută este mai mică decât suma totală a facturilor. Te rugăm să corectezi suma sau să selectezi Facturi multiple (parțial).'
             );
             return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
-          } elseif ($thePayment->getPayAmount() > $invoicesRemaining) {
+          //} elseif ($thePayment->getPayAmount() > $invoicesRemaining) {
+          } elseif ($thePayment->getPayAmount() - $invoicesRemaining > 0) {
               $this->get('session')->getFlashBag()->add(
                   'notice',
-                  'DEBUG: '.$thePayment->getPayAmount().' === '.$invoicesRemaining.' === '.
+                  'DEBUG: '.$thePayment->getPayAmount().' '.gettype($thePayment->getPayAmount()).' === '.$invoicesRemaining.' '.gettype($invoicesRemaining).' === '.
                   'Plata făcută este mai mare decât suma totală a facturilor. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
                   .($thePayment->getPayAmount() - $invoicesRemaining).' RON în căsuța Avans.'
               );
