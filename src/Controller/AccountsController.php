@@ -203,7 +203,7 @@ class AccountsController extends Controller
           $thePayment->setPayAmount($thePayment->getPayAmount() - $thePayment->getPayAdvance());
         }
 
-        $thePayment->setPayAmount(round($thePayment->getPayAmount(), 2));
+        //$thePayment->setPayAmount(round($thePayment->getPayAmount(), 2));
 
         if ($thePayment->getPayMethod() == 'single') {
           //START checks
@@ -301,10 +301,10 @@ class AccountsController extends Controller
             );
             return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
           //} elseif ($thePayment->getPayAmount() > $invoicesRemaining) {
-          } elseif ($thePayment->getPayAmount() - $invoicesRemaining > 0) {
+          } elseif (round($thePayment->getPayAmount(),2) - round($invoicesRemaining,2) > 0) {
               $this->get('session')->getFlashBag()->add(
                   'notice',
-                  'DEBUG: '.$thePayment->getPayAmount().' '.gettype($thePayment->getPayAmount()).' === '.$invoicesRemaining.' '.gettype($invoicesRemaining).' === '.
+                  'DEBUG: '.round($thePayment->getPayAmount(),2).' '.gettype($thePayment->getPayAmount()).' === '.round($invoicesRemaining,2).' '.gettype($invoicesRemaining).' === '.
                   'Plata făcută este mai mare decât suma totală a facturilor. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
                   .($thePayment->getPayAmount() - $invoicesRemaining).' RON în căsuța Avans.'
               );
