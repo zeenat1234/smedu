@@ -2535,7 +2535,8 @@ class AccountsController extends Controller
             $summary = $summary."--> Adăugăm servicii nefacturate din lunile anterioare! \n";
             $noninvItems = array();
             foreach ($student->getMonthAccounts() as $oldAccount) {
-              if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
+              //if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
+              if ($oldAccount->getAccYearMonth() <= $account->getAccYearMonth()) {
                 foreach ($oldAccount->getPaymentItems() as $oldPayItem) {
                   if ($oldPayItem->getIsInvoiced() == false) {
                     $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
