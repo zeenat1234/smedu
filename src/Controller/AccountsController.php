@@ -2535,8 +2535,8 @@ class AccountsController extends Controller
             $summary = $summary."--> Adăugăm servicii nefacturate din lunile anterioare! \n";
             $noninvItems = array();
             foreach ($student->getMonthAccounts() as $oldAccount) {
-              //if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
-              if ($oldAccount->getAccYearMonth() <= $account->getAccYearMonth()) {
+              if ($oldAccount != $account && $oldAccount->getAccYearMonth() < $account->getAccYearMonth()) {
+              //if ($oldAccount->getAccYearMonth() <= $account->getAccYearMonth()) {
                 foreach ($oldAccount->getPaymentItems() as $oldPayItem) {
                   if ($oldPayItem->getIsInvoiced() == false) {
                     $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
@@ -2564,6 +2564,10 @@ class AccountsController extends Controller
                     $allCreatedItems[] = $oldPayItem;
                   }
                 }
+              } elseif ($oldAccount->getAccYearMonth() == $account->getAccYearMonth()) {
+                // TODO - maybe find a logic for a way to include items which have not yet been invoiced
+                // NOTE: A solution to this might be moving this block to the top, so that other newly added items
+                // are not been taken into consideration
               }
             }
             $summary = $summary."----> Servicii din urmă adăugate: ".count($noninvItems)."\n";
@@ -2680,6 +2684,7 @@ class AccountsController extends Controller
             }
           } // finish adding transport tax
 
+          // ADDING 1x NEW CUSTOM PAY ITEM
           if (in_array('newitem', $data['pay_item_type'])) {
             $summary = $summary."--> Adăugăm un serviciu NOU! \n";
             //check validity first
