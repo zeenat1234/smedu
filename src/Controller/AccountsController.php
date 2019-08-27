@@ -150,7 +150,7 @@ class AccountsController extends Controller
       $payableInvoices = array();
 
       foreach($children as $child) {
-        $student = $child->getChildLatestEnroll()->getStudent();
+        $student = $monthAccount->getStudent();
         if ($student) {
           foreach($student->getMonthAccounts() as $account) {
             $availableBalance = $availableBalance + $account->getAdvanceBalance();
@@ -460,7 +460,11 @@ class AccountsController extends Controller
 
       if ($payment->getPayMethod() == 'single') {
         $invoice = $payment->getPayInvoices()->first();
-        if ($invoice->getInvoiceTotal() >= $invoice->getInvoicePaid() + $invoicePaid) {
+        // if ($invoice->getInvoiceTotal() >= $invoice->getInvoicePaid() + $invoicePaid) {
+        // bccomp() returns 0 if the two operands are equal,
+        // 1 if the left_operand is larger than the right_operand,
+        // -1 otherwise
+        if (bccomp($invoice->getInvoiceTotal(), $invoice->getInvoicePaid() + $invoicePaid, 2) >= 0  ) {
           $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
           $invoice->setInvoicePaidDate($payment->getPayDate());
           $invoice->setIsPaid(true);
@@ -497,7 +501,11 @@ class AccountsController extends Controller
       }
       if ($payment->getPayMethod() == 'partial') {
         $invoice = $payment->getPayInvoices()->first();
-        if ($invoice->getInvoiceTotal() >= $invoice->getInvoicePaid() + $invoicePaid) {
+        // if ($invoice->getInvoiceTotal() >= $invoice->getInvoicePaid() + $invoicePaid) {
+        // bccomp() returns 0 if the two operands are equal,
+        // 1 if the left_operand is larger than the right_operand,
+        // -1 otherwise
+        if (bccomp($invoice->getInvoiceTotal(), $invoice->getInvoicePaid() + $invoicePaid, 2) >= 0  ) {
           $invoice->setInvoicePaid($invoice->getInvoicePaid() + $invoicePaid);
           $invoice->setInvoicePaidDate($payment->getPayDate());
           $invoice->setIsPaid(false);
@@ -534,7 +542,11 @@ class AccountsController extends Controller
         foreach($payment->getPayInvoices() as $invoice) {
           $totalInvRemaining = $totalInvRemaining + $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
         }
-        if ($totalInvRemaining != $payment->getPayAmount()) {
+        // if ($totalInvRemaining != $payment->getPayAmount()) {
+        // bccomp() returns 0 if the two operands are equal,
+        // 1 if the left_operand is larger than the right_operand,
+        // -1 otherwise
+        if (bccomp($totalInvRemaining, $payment->getPayAmount(), 2) != 0 ) {
           $this->get('session')->getFlashBag()->add(
               'notice',
               "Plata nu corespunde în mod corect facturilor asociate!!!\n Plata: ".$payment->getPayAmount()." Factura: ".$totalInvRemaining
