@@ -537,7 +537,7 @@ class AccountsController extends Controller
         if ($totalInvRemaining != $payment->getPayAmount()) {
           $this->get('session')->getFlashBag()->add(
               'notice',
-              'Plata nu corespunde în mod corect facturilor asociate!!!'
+              "Plata nu corespunde în mod corect facturilor asociate!!!\n Plata: ".$payment->getPayAmount()." Factura: ".$totalInvRemaining
           );
           return $this->redirectToRoute('account_invoices', array('accId' => $accId));
         }
