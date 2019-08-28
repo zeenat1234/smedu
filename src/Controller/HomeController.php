@@ -67,7 +67,12 @@ class HomeController extends Controller
           $kids = $this->getUser()->getGuardianacc()->getChildren();
           $accounts = array();
           foreach ($kids as $kid) {
+
+            // DO WORK
+
             $theStudent = $kid->getChildLatestEnroll()->getStudent();
+
+
             if ($theStudent != null) { array_push($accounts, $theStudent->getLatestMonthAccount()); }
           }
           if (count($accounts) > 0) {

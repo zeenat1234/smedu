@@ -3749,7 +3749,7 @@ class AccountsController extends Controller
         "SUMAR: \n".$summary
       );
 
-      return $this->redirectToRoute('end_of_year', array('yearId' => $student->getSchoolUnit()->getSchoolyear()->getId()));
+      return $this->redirectToRoute('end_of_year', array('yearId' => $yearId));
     }
 
     /**
@@ -3940,7 +3940,7 @@ class AccountsController extends Controller
         "SUMAR: \n".$summary
       );
 
-      return $this->redirectToRoute('end_of_year', array('yearId' => $yearId));
+      return $this->redirectToRoute('end_of_year', array('yearId' => $student->getSchoolUnit()->getSchoolyear()->getId()));
     }
 
     //DEPRECATED -- test and remove, as this has been replaced with Smart Generate

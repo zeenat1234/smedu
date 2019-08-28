@@ -40,6 +40,11 @@ class ClassGroup
      */
     private $students;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\ClassGroup", cascade={"persist", "remove"})
+     */
+    private $importedFrom;
+
     public function __construct()
     {
         $this->students = new ArrayCollection();
@@ -113,6 +118,18 @@ class ClassGroup
                 $student->setClassGroup(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getImportedFrom(): ?self
+    {
+        return $this->importedFrom;
+    }
+
+    public function setImportedFrom(?self $importedFrom): self
+    {
+        $this->importedFrom = $importedFrom;
 
         return $this;
     }

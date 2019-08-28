@@ -42,7 +42,7 @@ class Student
     private $schoolUnit;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Enrollment", mappedBy="student", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Enrollment", mappedBy="student", orphanRemoval=true, cascade={"all"})
      */
     private $enrollment;
 
@@ -70,6 +70,11 @@ class Student
      * @ORM\OneToMany(targetEntity="App\Entity\OptionalEnrollRequest", mappedBy="rStudent", orphanRemoval=true)
      */
     private $optionalEnrollRequests;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Student", cascade={"persist", "remove"})
+     */
+    private $importedFrom;
 
     public function __construct()
     {
@@ -363,6 +368,18 @@ class Student
                 $optionalEnrollRequest->setRStudent(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getImportedFrom(): ?self
+    {
+        return $this->importedFrom;
+    }
+
+    public function setImportedFrom(?self $importedFrom): self
+    {
+        $this->importedFrom = $importedFrom;
 
         return $this;
     }

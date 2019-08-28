@@ -40,6 +40,7 @@ class SchoolServiceController extends AbstractController
 
         return $this->render('school_service/school.services.html.twig', [
             'school_units'    => $schoolUnits,
+            'school_year'    => $currentSchoolYear,
         ]);
     }
 
@@ -55,7 +56,8 @@ class SchoolServiceController extends AbstractController
         $schoolUnits = $schoolYear->getSchoolunits();
 
         return $this->render('school_service/school.services.html.twig', [
-            'school_units'    => $schoolUnits,
+            'school_units'   => $schoolUnits,
+            'school_year'    => $schoolYear,
         ]);
     }
 

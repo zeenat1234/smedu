@@ -81,6 +81,11 @@ class ClassOptional
      */
     private $optionalEnrollRequests;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\ClassOptional", cascade={"persist", "remove"})
+     */
+    private $importedFrom;
+
     public function __construct()
     {
         $this->inServices = new ArrayCollection();
@@ -443,6 +448,18 @@ class ClassOptional
             $this->optionalEnrollRequests->removeElement($optionalEnrollRequest);
             $optionalEnrollRequest->removeROptional($this);
         }
+
+        return $this;
+    }
+
+    public function getImportedFrom(): ?self
+    {
+        return $this->importedFrom;
+    }
+
+    public function setImportedFrom(?self $importedFrom): self
+    {
+        $this->importedFrom = $importedFrom;
 
         return $this;
     }

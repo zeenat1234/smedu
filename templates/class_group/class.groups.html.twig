@@ -4,8 +4,17 @@
 
 {% block body %}
 
-    <h2 class="coinyFont">Grupe Școlare - {{ school_year.yearname }}</h2>
+    <h2 class="coinyFont">
+      Grupe Școlare - {{ school_year.yearname }}
+    </h2>
+    {% if school_year.getIsSetupComplete == 0 %}
+      <a href="{{path('school_year_setup', {'id':school_year.id}) }}">
+        <button class="btn btn-warning"><i class="fas fa-angle-double-left"></i> Înapoi la Import</button>
+      </a>
+      <br><br>
+    {% endif %}
     <br>
+
     {% for schoolunit in school_units %}
       <div class="row">
         <div class="col-auto">

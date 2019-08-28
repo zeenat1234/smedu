@@ -1,0 +1,371 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Configurare An Școlar{% endblock %}
+
+{% block body %}
+
+<div class="school-wrapper">
+    <h1>IMPORT {{ prev_year.yearLabel }} -> {{ school_year.yearlabel }}!</h1>
+    <hr>
+    <p>Importul trebuie făcut înainte de {{ prev_year.endDate|localizeddate('medium','none','RO') }}</p>
+
+    <br>
+
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+      <br>
+      <div id="message">
+        <div style="padding: 5px;">
+          <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|nl2br }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    <br>
+
+    <h4>
+      {% if school_year.isSetup1 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 1 - Unități Școlare
+      {% if school_year.isSetup1 == false %}
+        <a href="{{ path('school_year_setup1', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            Import
+          </button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          <i class="fa fa-check-circle" aria-hidden="true"></i> Import
+        </button>
+        <a href="{{ path('school_units_year', {'id':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-box"></i> Unități Școlare</button>
+        </a>
+      {% endif %}
+    </h4>
+    <br>
+    <h4>
+      {% if school_year.isSetup2 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 2 - Servicii Școlare
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2 == false) %}
+        {% for unit in school_year.getSchoolunits %}
+          <a href="{{ path('school_year_setup2', {'id':unit.id}) }}">
+            {% if unit.isSetup1Complete %}
+              <button class="btn btn-primary" disabled><i class="fa fa-check-circle" aria-hidden="true"></i>
+                Import {{ unit.getUnitname }}
+              </button>
+            {% else %}
+              <button class="btn btn-primary">
+                Import {{ unit.getUnitname }}
+              </button>
+            {% endif %}
+          </a>
+        {% endfor %}
+      {% elseif school_year.isSetup2 %}
+        {% for unit in school_year.getSchoolunits %}
+          <button class="btn btn-primary" disabled>
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            Import {{ unit.getUnitname }}
+          </button>
+        {% endfor %}
+        <a href="{{ path('school_services_view', {'id':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-box"></i> Servicii An Școlar</button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+    <br>
+    <h4>
+      {% if school_year.isSetup3 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 3 - Grupe
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2) and
+            (school_year.isSetup3 == false) %}
+        {% for unit in school_year.getSchoolunits %}
+          <a href="{{ path('school_year_setup3', {'id':unit.id}) }}">
+            {% if unit.isSetup2Complete %}
+              <button class="btn btn-primary" disabled><i class="fa fa-check-circle" aria-hidden="true"></i>
+                Import {{ unit.getUnitname }}
+              </button>
+            {% else %}
+              <button class="btn btn-primary">
+                Import {{ unit.getUnitname }}
+              </button>
+            {% endif %}
+          </a>
+        {% endfor %}
+      {% elseif school_year.isSetup3 %}
+        {% for unit in school_year.getSchoolunits %}
+          <button class="btn btn-primary" disabled>
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            Import {{ unit.getUnitname }}
+          </button>
+        {% endfor %}
+        <a href="{{ path('class_groups_by_year',{'id':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-user-graduate"></i> Grupe</button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+    <br>
+    <h4>
+      {% if school_year.isSetup4 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 4 - Opționale
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2) and
+            (school_year.isSetup4 == false) %}
+        {% for unit in school_year.getSchoolunits %}
+          <a href="{{ path('school_year_setup4', {'id':unit.id}) }}">
+            {% if unit.isSetup3Complete %}
+              <button class="btn btn-primary" disabled><i class="fa fa-check-circle" aria-hidden="true"></i>
+                Import {{ unit.getUnitname }}
+              </button>
+            {% else %}
+              <button class="btn btn-primary">
+                Import {{ unit.getUnitname }}
+              </button>
+            {% endif %}
+          </a>
+        {% endfor %}
+      {% elseif school_year.isSetup4 %}
+        {% for unit in school_year.getSchoolunits %}
+          <button class="btn btn-primary" disabled>
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            Import {{ unit.getUnitname }}
+          </button>
+        {% endfor %}
+        <a href="{{ path('class_optionals_by_year',{'id':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-book-reader"></i> Opționale</button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+    <br>
+    <h4>
+      {% if school_year.isSetup5 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 5 - Înscrieri Elevi în Noile Unități
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2) and
+            (school_year.isSetup3) and
+            (school_year.isSetup4) and
+            (school_year.isSetup5 == false) %}
+
+        <a href="{{ path('school_year_setup5', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            Import
+          </button>
+        </a>
+
+      {% elseif school_year.isSetup5 %}
+        <a href="{{ path('school_year_setup5', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            Import
+          </button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+    <br>
+    <h4>
+      {% if school_year.isSetup6 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 6 - Înscrieri Elevi - Actualizare Servicii
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2) and
+            (school_year.isSetup3) and
+            (school_year.isSetup4) and
+            (school_year.isSetup5) and
+            (school_year.isSetup6 == false) %}
+
+        <a href="{{ path('school_year_setup6', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            Import
+          </button>
+        </a>
+
+      {% elseif school_year.isSetup6 %}
+        <a href="{{ path('school_year_setup6', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            Import
+          </button>
+        </a>
+        <a href="{{ path('all_enrollments_year', {'yearId':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-address-card"></i> Înscrieri</button>
+        </a>
+        <br>
+        <a href="{{ path('school_year_setup6_undo', {'id':school_year.id}) }}">
+          <button class="btn btn-sm btn-danger">ANULARE</button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+
+    <br>
+    <hr>
+    <h4 style="text-align:center;">
+    {% if school_year.isSetupComplete %}
+      <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+    {% else %}
+      <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+    {% endif %}
+    Import Completat -
+    {% if school_year.isSetup1 == false %}
+      0 %
+    {% elseif school_year.isSetup1 and school_year.isSetup2 == false %}
+      17 %
+    {% elseif school_year.isSetup2 and school_year.isSetup3 == false and school_year.isSetup4 == false %}
+      35 %
+    {% elseif school_year.isSetup3 == true and school_year.isSetup4 == false %}
+      50 %
+    {% elseif school_year.isSetup3 == false and school_year.isSetup4 == true %}
+      50 %
+    {% elseif school_year.isSetup3 == true and school_year.isSetup4 == true and school_year.isSetup5 == false %}
+      68 %
+    {% elseif school_year.isSetup5 == true and school_year.isSetup6 == false %}
+      85 %
+    {% elseif school_year.isSetup6 == true and school_year.isSetupComplete == false %}
+      99%
+    {% else %}
+      100%
+    {% endif %}
+    </h4>
+    <hr>
+    <br>
+    <h3>POST IMPORT</h3>
+    <br>
+    <h4>
+      {% if school_year.isSetup7 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 7 - Import înscrieri Opționale
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2) and
+            (school_year.isSetup3) and
+            (school_year.isSetup4) and
+            (school_year.isSetup5) and
+            (school_year.isSetup6) and
+            (school_year.isSetup7 == false) %}
+
+          {% for unit in school_year.getSchoolunits %}
+            <a href="{{ path('school_year_setup7', {'id':unit.id}) }}">
+              {% if unit.isSetup4Complete %}
+                <button class="btn btn-primary" disabled><i class="fa fa-check-circle" aria-hidden="true"></i>
+                  Import {{ unit.getUnitname }}
+                </button>
+              {% else %}
+                <button class="btn btn-primary">
+                  Import {{ unit.getUnitname }}
+                </button>
+              {% endif %}
+            </a>
+          {% endfor %}
+
+      {% elseif school_year.isSetup7 %}
+        {% for unit in school_year.getSchoolunits %}
+          <a href="{{ path('school_year_setup7', {'id':unit.id}) }}">
+            <button class="btn btn-primary">
+              <i class="fa fa-check-circle" aria-hidden="true"></i>
+              Import {{ unit.getUnitname }}
+            </button>
+          </a>
+        {% endfor %}
+        <a href="{{ path('class_optionals_by_year',{'id':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-book-reader"></i> Opționale</button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+    <br>
+    <h4>
+      {% if school_year.isSetup8 %}
+        <span style="color:green;"><i class="fa fa-check-circle" aria-hidden="true"></i></span>
+      {% else %}
+        <span style="color:red;"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
+      {% endif %}
+      Pas 8 - Import Rute de Transport
+      {% if (school_year.isSetup1) and
+            (school_year.isSetup2) and
+            (school_year.isSetup3) and
+            (school_year.isSetup4) and
+            (school_year.isSetup5) and
+            (school_year.isSetup6) and
+            (school_year.isSetup8 == false) %}
+
+        <a href="{{ path('school_year_setup8', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            Import
+          </button>
+        </a>
+
+      {% elseif school_year.isSetup8 %}
+        <a href="{{ path('school_year_setup8', {'id':school_year.id}) }}">
+          <button class="btn btn-primary">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            Import
+          </button>
+        </a>
+        <a href="{{ path('routes', {'yearId':school_year.id}) }}">
+          <button class="btn btn-warning"><i class="fas fa-address-card"></i> Rute Transport</button>
+        </a>
+      {% else %}
+        <button class="btn btn-primary" disabled>
+          Import
+        </button>
+      {% endif %}
+    </h4>
+
+
+</div>
+
+{% endblock %}
+
+
+{% block javascripts %}
+  <!-- jscripts here -->
+{% endblock %}

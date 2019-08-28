@@ -6,10 +6,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\SchoolUnitRepository")
+ * @UniqueEntity(
+ *     fields={"unitname"},
+ *     message="Această unitate ({{ value }}) există deja!"
+ * )
  */
 class SchoolUnit
 {
@@ -128,6 +133,31 @@ class SchoolUnit
      * )
      */
     private $firstReceiptNumber;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\SchoolUnit", cascade={"persist", "remove"})
+     */
+    private $importedFrom;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup1Complete = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup2Complete = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup3Complete = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup4Complete = 0;
 
     public function __construct()
     {
@@ -446,6 +476,66 @@ class SchoolUnit
     public function setFirstReceiptNumber(int $firstReceiptNumber): self
     {
         $this->firstReceiptNumber = $firstReceiptNumber;
+
+        return $this;
+    }
+
+    public function getImportedFrom(): ?self
+    {
+        return $this->importedFrom;
+    }
+
+    public function setImportedFrom(?self $importedFrom): self
+    {
+        $this->importedFrom = $importedFrom;
+
+        return $this;
+    }
+
+    public function getIsSetup1Complete(): ?bool
+    {
+        return $this->isSetup1Complete;
+    }
+
+    public function setIsSetup1Complete(bool $isSetup1Complete): self
+    {
+        $this->isSetup1Complete = $isSetup1Complete;
+
+        return $this;
+    }
+
+    public function getIsSetup2Complete(): ?bool
+    {
+        return $this->isSetup2Complete;
+    }
+
+    public function setIsSetup2Complete(bool $isSetup2Complete): self
+    {
+        $this->isSetup2Complete = $isSetup2Complete;
+
+        return $this;
+    }
+
+    public function getIsSetup3Complete(): ?bool
+    {
+        return $this->isSetup3Complete;
+    }
+
+    public function setIsSetup3Complete(bool $isSetup3Complete): self
+    {
+        $this->isSetup3Complete = $isSetup3Complete;
+
+        return $this;
+    }
+
+    public function getIsSetup4Complete(): ?bool
+    {
+        return $this->isSetup4Complete;
+    }
+
+    public function setIsSetup4Complete(bool $isSetup4Complete): self
+    {
+        $this->isSetup4Complete = $isSetup4Complete;
 
         return $this;
     }

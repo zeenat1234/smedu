@@ -73,6 +73,51 @@ class SchoolYear
      */
     private $enrollments;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup1 = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup2 = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup3 = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup4 = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetup5 = 0;
+
+    /**
+    * @ORM\Column(type="boolean")
+    */
+    private $isSetup6 = 0;
+    /**
+    * @ORM\Column(type="boolean")
+    */
+    private $isSetup7 = 0;
+
+    /**
+    * @ORM\Column(type="boolean")
+    */
+    private $isSetup8 = 0;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isSetupComplete = 0;
+
+
     public function __construct()
     {
         $this->schoolunits = new ArrayCollection();
@@ -259,6 +304,114 @@ class SchoolYear
                 $enrollment->setSchoolYear(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIsSetup1(): ?bool
+    {
+        return $this->isSetup1;
+    }
+
+    public function setIsSetup1(bool $isSetup1): self
+    {
+        $this->isSetup1 = $isSetup1;
+
+        return $this;
+    }
+
+    public function getIsSetup2(): ?bool
+    {
+        return $this->isSetup2;
+    }
+
+    public function setIsSetup2(bool $isSetup2): self
+    {
+        $this->isSetup2 = $isSetup2;
+
+        return $this;
+    }
+
+    public function getIsSetup3(): ?bool
+    {
+        return $this->isSetup3;
+    }
+
+    public function setIsSetup3(bool $isSetup3): self
+    {
+        $this->isSetup3 = $isSetup3;
+
+        return $this;
+    }
+
+    public function getIsSetup4(): ?bool
+    {
+        return $this->isSetup4;
+    }
+
+    public function setIsSetup4(bool $isSetup4): self
+    {
+        $this->isSetup4 = $isSetup4;
+
+        return $this;
+    }
+
+    public function getIsSetup5(): ?bool
+    {
+        return $this->isSetup5;
+    }
+
+    public function setIsSetup5(bool $isSetup5): self
+    {
+        $this->isSetup5 = $isSetup5;
+
+        return $this;
+    }
+
+    public function getIsSetup6(): ?bool
+    {
+      return $this->isSetup6;
+    }
+
+    public function setIsSetup6(bool $isSetup6): self
+    {
+      $this->isSetup6 = $isSetup6;
+
+      return $this;
+    }
+
+    public function getIsSetupComplete(): ?bool
+    {
+        return $this->isSetupComplete;
+    }
+
+    public function setIsSetupComplete(bool $isSetupComplete): self
+    {
+        $this->isSetupComplete = $isSetupComplete;
+
+        return $this;
+    }
+
+    public function getIsSetup7(): ?bool
+    {
+        return $this->isSetup7;
+    }
+
+    public function setIsSetup7(bool $isSetup7): self
+    {
+        $this->isSetup7 = $isSetup7;
+
+        return $this;
+    }
+
+    public function getIsSetup8(): ?bool
+    {
+        return $this->isSetup8;
+    }
+
+    public function setIsSetup8(bool $isSetup8): self
+    {
+        $this->isSetup8 = $isSetup8;
 
         return $this;
     }

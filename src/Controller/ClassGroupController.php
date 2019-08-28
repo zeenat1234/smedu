@@ -160,6 +160,8 @@ class ClassGroupController extends AbstractController
       $classgroup = $this->getDoctrine()->getRepository
       (ClassGroup::class)->find($groupId);
 
+      $students = array();
+
       //getavailablestudents
       $availableStudents = $classgroup->getSchoolUnit()->getStudents();
       foreach ($availableStudents as $student) {
@@ -170,38 +172,44 @@ class ClassGroupController extends AbstractController
           }
       }
 
-      $form = $this->createForm(ClassGroupEnrollType::Class, $classgroup, array(
-        'students' => $students,
-      ));
+      $view = NULL;
 
-      $form->handleRequest($request);
+      if (count($students) > 0) {
+        $form = $this->createForm(ClassGroupEnrollType::Class, $classgroup, array(
+          'students' => $students,
+        ));
 
-      if($form->isSubmitted() && $form->isValid()) {
-        $classgroup = $form->getData();
+        $view = $form->createView();
 
-        foreach ($students as $student) {
-          if ($classgroup->getStudents()->contains($student)) {
-            $student->setClassGroup($classgroup);
-          } else {
-            $student->setClassGroup(NULL);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+          $classgroup = $form->getData();
+
+          foreach ($students as $student) {
+            if ($classgroup->getStudents()->contains($student)) {
+              $student->setClassGroup($classgroup);
+            } else {
+              $student->setClassGroup(NULL);
+            }
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->flush();
           }
-          $entityManager = $this->getDoctrine()->getManager();
-          $entityManager->flush();
-        }
 
-        if ($redirect == 'class_groups') {
-          return $this->redirectToRoute('class_groups');
-        } else if ($redirect == 'group') {
-          return $this->redirectToRoute('class_group_view', ['groupId' => $groupId]);
-        } else {
-          return $this->redirectToRoute('class_groups');
+          if ($redirect == 'class_groups') {
+            return $this->redirectToRoute('class_groups');
+          } else if ($redirect == 'group') {
+            return $this->redirectToRoute('class_group_view', ['groupId' => $groupId]);
+          } else {
+            return $this->redirectToRoute('class_groups');
+          }
         }
       }
 
       return $this->render('class_group/class.group.enroll.html.twig', [
           'classgroup' => $classgroup,
           'students' => $students,
-          'form' => $form->createView(),
+          'form' => $view,
       ]);
     }
 }

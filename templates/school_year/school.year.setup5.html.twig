@@ -1,0 +1,81 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Configurare An Școlar{% endblock %}
+
+{% block body %}
+
+<div class="school-wrapper">
+    <h1>PAS 5: Elevi </h1>
+    <h3>{{ prev_year.yearLabel }} -> {{ school_year.yearlabel }}!</h3>
+    <hr>
+    <p>Importul trebuie făcut înainte de {{ prev_year.endDate|localizeddate() }}</p>
+
+    <br>
+
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+      <br>
+      <div id="message">
+        <div style="padding: 5px;">
+          <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|nl2br }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    <br>
+
+    <table class="table">
+      <thead class="thead-dark">
+        <th>
+          Nume Elev
+        </th>
+        <th>
+          Import?
+        </th>
+        <th>
+          Unitate Actuală
+        </th>
+        <th>
+          Unitate Nouă
+        </th>
+      </thead>
+      <tbody>
+        {% set i = 0 %}
+        {{ form_start(form) }}
+        {% for f in form.students %}
+          <tr>
+            <td>
+              <h5>{{ existing_students[i].getUser.getRoName }}</h5>
+            </td>
+            <td>
+              {{ form_widget(f.isImport[0]) }} {{ form_label(f.isImport[0]) }} 
+              {{ form_widget(f.isImport[1]) }} {{ form_label(f.isImport[1]) }}
+            </td>
+            <td>
+              {{ existing_students[i].getSchoolUnit.getUnitname }}
+            </td>
+            <td>
+              {{ form_widget(f.schoolUnit) }}
+            </td>
+          </tr>
+          {% set i = i + 1 %}
+        {% endfor %}
+        <tr>
+          <td colspan=6 style="text-align:center;">
+            <button class="btn btn-primary" type="submit"><i class="fas fa-cloud-upload-alt"></i> Importă Elevii</button>
+          </td>
+        </tr>
+        {{ form_end(form) }}
+      </tbody>
+    </table>
+
+</div>
+
+{% endblock %}
+
+
+{% block javascripts %}
+  <!-- jscripts here -->
+{% endblock %}

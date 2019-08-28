@@ -70,16 +70,23 @@ class Enrollment
     private $schoolYear;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Student", inversedBy="enrollment", cascade={"persist", "remove"})
+     * @ORM\OneToOne(targetEntity="App\Entity\Student", inversedBy="enrollment")
      * @ORM\JoinColumn(nullable=false)
      */
     private $student;
+    //NOTE: @ORM\OneToOne(targetEntity="App\Entity\Student", inversedBy="enrollment", cascade={"persist", "remove"})
 
     /**
      * @ORM\Column(type="smallint")
      * @Assert\GreaterThanOrEqual(0)
      */
     private $daysToPay = 14;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ClassGroup")
+     */
+    private $importClassGroup;
+    //NOTE: @ORM\ManyToOne(targetEntity="App\Entity\ClassGroup", cascade={"persist", "remove"})
 
     public function getId()
     {
@@ -202,6 +209,18 @@ class Enrollment
     public function setDaysToPay(int $daysToPay): self
     {
         $this->daysToPay = $daysToPay;
+
+        return $this;
+    }
+
+    public function getImportClassGroup(): ?ClassGroup
+    {
+        return $this->importClassGroup;
+    }
+
+    public function setImportClassGroup(?ClassGroup $importClassGroup): self
+    {
+        $this->importClassGroup = $importClassGroup;
 
         return $this;
     }

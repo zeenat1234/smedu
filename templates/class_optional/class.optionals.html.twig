@@ -5,6 +5,12 @@
 {% block body %}
 
     <h2 class="coinyFont">Opționale {{ current_year.getYearlabel|lower }}</h2>
+    {% if current_year.getIsSetupComplete == 0 %}
+      <a href="{{path('school_year_setup', {'id':current_year.id}) }}">
+        <button class="btn btn-warning"><i class="fas fa-angle-double-left"></i> Înapoi la Import</button>
+      </a>
+      <br><br>
+    {% endif %}
     <br>
     {% if current_units is not empty %}
       {% for schoolunit in current_units %}

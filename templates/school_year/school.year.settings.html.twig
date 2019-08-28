@@ -77,7 +77,7 @@
         <tbody>
           {% for next_year in next_years %}
             <tr>
-              <td>{{ next_year.yearlabel }}</td>
+              <td><a href="{{path('school_year_setup', {'id':next_year.id}) }}"><i class="fa fa-eye"></i> {{ next_year.yearlabel }}</a></td>
               <td>{{ next_year.startDate|localizeddate('medium', 'none', 'ro') }} / {{ next_year.endDate|localizeddate('medium', 'none', 'ro') }}</td>
               <td>{{ next_year.licenseStatus }}</td>
               <td>

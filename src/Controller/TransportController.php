@@ -28,12 +28,17 @@ use Symfony\Component\HttpFoundation\Response;
 class TransportController extends AbstractController
 {
     /**
-     * @Route("/transport/routes", name="routes")
+     * @Route("/transport/routes/{yearId?0}", name="routes")
      */
-    public function routes(Request $request)
+    public function routes(Request $request, $yearId)
     {
-        $currentSchoolYear = $this->getDoctrine()->getRepository
-        (SchoolYear::class)->findCurrentYear();
+        if ($yearId > 0) {
+          $currentSchoolYear = $this->getDoctrine()->getRepository
+          (SchoolYear::class)->find($yearId);
+        } else {
+          $currentSchoolYear = $this->getDoctrine()->getRepository
+          (SchoolYear::class)->findCurrentYear();
+        }
 
         $currentUnits = $currentSchoolYear->getSchoolunits();
 
@@ -221,7 +226,7 @@ class TransportController extends AbstractController
 
           $data = $form->getData();
 
-          // $data['attends'] contains an array of AppBundle\Entity\OptionalsAttendance
+          // $data['trips'] contains an array of AppBundle\Entity\TransportTrip
           // use it to persist the categories in a foreach loop
           foreach ($data['trips'] as $trip) {
 

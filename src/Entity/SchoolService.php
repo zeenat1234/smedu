@@ -65,6 +65,11 @@ class SchoolService
      */
     private $paymentItems;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\SchoolService", cascade={"persist", "remove"})
+     */
+    private $importedFrom;
+
     public function __construct()
     {
         $this->enrollments = new ArrayCollection();
@@ -235,6 +240,18 @@ class SchoolService
                 $paymentItem->setItemService(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getImportedFrom(): ?self
+    {
+        return $this->importedFrom;
+    }
+
+    public function setImportedFrom(?self $importedFrom): self
+    {
+        $this->importedFrom = $importedFrom;
 
         return $this;
     }

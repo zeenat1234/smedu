@@ -1,0 +1,94 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Configurare An Școlar{% endblock %}
+
+{% block body %}
+
+<div class="school-wrapper">
+    <h1>PAS 7: Import înscrieri opționale </h1>
+    <h3>{{ prev_year.yearLabel }} -> {{ school_year.yearlabel }}!</h3>
+    <hr>
+    <p>Importul trebuie făcut înainte de {{ prev_year.endDate|localizeddate() }}</p>
+
+    <br>
+
+    {% for flashMessage in app.session.flashbag.get('notice') %}
+      <br>
+      <div id="message">
+        <div style="padding: 5px;">
+          <div id="inner-message" class="alert alert-success fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|nl2br }}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    <br>
+
+    {# if debug is not empty #}
+    {# dump(debug) #}
+    {# endif #}
+
+    <table class="table">
+      <thead class="thead-dark">
+        <th>
+          Opțional
+        </th>
+        <th>
+          Înscrieri an precedent
+        </th>
+        <th>
+          Preț
+        </th>
+      </thead>
+      <tbody>
+        {% set i = 0 %}
+        {{ form_start(form) }}
+        {% for o in form.classOptionals %}
+
+          {# store index of the category in a variable #}
+          {% set index = o.vars.value %}
+
+          {# get entity object from its index in the Categories Field #}
+          {% set optional = form.classOptionals.vars.choices[index].data %}
+
+          <tr>
+            <td>
+              <h5>{{ form_widget(o) }} {{ form_label(o) }}</h5>
+            </td>
+            <td>
+              <h5>{{ optional.getImportedFrom.students|length }}</h5>
+              {# dump (o) #}
+            </td>
+            <td>
+              <h5>
+                {{ optional.price|localizedcurrency('RON') }}
+                {% if optional.getUseAttend %}
+                  /sedință
+                {% else %}
+                  /lună
+                {% endif %}
+              </h5>
+            </td>
+
+          </tr>
+          {% set i = i + 1 %}
+        {% endfor %}
+        <tr>
+          <td colspan=6 style="text-align:center;">
+            <button class="btn btn-primary" type="submit"><i class="fas fa-cloud-upload-alt"></i> Importă Înscrierile</button>
+          </td>
+        </tr>
+        {{ form_end(form) }}
+      </tbody>
+    </table>
+
+</div>
+
+{% endblock %}
+
+
+{% block javascripts %}
+  <!-- jscripts here -->
+{% endblock %}
