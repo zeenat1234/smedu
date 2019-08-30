@@ -78,7 +78,11 @@
               {{ form_widget(f.daysToPay) }}
             </td>
             <td>
-              {{ existing_enrollments[i].getStudent.getClassGroup.getGroupName }} <br>
+              {% if existing_enrollments[i].getStudent.getClassGroup is not null %}
+                {{ existing_enrollments[i].getStudent.getClassGroup.getGroupName }} <br>
+              {% else %}
+                Neînscris <br>
+              {% endif %}
               {{ form_widget(f.importClassGroup) }}
             </td>
             <td>

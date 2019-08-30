@@ -81,9 +81,14 @@ class SYStep6Type extends AbstractType
               $classgroupchoices[$label] = $classGroup;
             }
 
-            $newGroup = $this->cgrepo->findOneBy(array(
-              'importedFrom' => $enrollment->getStudent()->getImportedFrom()->getClassGroup()->getId(),
-            ));
+            // The following checks if students have actually been enrolled in a classgroup before mapping
+            if ($enrollment->getStudent()->getImportedFrom()->getClassGroup() != null) {
+              $newGroup = $this->cgrepo->findOneBy(array(
+                'importedFrom' => $enrollment->getStudent()->getImportedFrom()->getClassGroup()->getId(),
+              ));
+            } else {
+              $newGroup = reset($classgroupchoices);
+            }
 
             $builder
               ->add('idService', ChoiceType::class, array(
