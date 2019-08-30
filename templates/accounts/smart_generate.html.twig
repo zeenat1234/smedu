@@ -4,8 +4,17 @@
 
 {% block body %}
   <h2 class="coinyFont">Generare Smart</h2>
-  <code><a href="{{ path('end_of_year',{'yearId':school_year.id}) }}" style="text-decoration:underline;">Încheiere situație anuală</a></code>
-  <br>
+  {% if yearId != 0 %}
+    <a href="{{ path ('school_year_setup',{'id':yearId}) }}">
+      <button class="btn btn-sm btn-warning">
+      Înapoi la Import...
+      </button>
+    </a>
+    <br>
+  {% else %}
+    <code><a href="{{ path('end_of_year',{'yearId':school_year.id}) }}" style="text-decoration:underline;">Încheiere situație anuală</a></code>
+    <br>
+  {% endif %}
   {% for flashMessage in app.session.flashbag.get('notice') %}
     <br>
     <div id="message">
@@ -57,6 +66,10 @@
           {{ form_widget(f) }} {{ form_label(f) }}
         </div>
       {% endfor %}
+      <div class="col-12">
+        <b>ATENȚIE:</b> Reducerea din facturare NU se aplică Serviciilor nefacturate din urmă și Servicului NOU.
+        <hr>
+      </div>
     </div>
     <div id="smartGenOptDates">
       <div class="row">
@@ -110,6 +123,7 @@
       </div>
     </div>
     <div id="smartGenInvDate">
+      <hr>
       <div class="row">
         <div class="col-12 col-md-6">
           {{ form_label(form.invoice_date) }}
@@ -118,7 +132,9 @@
           {{ form_label(form.save_invoice) }}
           <span class="double2">{{ form_widget(form.save_invoice) }}</span>
         </div>
-        <div class="col-12 col-md-6">
+        <div class="col-6 col-md-3">
+          {{ form_label(form.invoice_discount) }} <i class="fas fa-percent"></i> <br>
+          {{ form_widget(form.invoice_discount) }}
         </div>
       </div>
     </div>
@@ -184,7 +200,7 @@
         document.getElementById('smartGenInvDate').style.maxHeight = "0";
       } else {
         document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
-        document.getElementById('smartGenInvDate').style.maxHeight = "200px";
+        document.getElementById('smartGenInvDate').style.maxHeight = "300px";
       }
     });
 
@@ -199,7 +215,7 @@
       document.getElementById('smartGenInvDate').style.maxHeight = "0";
     } else {
       document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
-      document.getElementById('smartGenInvDate').style.maxHeight = "200px";
+      document.getElementById('smartGenInvDate').style.maxHeight = "300px";
     }
 
   });

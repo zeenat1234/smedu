@@ -165,17 +165,17 @@
                                         </td>
                                         <td width="20%">
                                           {% if payment.isPending %}
-                                            <a href="{{ path('smart_pay_confirm',{'payId':payment.getId,'accId':account.getId,'redirect':'invoices'}) }}">
+                                            <a href="{{ path('smart_pay_confirm',{'payId':payment.getId,'accId':account.getId,'redirect':'invoices','yearId':yearId}) }}">
                                               <button class="btn-sm btn-success">Confirmă</button>
                                             </a>
-                                            <a href="{{ path('smart_pay_deny',{'payId':payment.getId,'accId':account.getId,'redirect':'invoices'}) }}">
+                                            <a href="{{ path('smart_pay_deny',{'payId':payment.getId,'accId':account.getId,'redirect':'invoices','yearId':yearId}) }}">
                                               <button class="btn-sm btn-danger">Respinge</button>
                                             </a>
                                             {% set payNoPending = payNoPending + 1 %}
                                           {% elseif payment.isConfirmed %}
                                             <button class="btn btn-sm btn-success" disabled>Confirmat</button>
                                             {% if payment.getPayMethod != 'multiple_partial' %}
-                                              <a href="{{ path('smart_pay_undo',{'payId':payment.getId,'accId':0,'redirect':'invoices'}) }}">
+                                              <a href="{{ path('smart_pay_undo',{'payId':payment.getId,'accId':0,'redirect':'invoices','yearId':yearId}) }}">
                                                 <button class="btn btn-sm btn-primary"><i class="fas fa-backspace"></i></button>
                                               </a>
                                             {% endif %}

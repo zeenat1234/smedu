@@ -10,6 +10,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
 #can instantiate the entity
 use App\Entity\User;
+use App\Entity\SchoolYear;
+use App\Entity\Enrollment;
 use App\Entity\ClassOptional;
 use App\Entity\MonthAccount;
 use App\Entity\OptionalsAttendance;
@@ -413,9 +415,9 @@ class HomeController extends Controller
     }
 
     /**
-     * @Route("/account/invoices", name="myaccount_invoices")
+     * @Route("/account/invoices/{yearId?0}", name="myaccount_invoices")
      */
-    public function myaccount_invoices(Request $request, \Swift_Mailer $mailer)
+    public function myaccount_invoices(Request $request, \Swift_Mailer $mailer, $yearId)
     {
         if ($this->getUser()->getUsertype() === 'ROLE_ADMIN') {
           return $this->redirectToRoute("index");
@@ -427,8 +429,38 @@ class HomeController extends Controller
           $allAccounts = array();
           $pricePaid = array();
 
+          $schoolYear = null;
+          if ($yearId == 0) {
+            $schoolYear = $this->getDoctrine()->getRepository
+            (SchoolYear::class)->findCurrentYear();
+          } else {
+            $schoolYear = $this->getDoctrine()->getRepository
+            (SchoolYear::class)->find($yearId);
+          }
+
           foreach ($kids as $kid) {
-            $student = $kid->getChildLatestEnroll()->getStudent();
+            // check if student is actually enrolled in that year
+            // useful for previous years where only 1 student might be enrolled out of many
+            // useful for new years where not all students were reenrolled
+            $hasEnroll = false;
+            $enrollment = null;
+            if ($yearId == 0) {
+              $enrollment = $kid->getChildLatestEnroll();
+              $hasEnroll = true;
+            } else {
+              $enrollment = $this->getDoctrine()->getRepository
+              (Enrollment::class)->findOneBy(array(
+                'idChild' => $kid->getId(),
+                'schoolYear' => $yearId,
+              ));
+              if ($enrollment != NULL) {
+                $hasEnroll = true;
+              }
+            }
+
+            if ($hasEnroll) {
+              $student = $enrollment->getStudent();
+
               if (!empty($student)) {
 
                 $accounts = $this->getDoctrine()->getRepository
@@ -460,7 +492,8 @@ class HomeController extends Controller
                     }
                   }
                 }
-            }
+              }
+            } // end IF HAS ENROLL
           }
 
           if ($request->isMethod('POST')) {
@@ -518,7 +551,7 @@ class HomeController extends Controller
 
                     }
 
-                    return $this->redirectToRoute('myaccount_invoices');
+                    return $this->redirectToRoute('myaccount_invoices',array('yearId' => $yearId));
                   } else {
                     $this->get('session')->getFlashBag()->add(
                         'notice',
@@ -531,6 +564,8 @@ class HomeController extends Controller
           }
 
           return $this->render('home/myaccount.invoices.new.html.twig', [
+              'schoolYear' => $schoolYear,
+              'yearId' => $yearId,
               'all_accounts' => $allAccounts,
               'forms' => $views,
             ]);

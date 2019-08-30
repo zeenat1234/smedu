@@ -54,12 +54,17 @@ ini_set('memory_limit', '512M');
 class AccountsController extends Controller
 {
     /**
-     * @Route("/accounts", name="accounts")
+     * @Route("/accounts_yr/{yearId?0}", name="accounts")
      */
-    public function index()
+    public function index($yearId)
     {
-        $currentSchoolYear = $this->getDoctrine()->getRepository
-        (SchoolYear::class)->findCurrentYear();
+        if ($yearId == 0) {
+          $currentSchoolYear = $this->getDoctrine()->getRepository
+          (SchoolYear::class)->findCurrentYear();
+        } else {
+          $currentSchoolYear = $this->getDoctrine()->getRepository
+          (SchoolYear::class)->find($yearId);
+        }
 
         $currentUnits = $currentSchoolYear->getSchoolunits();
 
@@ -67,6 +72,7 @@ class AccountsController extends Controller
         (Student::class)->findAllYear($currentSchoolYear);
 
         return $this->render('accounts/accounts.html.twig', [
+            'yearId'  => $yearId,
             'current_year' => $currentSchoolYear,
             'current_units' => $currentUnits,
             'sorted_students' => $allStudents,
@@ -74,12 +80,17 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/invoices", name="invoices")
+     * @Route("/invoices/{yearId?0}", name="invoices")
      */
-    public function invoices()
+    public function invoices($yearId)
     {
-        $currentSchoolYear = $this->getDoctrine()->getRepository
-        (SchoolYear::class)->findCurrentYear();
+        if ($yearId == 0) {
+          $currentSchoolYear = $this->getDoctrine()->getRepository
+          (SchoolYear::class)->findCurrentYear();
+        } else {
+          $currentSchoolYear = $this->getDoctrine()->getRepository
+          (SchoolYear::class)->find($yearId);
+        }
 
         $currentUnits = $currentSchoolYear->getSchoolunits();
 
@@ -87,6 +98,7 @@ class AccountsController extends Controller
         (Student::class)->findAllYear($currentSchoolYear);
 
         return $this->render('accounts/view.all.invoices.html.twig', [
+            'yearId'  => $yearId,
             'current_year' => $currentSchoolYear,
             'current_units' => $currentUnits,
             'sorted_students' => $allStudents,
@@ -115,9 +127,9 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/smartpay/{accId}/{edit}", name="smart_pay")
+     * @Route("/smartpay/{accId}/{edit}/{yearId?0}", name="smart_pay")
      */
-    public function smart_pay(Request $request, $accId, $edit, \Swift_Mailer $mailer)
+    public function smart_pay(Request $request, $accId, $edit, \Swift_Mailer $mailer, $yearId)
     {
       $monthAccount = $this->getDoctrine()->getRepository
       (MonthAccount::class)->find($accId);
@@ -125,7 +137,7 @@ class AccountsController extends Controller
 
       if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
         if ($monthAccount->getStudent()->getUser()->getGuardian()->getUser() != $this->getUser()) {
-          return $this->redirectToRoute('myaccount_invoices');
+          return $this->redirectToRoute('myaccount_invoices',array('yearId' => $yearId));
         }
       }
 
@@ -210,7 +222,7 @@ class AccountsController extends Controller
                 'notice',
                 'Nu ai selectat nicio factură. Te rugăm să selectezi factura pe care dorești să o plătești.'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           $invoice = $thePayment->getPayInvoices()->first();
           $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
@@ -219,14 +231,14 @@ class AccountsController extends Controller
                 'notice',
                 'Plata făcută este mai mică decât suma totală a facturii. Te rugăm să corectezi suma sau să selectezi 1x Factură (parțial).'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           } elseif (round($thePayment->getPayAmount(),2) > round($invoiceRemaining,2)) {
             $this->get('session')->getFlashBag()->add(
                 'notice',
                 'Plata făcută este mai mare decât suma totală a facturii. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
                 .(round($thePayment->getPayAmount(),2) - round($invoiceRemaining,2)).' RON în căsuța Avans.'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           //END checks;
         }
@@ -239,14 +251,14 @@ class AccountsController extends Controller
                 'notice',
                 'Nu ai selectat nicio factură. Te rugăm să selectezi factura pe care dorești să o plătești.'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           if ($thePayment->getPayAdvance() != 0) {
             $this->get('session')->getFlashBag()->add(
                 'notice',
                 'Nu poți să adaugi avans când achiți o factură parțial.'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           $invoice = $thePayment->getPayInvoices()->first();
           $invoiceRemaining = $invoice->getInvoiceTotal() - $invoice->getInvoicePaid();
@@ -255,7 +267,7 @@ class AccountsController extends Controller
                 'notice',
                 'Plata făcută este mai mare sau egală decât suma totală a facturii. Te rugăm să corectezi suma sau să selectezi 1x Factură (integral).'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           //END checks
         }
@@ -267,14 +279,14 @@ class AccountsController extends Controller
                 'notice',
                 'Ai selectat 1x factură. Te rugăm să selectezi 2x sau mai multe sau să selectezi 1x Factură (integral).'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           if ($thePayment->getPayInvoices()->count() == 0) {
             $this->get('session')->getFlashBag()->add(
                 'notice',
                 'Nu ai selectat nicio factură. Te rugăm să selectezi 2x sau mai multe sau să selectezi opțiunea 1x Factură (integral).'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           $invoices = $thePayment->getPayInvoices();
           $invoicesRemaining = 0.0;
@@ -290,14 +302,14 @@ class AccountsController extends Controller
                 'Nu poți achita facturi de la unități școlare diferite. Te rugăm să efectuezi plăți individuale sau să selectezi doar facturi aferente
                 aceleiași unități școlare.'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           if (round($thePayment->getPayAmount(),2) < round($invoicesRemaining,2)) {
             $this->get('session')->getFlashBag()->add(
                 'notice',
                 'Plata făcută este mai mică decât suma totală a facturilor. Te rugăm să corectezi suma sau să selectezi Facturi multiple (parțial).'
             );
-            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+            return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           } elseif (round($thePayment->getPayAmount(),2) > round($invoicesRemaining,2)) {
               $this->get('session')->getFlashBag()->add(
                   'notice',
@@ -305,7 +317,7 @@ class AccountsController extends Controller
                   'Plata făcută este mai mare decât suma totală a facturilor. Dacă vrei să achiți în avans, te rugăm să specifici diferența de '
                   .(round($thePayment->getPayAmount(),2) - round($invoicesRemaining,2)).' RON în căsuța Avans.'
               );
-              return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit));
+              return $this->redirectToRoute('smart_pay', array('accId' => $accId, 'edit' => $edit, 'yearId' => $yearId));
           }
           //END checks
         }
@@ -433,7 +445,7 @@ class AccountsController extends Controller
           ;
 
           $mailer->send($message);
-          return $this->redirectToRoute('myaccount_invoices');
+          return $this->redirectToRoute('myaccount_invoices', array('yearId' => $yearId));
         } else {
           return $this->redirectToRoute('account_invoices', array('accId' => $accId));
         }
@@ -447,9 +459,9 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/accounts/smartpay_confirm/{payId}/{accId}/{redirect?'no'}", name="smart_pay_confirm")
+     * @Route("/accounts/smartpay_confirm/{payId}/{accId}/{redirect?'no'}_{yearId?0}", name="smart_pay_confirm")
      */
-    public function smart_pay_confirm(Request $request, $payId, $accId, $redirect, \Swift_Mailer $mailer)
+    public function smart_pay_confirm(Request $request, $payId, $accId, $redirect, \Swift_Mailer $mailer, $yearId)
     {
       $payment = $this->getDoctrine()->getRepository
       (Payment::class)->find($payId);
@@ -722,7 +734,7 @@ class AccountsController extends Controller
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
-        return $this->redirectToRoute('invoices');
+        return $this->redirectToRoute('invoices', array('yearId' => $yearId));
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }
@@ -730,9 +742,9 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/accounts/smartpay_deny/{payId}/{accId}/{redirect?'no'}", name="smart_pay_deny")
+     * @Route("/accounts/smartpay_deny/{payId}/{accId}/{redirect?'no'}_{yearId?0}", name="smart_pay_deny")
      */
-    public function smart_pay_deny(Request $request, $payId, $accId, $redirect, \Swift_Mailer $mailer)
+    public function smart_pay_deny(Request $request, $payId, $accId, $redirect, \Swift_Mailer $mailer, $yearId)
     {
       $payment = $this->getDoctrine()->getRepository
       (Payment::class)->find($payId);
@@ -780,19 +792,20 @@ class AccountsController extends Controller
 
       $mailer->send($message);
 
+      // TODO - Do this for different year redirects
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
-        return $this->redirectToRoute('invoices');
+        return $this->redirectToRoute('invoices', array('yearId' => $yearId));
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }
     }
 
     /**
-     * @Route("/accounts/smartpay_undo/{payId}/{accId}/{redirect?'no'}", name="smart_pay_undo")
+     * @Route("/accounts/smartpay_undo/{payId}/{accId}/{redirect?'no'}_{yearId?0}", name="smart_pay_undo")
      */
-    public function smart_pay_undo(Request $request, $payId, $accId, $redirect)
+    public function smart_pay_undo(Request $request, $payId, $accId, $redirect, $yearId)
     {
       $payment = $this->getDoctrine()->getRepository
       (Payment::class)->find($payId);
@@ -939,11 +952,11 @@ class AccountsController extends Controller
 
       }
 
-
+      // TODO - Do this for different year redirects
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
-        return $this->redirectToRoute('invoices');
+        return $this->redirectToRoute('invoices', array('yearId' => $yearId));
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }
@@ -978,10 +991,10 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/smartpay_prfrem/{prfId}_{accId}", name="smartpay_prfrem")
+     * @Route("/smartpay_prfrem/{prfId}_{accId}_{yearId?0}", name="smartpay_prfrem")
      * @Method({"GET", "POST"})
      */
-    public function smartpay_prfrem($prfId, $accId)
+    public function smartpay_prfrem($prfId, $accId, $yearId)
     {
         $proof = $this->getDoctrine()->getRepository
         (PaymentProof::class)->find($prfId);
@@ -989,7 +1002,7 @@ class AccountsController extends Controller
         if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
           $guardian = $proof->getPayment()->getPayInvoices()->first()->getMonthAccount()->getStudent()->getUser()->getGuardian();
           if ($guardian->getUser() != $this->getUser()) {
-            return $this->redirectToRoute('myaccount_invoices');
+            return $this->redirectToRoute('myaccount_invoices', array('yearId' => $yearId));
           }
         }
 
@@ -998,7 +1011,7 @@ class AccountsController extends Controller
         $entityManager->flush();
 
         if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
-          return $this->redirectToRoute('myaccount_invoices');
+          return $this->redirectToRoute('myaccount_invoices', array('yearId' => $yearId));
         } else {
           return $this->redirectToRoute('account_invoices', array('accId' => $accId));
         }
@@ -2190,15 +2203,20 @@ class AccountsController extends Controller
     }
 
     /**
-     * @Route("/accounts/smart_generate", name="smart_generate")
+     * @Route("/accounts/smart_generate/{yearId?0}", name="smart_generate")
      * @Method({"GET" , "POST"})
      */
-    public function smart_generate(Request $request)
+    public function smart_generate(Request $request, $yearId)
     {
       //ini_set('max_execution_time', '-1');
 
-      $currentSchoolYear = $this->getDoctrine()->getRepository
-      (SchoolYear::class)->findCurrentYear();
+      if ($yearId == 0) {
+        $currentSchoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->findCurrentYear();
+      } else {
+        $currentSchoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->find($yearId);
+      }
 
       //$currentUnits = $currentSchoolYear->getSchoolunits();
 
@@ -2241,7 +2259,15 @@ class AccountsController extends Controller
               'notice',
               'ATENȚIE: 0 x acțiuni selectate!'
           );
-          return $this->redirectToRoute('smart_generate');
+          return $this->redirectToRoute('smart_generate', array('yearId' => $yearId));
+        }
+
+        if ($data['invoice_discount'] < 0 && $data['invoice_discount'] >= 100) {
+          $this->get('session')->getFlashBag()->add(
+              'notice',
+              'ATENȚIE: Câmpul pentru reducere poate să fie un procent între 0 și 99%. Reducerea introdusă a fost: '.$data['invoice_discount'].'%'
+          );
+          return $this->redirectToRoute('smart_generate', array('yearId' => $yearId));
         }
 
         $selectedStudents = array(); //using regular Array
@@ -2307,10 +2333,15 @@ class AccountsController extends Controller
             $formatter = new \IntlDateFormatter(\Locale::getDefault(), \IntlDateFormatter::NONE, \IntlDateFormatter::NONE);
             $formatter->setPattern('MMMM');
 
-            //NOTE: The following is used to show inAdvance/nonInAdvance status on invoice!!!!
-            $serviceTaxItem->setItemName($schoolService->getServicename().' '.strtoupper($formatter->format($displayMonth)) );
+            if ($data['invoice_discount'] == 0) {
+              //NOTE: The following is used to show inAdvance/nonInAdvance status on invoice!!!!
+              $serviceTaxItem->setItemName($schoolService->getServicename().' '.strtoupper($formatter->format($displayMonth)) );
+              $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
+            } else {
+              $serviceTaxItem->setItemName($schoolService->getServicename().' '.strtoupper($formatter->format($displayMonth)). ' - REDUCERE '.$data['invoice_discount'].'%' );
+              $serviceTaxItem->setItemPrice($schoolService->getServiceprice() - $schoolService->getServiceprice() * $data['invoice_discount'] / 100);
+            }
 
-            $serviceTaxItem->setItemPrice($schoolService->getServiceprice());
             $serviceTaxItem->setItemService($schoolService);
 
             $entityManager = $this->getDoctrine()->getManager();
@@ -2519,8 +2550,13 @@ class AccountsController extends Controller
               foreach ($paymentOptionals as $paymentOptional) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
-                $payItem->setItemName($paymentOptional->getOptionalName()." ".strtoupper($formatter->format($data['year_month'])));
-                $payItem->setItemPrice($paymentOptional->getPrice());
+                if ($data['invoice_discount'] == 0) {
+                  $payItem->setItemName($paymentOptional->getOptionalName()." ".strtoupper($formatter->format($data['year_month'])));
+                  $payItem->setItemPrice($paymentOptional->getPrice());
+                } else {
+                  $payItem->setItemName($paymentOptional->getOptionalName()." ".strtoupper($formatter->format($data['year_month']))." - REDUCERE ".$data['invoice_discount']."%");
+                  $payItem->setItemPrice($paymentOptional->getPrice() - $paymentOptional->getPrice() * $data['invoice_discount'] / 100);
+                }
                 $payItem->setItemCount($paymentOptionalsCount[$paymentOptional->getOptionalName()]);
                 $payItem->setItemOptional($paymentOptional);
 
@@ -2652,8 +2688,13 @@ class AccountsController extends Controller
               if ($totalPrice > 0) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
-                $payItem->setItemName("Taxă transport (".$tripsCount." drumuri, ".$totalKm." km) ".strtoupper($formatter->format($data['year_month'])));
-                $payItem->setItemPrice($totalPrice);
+                if ($data['invoice_discount'] == 0) {
+                  $payItem->setItemName("Taxă transport (".$tripsCount." drumuri, ".$totalKm." km) ".strtoupper($formatter->format($data['year_month'])));
+                  $payItem->setItemPrice($totalPrice);
+                } else {
+                  $payItem->setItemName("Taxă transport (".$tripsCount." drumuri, ".$totalKm." km) ".strtoupper($formatter->format($data['year_month']))." - REDUCERE ".$data['invoice_discount']."%");
+                  $payItem->setItemPrice($totalPrice - $totalPrice * $data['invoice_discount'] / 100);
+                }
                 $payItem->setItemCount(1);
 
                 $entityManager = $this->getDoctrine()->getManager();
@@ -2674,8 +2715,13 @@ class AccountsController extends Controller
               if ($totalFixedPrice > 0) {
                 $payItem = new PaymentItem();
                 $payItem->setMonthAccount($account);
-                $payItem->setItemName("Taxă fixă transport (".$fixedTripsCount." drumuri) ".strtoupper($formatter->format($data['year_month'])));
-                $payItem->setItemPrice($totalFixedPrice);
+                if ($data['invoice_discount'] == 0) {
+                  $payItem->setItemName("Taxă fixă transport (".$fixedTripsCount." drumuri) ".strtoupper($formatter->format($data['year_month'])));
+                  $payItem->setItemPrice($totalFixedPrice);
+                } else {
+                  $payItem->setItemName("Taxă fixă transport (".$fixedTripsCount." drumuri) ".strtoupper($formatter->format($data['year_month']))." - REDUCERE ".$data['invoice_discount']."%");
+                  $payItem->setItemPrice($totalFixedPrice - $totalFixedPrice * $data['invoice_discount'] / 100);
+                }
                 $payItem->setItemCount(1);
 
                 $entityManager = $this->getDoctrine()->getManager();
@@ -3441,12 +3487,13 @@ class AccountsController extends Controller
           "SUMAR: \n".$summary
         );
 
-        return $this->redirectToRoute('smart_generate');
+        return $this->redirectToRoute('smart_generate', array('yearId' => $yearId));
       }
 
       return $this->render('accounts/smart_generate.html.twig', [
           'form' => $view,
           'school_year' => $currentSchoolYear,
+          'yearId' => $yearId,
       ]);
 
     }
@@ -4133,7 +4180,7 @@ class AccountsController extends Controller
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
-        return $this->redirectToRoute('invoices');
+        return $this->redirectToRoute('invoices', array('yearId' => $invoice->getMonthAccount()->getStudent()->getSchoolUnit()->getSchoolYear()->getId()));
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }
@@ -4158,7 +4205,7 @@ class AccountsController extends Controller
       if ($redirect == 'payments') {
         return $this->redirectToRoute('payments');
       } else if ($redirect == 'invoices') {
-        return $this->redirectToRoute('invoices');
+        return $this->redirectToRoute('invoices', array('yearId' => $invoice->getMonthAccount()->getStudent()->getSchoolUnit()->getSchoolYear()->getId()));
       } else {
         return $this->redirectToRoute('account_invoices', array('accId' => $accId));
       }
@@ -4177,7 +4224,8 @@ class AccountsController extends Controller
           if ($enrollment->getIsActive() && $enrollment->getDaysToPay() > 0) {
             $student = $enrollment->getStudent();
             foreach ($student->getMonthAccounts() as $monthAccount) {
-              //the following is a special request for one of our clients
+              // The following is a special request for one of our clients
+              // Basically we only calculate penalties after the following date
               if ($monthAccount->getAccYearMonth() > (new \DateTime('2018/12/15'))) {
                 foreach ($monthAccount->getAccountInvoices() as $invoice) {
                   $hasServiceTax = false;

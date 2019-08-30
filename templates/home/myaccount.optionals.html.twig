@@ -46,6 +46,8 @@
       {% for kid in kids %}
         {% if kid.getChildLatestEnroll.getId is not null %}
         {% set student = kid.getChildLatestEnroll.getStudent %}
+        {# get all Enrollments if an existing enrollment is present #}
+        {% set studentEnrollments = kid.getEnrollmentsChild|reverse(true) %}
           <div class="col-12">
             <div class="indexParentHolder {{ holderColors[i] }}">
               <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
@@ -53,6 +55,18 @@
               <b>Unitate școlară: </b>{{ kid.getChildLatestEnroll.getIdUnit.getUnitname }}
               <br><br>
               <b>Serviciu: </b>{{ kid.getChildLatestEnroll.getIdService.getServicename }}
+              {% if studentEnrollments|length > 1 %}
+                <br>
+                <b>Ani precedenți: </b>
+                {% for prevEnroll in studentEnrollments|slice(1) %}
+                  <a href="#">
+                    <button style="vertical-align: text-bottom;" class="btn-sm btn btn-info mt-3" disabled>
+                      <i class="fas fa-angle-double-up"></i> {{ prevEnroll.getIdUnit.getUnitname }}
+                    </button>
+                  </a>
+                {% endfor %}
+                <br><h5><b><code>Funcționalitate ani precedenți - temporar suspendată</code></b></h5>
+              {% endif %}
               <hr>
               {{ form_start(forms[i]) }}
                 <div class="row">

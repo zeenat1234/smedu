@@ -78,6 +78,8 @@
       {% if kids|length > 0 %}
         {% for kid in kids %}
           {% if kid.getChildLatestEnroll.getId is not null %}
+            {# get all Enrollments if an existing enrollment is present #}
+            {% set studentEnrollments = kid.getEnrollmentsChild|reverse(true) %}
             <div class="col-12 col-sm-6">
               <div class="indexParentHolder {{ holderColors[i] }}">
                 <h4 class="coinyFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h4>
@@ -95,6 +97,14 @@
                     <code>NICIUNUL</code>
                   {% endif %}
                 </p>
+                {% if studentEnrollments|length > 1 %}
+                  <b>Ani precedenți: </b>{{ studentEnrollments|length - 1 }}
+                  <ul>
+                    {% for prevEnroll in studentEnrollments|slice(1) %}
+                      <li>{{ prevEnroll.getIdUnit.getUnitname }}, {{ prevEnroll.getIdService.getServicename }}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
               </div>
             </div>
             {# SUPPORTS UP TO 4 CHILDREN #}
@@ -115,7 +125,7 @@
           <div class="row">
             {% if latest_invoice == false %}
             <div class="col">
-              Nu a fost emisă nicio factură pentru acest cont.
+              Nu a fost emisă nicio factură pentru acest an școlar.
             </div>
             {% else %}
             <div class="col">

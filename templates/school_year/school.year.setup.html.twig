@@ -359,6 +359,28 @@
         </button>
       {% endif %}
     </h4>
+    {% if school_year.getIsSetupComplete %}
+      <br>
+      <hr>
+      <br>
+      <h3>OPERAȚIUNI</h3>
+      <br>
+      <h4>
+        <a href="{{ path('smart_generate', {'yearId':school_year.id}) }}">
+          <button class="btn btn-warning">
+            <i class="fas fa-money-check-alt fa-fw"></i>
+            Generare Conturi
+          </button>
+        </a>
+        <a href="{{ path('invoices', {'yearId':school_year.id}) }}">
+          <button class="btn btn-warning">
+            <i class="fas fa-money-check"></i>
+            Verificare Conturi
+          </button>
+        </a>
+      </h4>
+
+    {% endif %}
 
 
 </div>

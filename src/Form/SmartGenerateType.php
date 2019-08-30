@@ -140,6 +140,11 @@ class SmartGenerateType extends AbstractType
               'attr' => array('type' => 'datetime', 'class' => 'form-control'),
               'data' => new \DateTime('today'),
             ))
+            ->add('invoice_discount', NumberType::class, array(
+              'label' => 'Reducere',
+              'data'  => 0,
+              'attr' => array('class' => 'form-control'),
+            ))
             ->add('save_invoice', CheckboxType::class, array(
               'label'    => 'Salvează facturile ?',
               'required' => false,

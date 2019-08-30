@@ -6,11 +6,38 @@
 
   <div class="myaccount-settings-wrapper">
 
-    <h1 class="coinyFont"><i class="fas fa-coins fa-fw"></i> Administrare facturi</h1>
+    <h1 class="coinyFont">
+      <i class="fas fa-coins fa-fw"></i> Administrare facturi
+      {% if yearId != 0 %}
+      - {{ schoolYear.getYearname }}
+      <br>
+      <a href="{{ path('myaccount_invoices') }}">
+        <button class="btn btn-sm btn-warning">
+          <i class="fas fa-backward"></i> Înapoi la anul curent
+        </button>
+      </a>
+      {% endif %}
+    </h1>
     <br>
     <strong>Instrucțiuni: </strong>
     <p>Această pagină conține toate facturile emise pentru înscrierile active din instituție. Pentru a vedea mai multe detalii despre o anumită factură
     sau pentru a efectua operațiuni precum descărcare sau atașare dovezi de plată, te rugăm să faci click sau tap pe factura respectivă.</p>
+    {% if yearId == 0 %}
+      <strong>Ani precedenți: </strong>
+      <p>
+        Pentru elevii care au fost înscriși în anii precedenți, toate facturile și plățile pot fi accesate folosind butonul
+        <button style="vertical-align: text-bottom;" class="btn-sm btn btn-info">
+          <i class="fas fa-angle-double-up"></i> Unitate Școlară An/An
+        </button>
+        localizat sub numele elevului.
+        <br>
+        Dacă dorești să finalizezi o plată din anul precedent, accesează anul respectiv și folosește butonul de
+        <button class="btn btn-sm btn-primary" type="button">
+          <i class="fas fa-coins fa-fw"></i> Atașare Dovezi de Plată
+        </button>
+        pe care îl poți găsi făcând click pe factura respectivă.
+      </p>
+    {% endif %}
     <strong>Informații despre penalități: </strong>
     <p>
       Termenul de plată stabilit prin contract este înscris sub numele fiecărui elev. Acest termen reprezintă numărul de zile până la data scadentă a facturilor
@@ -53,10 +80,24 @@
       {% if kids|length > 0 %}
         {% for kid in kids %}
           {% if kid.getChildLatestEnroll.getId is not null %}
+            {# get all Enrollments if an existing enrollment is present #}
+            {% set studentEnrollments = kid.getEnrollmentsChild|reverse(true) %}
             <div class="col-12">
               <div class="indexParentHolder {{ holderColors[i] }}">
                 <h2 class="kuraleFont"><i class="fas fa-user-graduate fa-fw"></i> {{ kid.getRoName }}</h2>
                 <strong>TERMEN DE PLATĂ:</strong> {{ kid.getChildLatestEnroll.getDaysToPay }} zile
+                {% if studentEnrollments|length > 1 and yearId == 0 %}
+                  <br>
+                  <b>Ani precedenți: </b>
+                  {% for prevEnroll in studentEnrollments|slice(1) %}
+                    <a href="{{ path('myaccount_invoices',{'yearId':prevEnroll.getSchoolYear.getId}) }}">
+                      <button style="vertical-align: text-bottom;" class="btn-sm btn btn-info mt-3">
+                        <i class="fas fa-angle-double-up"></i> {{ prevEnroll.getIdUnit.getUnitname }}
+                      </button>
+                    </a>
+                  {% endfor %}
+                  <!-- <br><h5><b><code>Funcționalitate ani precedenți - temporar suspendată</code></b></h5> -->
+                {% endif %}
                 <hr>
                 <div class="row row-eq-height">
                 {% if all_accounts[kid.getUsername] is not empty %}
@@ -130,11 +171,19 @@
                       <div class="panel">
                         <h3 class="kuraleFont">Operațiuni</h3>
                         {% if invoice.getInvoiceTotal - invoice.getInvoicePaid > 0 %}
-                          <a href="{{ path('smart_pay',{'accId':account.id, 'edit':'add'}) }}">
-                            <button class="btn btn-primary" type="button">
-                              <i class="fas fa-coins fa-fw"></i> Atașare Dovezi de Plată
-                            </button>
-                          </a>
+                          {% if yearId != 0 %}
+                            <a href="{{ path('smart_pay',{'accId':account.id, 'edit':'add', 'yearId':yearId}) }}">
+                              <button class="btn btn-primary" type="button">
+                                <i class="fas fa-coins fa-fw"></i> Atașare Dovezi de Plată
+                              </button>
+                            </a>
+                          {% else %}
+                            <a href="{{ path('smart_pay',{'accId':account.id, 'edit':'add'}) }}">
+                              <button class="btn btn-primary" type="button">
+                                <i class="fas fa-coins fa-fw"></i> Atașare Dovezi de Plată
+                              </button>
+                            </a>
+                          {% endif %}
                         {% endif %}
                         <a href="{{ path('myacc_invoice_pdf',{'invId':invoice.getId}) }}" target="_blank">
                           <button class="btn btn-warning">
@@ -212,11 +261,19 @@
                                   </td>
                                   <td>
                                     {% if payment.isPending %}
-                                      <a href="{{ path('smart_pay',{'accId':account.id, 'edit':payment.id}) }}">
-                                        <button class="btn btn-sm btn-warning" style="margin-bottom:2px">
-                                          <i class="fas fa-edit fa-fw"></i> Plată în așteptare
-                                        </button>
-                                      </a>
+                                      {% if yearId != 0 %}
+                                        <a href="{{ path('smart_pay',{'accId':account.id, 'edit':payment.id, 'yearId':yearId}) }}">
+                                          <button class="btn btn-sm btn-warning" style="margin-bottom:2px">
+                                            <i class="fas fa-edit fa-fw"></i> Plată în așteptare
+                                          </button>
+                                        </a>
+                                      {% else %}
+                                        <a href="{{ path('smart_pay',{'accId':account.id, 'edit':payment.id}) }}">
+                                          <button class="btn btn-sm btn-warning" style="margin-bottom:2px">
+                                            <i class="fas fa-edit fa-fw"></i> Plată în așteptare
+                                          </button>
+                                        </a>
+                                      {% endif %}
                                       &nbsp
                                       <!-- Button to Open the Modal -->
                                       <button class="btn btn-sm btn-info" type="button" data-toggle="modal" data-target="#invoiceModal-{{ payment.getId }}">
@@ -246,7 +303,7 @@
                                                 <a href="{{ path('smartpay_proof',{'prfId':proof.getId,'action':'download'}) }}" target="_blank">
                                                   <button type="button" class="btn btn-sm btn-info"><i class="fas fa-file-download fa-fw"></i></button>
                                                 </a>
-                                                <a href="{{ path('smartpay_prfrem',{'prfId':proof.getId,'accId':account.getId}) }}">
+                                                <a href="{{ path('smartpay_prfrem',{'prfId':proof.getId,'accId':account.getId,'yearId':yearId}) }}">
                                                   <button type="button" class="btn btn-sm btn-danger"><i class="fas fa-trash fa-fw"></i></button>
                                                 </a>
                                                 {% set pi = pi + 1 %}
