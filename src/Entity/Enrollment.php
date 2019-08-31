@@ -80,7 +80,7 @@ class Enrollment
      * @ORM\Column(type="smallint")
      * @Assert\GreaterThanOrEqual(0)
      */
-    private $daysToPay = 14;
+    private $daysToPay = 10;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ClassGroup")
