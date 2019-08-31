@@ -152,10 +152,10 @@ class ClassGroupController extends AbstractController
     }
 
     /**
-     * @Route("/class/group/{groupId}.{redirect?'class_groups'}/enroll", name="class_group_enroll")
+     * @Route("/class/group/{groupId}.{redirect?'class_groups'}/enroll/{yearId?0}", name="class_group_enroll")
      * @Method({"GET", "POST"})
      */
-    public function class_group_enroll(Request $request, $groupId, $redirect)
+    public function class_group_enroll(Request $request, $groupId, $redirect, $yearId)
     {
       $classgroup = $this->getDoctrine()->getRepository
       (ClassGroup::class)->find($groupId);
@@ -197,11 +197,11 @@ class ClassGroupController extends AbstractController
           }
 
           if ($redirect == 'class_groups') {
-            return $this->redirectToRoute('class_groups');
+            return $this->redirectToRoute('class_groups_by_year', array('id' => $yearId));
           } else if ($redirect == 'group') {
             return $this->redirectToRoute('class_group_view', ['groupId' => $groupId]);
           } else {
-            return $this->redirectToRoute('class_groups');
+            return $this->redirectToRoute('class_groups_by_year', array('id' => $yearId));
           }
         }
       }
