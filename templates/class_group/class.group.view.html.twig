@@ -67,7 +67,10 @@
     <p>Nu există elevi înscriși în această clasă</p>
     <br>
   {% endif %}
+  <a href="{{ path('class_groups_by_year', {'id':class_group.getSchoolUnit.getSchoolyear.id }) }}">
+    <button class="btn btn-warning"><i class="fas fa-angle-double-left"></i> Înapoi</button>
+  </a>
   <a href="{{ path('class_group_enroll', {'groupId':class_group.id, 'redirect':'group', 'yearId':class_group.getSchoolUnit.getSchoolyear.id }) }}">
-    <button class="btn btn-primary">Înscrieri</button>
+    <button class="btn btn-primary"><i class="fas fa-user-friends"></i> Înscrieri</button>
   </a>
 {% endblock %}
