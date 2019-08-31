@@ -18,9 +18,9 @@
 
 		{% if flow.getCurrentStepNumber() == 1 %}
 			<div>
-				<h3 class="kuraleFont">Părinte</h3>
+				<h3 class="kuraleFont">Adaugă Părinte?</h3>
 				Dacă părintele are un elev înscris în unitate, <br>
-				alege opțiunea: <strong>NU</strong> <br><br>
+				te rugăm să alegi opțiunea: <strong>NU</strong> <br><br>
 				{% for f in form.addGuardian %}
 					{{ form_widget(f) }} {{ form_label(f) }} <br>
 				{% endfor %}
