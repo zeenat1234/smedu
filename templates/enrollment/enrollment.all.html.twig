@@ -19,6 +19,7 @@
               <th>Nume Părinte</th>
               <th>Serviciu</th>
               <th>Preț</th>
+              <th>Termen de Plată</th>
               <th>Data Înscrierii</th>
               <th>Activ</th>
               <th></th>
@@ -34,6 +35,7 @@
                   <td>{{ enrollment.getIdParent.getFullName(1) }}</td>
                   <td>{{ enrollment.getIdService.servicename }}</td>
                   <td>{{ enrollment.getIdService.serviceprice|localizedcurrency('RON') }}</td>
+                  <td>{{ enrollment.getDaysToPay }}</td>
                   <td>{{ enrollment.getEnrollDate|localizeddate('medium', 'none', 'ro') }}</td>
                   {% if enrollment.isActive == 0 %}
                     <td style='color:#f00'><i class="fas fa-times"></i></td>
