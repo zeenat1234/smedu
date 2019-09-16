@@ -1,0 +1,88 @@
+{% extends 'base.nav.html.twig' %}
+
+{% block title %}Configurare An Școlar{% endblock %}
+
+{% block body %}
+
+<div class="school-wrapper">
+    <h1>An școlar {{ school_year.yearlabel }}!</h1>
+    <hr>
+    <p>Acest an școlar a trecut drept urmare anumite funcționalități sunt suspendate. Operațiuni precum
+    modificarea unităților școlare sau a înscrierilor în unități, opționale sau transport nu vor avea
+    niciun impact asupra anului în curs.</p>
+
+    <br>
+
+    <h4>Detalii an școlar</h4>
+    <ul>
+      <li><b>Perioadă:</b> {{ school_year.startDate|localizeddate('medium', 'none', 'ro') }} - {{ school_year.endDate|localizeddate('medium', 'none', 'ro') }} </li>
+      <li><b>Activitate:</b> {% if school_year.isPermActivity %} Permanentă {% else %} Cu vacanță {% endif %}</li>
+      <li><b>Licență:</b> {{ school_year.license }} </li>
+    </ul>
+
+    <h4>Unități Școlare</h4>
+    <table>
+      <tr style='font-weight:bold;'>
+        <td>Unitate</td>
+        <td>Perioadă</td>
+        <td>Înscrieri</td>
+        <td>Grupe</td>
+        <td>Opționale</td>
+      </tr>
+      {% for unit in school_year.getSchoolUnits %}
+        <tr>
+          <td>{{ unit.getUnitname }}</td>
+          <td>{{ unit.getStartDate|localizeddate('medium', 'none', 'ro') }} - {{ unit.getEndDate|localizeddate('medium', 'none', 'ro') }}</td>
+          <td>{{ unit.getEnrollments|length }}</td>
+          <td>{{ unit.getClassGroups|length }}</td>
+          <td>{{ unit.getClassOptionals|length }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+
+    <hr>
+
+    <h4>Operațiuni Financiare</h4>
+    <a href="{{ path('invoices', {'yearId':school_year.id}) }}">
+      <button class="btn btn-warning">
+        <i class="fas fa-money-check"></i>
+        Conturi/Grupe
+      </button>
+    </a>
+
+    <h4>Date Istorice</h4>
+    <a href="{{ path('school_services_view', {'id':school_year.id}) }}">
+      <button class="btn btn-warning">
+        <i class="fas fa-box"></i>
+        Servicii Școlare
+      </button>
+    </a>
+    <a href="{{ path('all_enrollments_year', {'yearId':school_year.id}) }}">
+      <button class="btn btn-warning">
+        <i class="fas fa-address-card"></i>
+        Înscrieri
+      </button>
+    </a>
+    <a href="{{ path('class_groups_by_year',{'id':school_year.id}) }}">
+      <button class="btn btn-warning">
+        <i class="fas fa-user-graduate"></i>
+        Grupe
+      </button>
+    </a>
+    <a href="{{ path('class_optionals_by_year',{'id':school_year.id}) }}">
+      <button class="btn btn-warning">
+        <i class="fas fa-book-reader"></i>
+        Opționale
+      </button>
+    </a>
+    <a href="{{ path('routes', {'yearId':school_year.id}) }}">
+      <button class="btn btn-warning">
+        <i class="fas fa-address-card"></i>
+        Rute Transport
+      </button>
+    </a>
+
+
+
+
+{% endblock %}

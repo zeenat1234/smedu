@@ -118,7 +118,7 @@
               <td>{{ prev_year.startDate|localizeddate('medium', 'none', 'ro') }}</td>
               <td>{{ prev_year.endDate|localizeddate('medium', 'none', 'ro') }}</td>
               <td>
-                <a href="#"><button type="button" class="btn btn-primary">Vizualizează</button></a>
+                <a href="{{ path('prev_school_year', {'id':prev_year.id}) }}"><button type="button" class="btn btn-primary">Vizualizează</button></a>
               </td>
             </tr>
           {% endfor %}

@@ -103,6 +103,20 @@ class SchoolYearController extends Controller
      }
 
      /**
+      * @Route("/school/prev_year/{id}", name="prev_school_year")
+      * @Method({"GET", "POST"})
+      */
+      public function prevSchoolYear(Request $request, $id)
+      {
+        $schoolYear = $this->getDoctrine()->getRepository
+        (SchoolYear::class)->find($id);
+
+        return $this->render('school_year/prev.school.year.html.twig', [
+            'school_year' => $schoolYear,
+        ]);
+      }
+
+     /**
       * @Route("/school/year/setup/{id}", name="school_year_setup")
       * @Method({"GET", "POST"})
       */
