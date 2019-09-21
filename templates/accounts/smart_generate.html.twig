@@ -35,12 +35,16 @@
 
     <br>
     {{ form_label(form.stud_choice) }} <br>
-    <div class="row">
+    <div id="smartStudChoice" class="row">
       {% for f in form.stud_choice %}
         <div class="col-auto">
           {{ form_widget(f) }} {{ form_label(f) }}
         </div>
       {% endfor %}
+    </div>
+    <div id="smartGenUnitChoice" style="max-width:400px;">
+      {{ form_label(form.unit_choice) }} <br>
+      {{ form_widget (form.unit_choice) }}
     </div>
     <hr>
     <button type="button" class="btn btn-info" onclick="ShowHideFunction();return false;"><i class="fas fa-users fa-fw"></i> Elevi</button>
@@ -204,6 +208,14 @@
       }
     });
 
+    $('#smartStudChoice').change(function(){
+      if ($('#smart_generate_stud_choice_3').prop('checked')) {
+        document.getElementById('smartGenUnitChoice').style.maxHeight = "200px";
+      } else {
+        document.getElementById('smartGenUnitChoice').style.maxHeight = "0px";
+      }
+    });
+
     if ($('#smart_generate_pay_item_type_1').prop('checked') || $('#smart_generate_pay_item_type_2').prop('checked')) {
       document.getElementById('smartGenOptDates').style.maxHeight = "200px";
     } else {
@@ -216,6 +228,12 @@
     } else {
       document.getElementById('smartGenInvoicing').style.maxHeight = "200px";
       document.getElementById('smartGenInvDate').style.maxHeight = "300px";
+    }
+
+    if ($('#smart_generate_stud_choice_3').prop('checked')) {
+      document.getElementById('smartGenUnitChoice').style.maxHeight = "200px";
+    } else {
+      document.getElementById('smartGenUnitChoice').style.maxHeight = "0px";
     }
 
   });

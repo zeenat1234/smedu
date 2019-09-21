@@ -186,7 +186,7 @@ select {
 
 #secondPass, #smartGenOptDates,
 #smartGenInvoicing, #smartGenInvDate,
-#smartGenNewItem {
+#smartGenNewItem, #smartGenUnitChoice {
   max-height: 0px;
   overflow: hidden;
 

@@ -162,16 +162,22 @@ class AccountsController extends Controller
       $payableInvoices = array();
 
       foreach($children as $child) {
-        $student = $monthAccount->getStudent();
-        if ($student) {
-          foreach($student->getMonthAccounts() as $account) {
-            $availableBalance = $availableBalance + $account->getAdvanceBalance();
-            if ($account->getTotalPrice() != $account->getTotalPaid()) {
-              foreach($account->getAccountInvoices() as $invoice) {
-                //TODO - should be able to just lookup the isPaid value, but we need to make sure
-                //       that this is doable with the old system still in place
-                if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal() && $invoice->getIsLocked()) {
-                  $payableInvoices[$invoice->getInvoiceName()] = $invoice;
+        // TODO - The following line is DEPRECATED
+        //        (remove if succesful payments are made)
+        // $student = $monthAccount->getStudent();
+        $enrollment = $child->getChildLatestEnroll();
+        if ($enrollment && $enrollment->getIsActive()) {
+        $student = $enrollment->getStudent();
+          if ($student) {
+            foreach($student->getMonthAccounts() as $account) {
+              $availableBalance = $availableBalance + $account->getAdvanceBalance();
+              if ($account->getTotalPrice() != $account->getTotalPaid()) {
+                foreach($account->getAccountInvoices() as $invoice) {
+                  //TODO - should be able to just lookup the isPaid value, but we need to make sure
+                  //       that this is doable with the old system still in place
+                  if ($invoice->getInvoicePaid() < $invoice->getInvoiceTotal() && $invoice->getIsLocked()) {
+                    $payableInvoices[$invoice->getInvoiceName()] = $invoice;
+                  }
                 }
               }
             }
@@ -2218,7 +2224,7 @@ class AccountsController extends Controller
         (SchoolYear::class)->find($yearId);
       }
 
-      //$currentUnits = $currentSchoolYear->getSchoolunits();
+      $currentUnits = $currentSchoolYear->getSchoolunits();
 
       $allStudents = $this->getDoctrine()->getRepository
       (Student::class)->findAllYear($currentSchoolYear);
@@ -2245,6 +2251,7 @@ class AccountsController extends Controller
       $form = $this->createForm(SmartGenerateType::Class, $data = null, array(
         'students' => $allActiveStudents,
         'month_choices' => $monthChoices,
+        'unit_choices'  => $currentUnits,
       ));
 
       $view = $form->createView();
@@ -2279,6 +2286,13 @@ class AccountsController extends Controller
         } elseif ($data['stud_choice'] == 'excluding') {
           foreach ($allActiveStudents as $student) {
             if (!in_array($student, $data['students']->toArray())) {
+              $selectedStudents[] = $student;
+            }
+          }
+        } elseif ($data['stud_choice'] == 'unit') {
+          $unit = $data['unit_choice'];
+          foreach ($unit->getStudents() as $student) {
+            if ($student->getEnrollment()->getIsActive()) {
               $selectedStudents[] = $student;
             }
           }

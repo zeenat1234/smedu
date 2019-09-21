@@ -40,15 +40,28 @@ class SmartGenerateType extends AbstractType
               ),
             ))
             ->add('stud_choice', ChoiceType::class,array(
-              'label'    => 'Alegere studenți:',
+              'label'    => 'Alegere elevi:',
               'expanded' => true,
               'multiple' => false,
               'choices'  => array(
                 'Toți' => 'all',
-                'Studenți specifici...' => 'specific',
+                'Elevi specifici...' => 'specific',
                 'Toți mai puțin...' => 'excluding',
+                'Elevi din unitate...' => 'unit',
               ),
               'data' => 'specific',
+            ))
+            ->add('unit_choice', ChoiceType::class,array(
+              'label'    => 'Alegere unitate școlară:',
+              'expanded' => false,
+              'multiple' => false,
+              'choices'  => $options['unit_choices'],
+              'choice_label' => function ($schUnit, $key, $value) {
+                return $schUnit->getUnitname();
+              },
+              'attr'  => array(
+                'class' => 'form-control',
+              ),
             ))
             ->add('students', EntityType::class, array(
                 'class'        => Student::class,
@@ -159,6 +172,7 @@ class SmartGenerateType extends AbstractType
           // Configure your form options here
           'students'       => array(Student::class),
           'month_choices'  => array(DateTime::class),
+          'unit_choices'   => array(SchoolUnit::class),
         ]);
     }
 }
