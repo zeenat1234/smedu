@@ -2462,6 +2462,29 @@ class AccountsController extends Controller
 
             $summary = $summary."----> Taxă adăugată: ".$serviceTaxItem->getItemName()." în valoare de ".$serviceTaxItem->getItemPrice()." RON\n";
 
+            // HANDLE ADVANCE USED IN PREVIOUS YEAR
+            if ($student->getImportedFrom()) {
+              foreach ($student->getImportedFrom()->getMonthAccounts() as $oneAccount) {
+                if ($oneAccount->getAdvanceBalance() > 0) {
+
+                  $oldRemaining = $advanceRemaining;
+                  $advanceRemaining = $advanceRemaining + $oneAccount->getAdvanceBalance();
+
+                  if ($advanceRemaining <= $serviceTaxItem->getItemPrice()) {
+                    $oneAccount->setAdvanceBalance(0);
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($oneAccount);
+                    $entityManager->flush();
+                  } elseif ($oldRemaining < $serviceTaxItem->getItemPrice()) {
+                    $oneAccount->setAdvanceBalance($oneAccount->getAdvanceBalance() - ($serviceTaxItem->getItemPrice() - $oldRemaining));
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->persist($oneAccount);
+                    $entityManager->flush();
+                  }
+                }
+              }
+            }
+
             // HANDLE ADVANCE
             foreach ($student->getMonthAccounts() as $oneAccount) {
               if ($oneAccount->getAdvanceBalance() > 0) {
@@ -2482,6 +2505,7 @@ class AccountsController extends Controller
                 }
               }
             }
+
 
             if ($advanceRemaining > $serviceTaxItem->getItemPrice()) {
               $advanceRemaining = $serviceTaxItem->getItemPrice();
