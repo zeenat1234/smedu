@@ -387,6 +387,18 @@ class User implements UserInterface, \Serializable
         return $latest;
     }
 
+    public function getChildEnrollByUnit(SchoolUnit $schoolUnit): ?Enrollment
+    {
+        $allEnrollments = $this->enrollmentsChild;
+        $enroll = new Enrollment();
+        foreach ($allEnrollments as $theEnrollment) {
+          if ($theEnrollment->getIdUnit() == $schoolUnit && $theEnrollment->getIsActive()) {
+            $enroll = $theEnrollment;
+          }
+        }
+        return $enroll;
+    }
+
     public function addEnrollmentChild(Enrollment $enrollment): self
     {
         if (!$this->enrollmentsChild->contains($enrollment)) {

@@ -133,7 +133,8 @@ class AccountsController extends Controller
     {
       $monthAccount = $this->getDoctrine()->getRepository
       (MonthAccount::class)->find($accId);
-      //return $this->redirectToRoute('account_invoices', array('accId' => $accId));
+
+      $schoolUnit = $monthAccount->getStudent()->getSchoolUnit();
 
       if ($this->getUser()->getUsertype() == 'ROLE_PARENT') {
         if ($monthAccount->getStudent()->getUser()->getGuardian()->getUser() != $this->getUser()) {
@@ -165,7 +166,8 @@ class AccountsController extends Controller
         // TODO - The following line is DEPRECATED
         //        (remove if succesful payments are made)
         // $student = $monthAccount->getStudent();
-        $enrollment = $child->getChildLatestEnroll();
+        // TODO - Get the enroll from the year in question
+        $enrollment = $child->getChildEnrollByUnit($schoolUnit);
         if ($enrollment && $enrollment->getIsActive()) {
         $student = $enrollment->getStudent();
           if ($student) {
