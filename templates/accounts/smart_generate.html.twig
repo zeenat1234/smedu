@@ -3,6 +3,7 @@
 {% block title %}Generare Smart{% endblock %}
 
 {% block body %}
+
   <h2 class="coinyFont">Generare Smart</h2>
   {% if yearId != 0 %}
     <a href="{{ path ('school_year_setup',{'id':yearId}) }}">
@@ -147,7 +148,9 @@
       <button type="submit" class="btn btn-lg btn-success" id="submitBtn"><i class="fas fa-redo" id="icon"></i> GENERARE</button>
     </center>
   {{ form_end(form) }}
-
+   <div class="progress" id="progressshow" style="display:none;">
+  <div class="progress-bar" id="progressbars" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+</div>
   <br>
 
 
@@ -167,11 +170,36 @@
   $(document).ready(function () {
     $("#submitBtn").click(function () {
       setTimeout(function () { disableButton(); }, 0);
+
     });
 
     function disableButton() {
       $("#submitBtn").prop('disabled', true);
       $("#icon").addClass('fa-spin');
+	  $('#progressshow').show();
+	  var value="hello";
+	  $.ajax({
+	  	xhr : function(){
+         var xhr = new XMLHttpRequest();
+         xhr.upload.addEventListener('progress',function(e){
+         	if(e.lengthComputable){
+         		console.log('Bytes Loaded: ' + e.loaded);
+         		console.log('totl size :' + e.total);
+         		console.log('percentage Uploaded' + (e.loaded/e.total));
+         		
+         	          var percent = Math.round((e.loaded/e.total)*100);
+          
+             $('#progressbars').attr('progressbars',percent).css('width',percent+'%').text(percent + '%');	
+         	}
+         });
+         return xhr;
+   		},
+  type: 'post',
+  data: {value: value},
+  success: function(response){
+   
+  }
+       });
     }
 
     $('#smart_generate_pay_item_type_1').change(function(){
