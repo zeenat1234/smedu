@@ -5,6 +5,16 @@
 {% block body %}
 
   <h2 class="coinyFont" style="visibility:visible;">Info Financiar</h2>
+  <div class="row">
+  <div class="col-sm-8">  <input id="keywords" type="text" placeholder="Search" class="form-control"  id="txtSearch"/> </div>
+         
+  <div class="col-sm-4">. <button class="btn btn-primary"  id="buttonc" type="submit">
+            Search
+          </button></div>
+
+   
+    </div>
+
   <br>
   {% if current_units is not empty %}
     {% for schoolunit in current_units %}
@@ -12,7 +22,9 @@
       {% if schoolunit.getStudents is not empty %}
         {% for classgroup in schoolunit.getClassGroups %}
           <h4 class="kuraleFont">{{ classgroup.getGroupName }}</h2>
-          <table class="table">
+		  
+          <table class="table" id="example2">
+		   
             <thead id="invoices_row">
               <tr>
                 <th width="25%">Elev</th>
@@ -296,4 +308,28 @@
     // ScrollReveal({ reset: true }).reveal('#enroll_table_head', { duration:800, delay:0 });
     // ScrollReveal({ reset: true }).reveal('#enrollments_row', { duration:1000, delay:0 });
   </script>
+  
+  <script>
+  <!-- $(function () { -->
+    <!-- $('#example2').DataTable({ -->
+      <!-- 'paging'      : true, -->
+      <!-- 'lengthChange': false, -->
+      <!-- 'searching'   : true, -->
+      <!-- 'ordering'    : true, -->
+      <!-- 'info'        : true, -->
+      <!-- 'autoWidth'   : false -->
+    <!-- }) -->
+  <!-- }) -->
+</script>
+<script>
+
+  window.addEventListener("DOMContentLoaded", function(e) {
+    var myHilitor2 = new Hilitor("playground");
+    myHilitor2.setMatchType("left");
+    document.getElementById("buttonc").addEventListener("click", function(e) {
+      myHilitor2.apply($('#keywords').val());
+    }, false);
+  }, false);
+
+</script>
 {% endblock %}
