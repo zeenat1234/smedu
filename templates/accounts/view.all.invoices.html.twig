@@ -5,14 +5,34 @@
 {% block body %}
 
   <h2 class="coinyFont" style="visibility:visible;">Info Financiar</h2>
+  <style>
+  .form-inline {
+  display: block !important;
+  }
+  </style>
+  <div class="row">
+  <div class="col-sm-8">  <input id="keywords" type="text" placeholder="Search" class="form-control"  id="txtSearch"/> </div>
+         
+  <div class="col-sm-4">. <button class="btn btn-primary"  id="buttonc" type="submit">
+            Search
+          </button></div>
+
+   
+    </div>
+
   <br>
+  {% set i = 0 %}
   {% if current_units is not empty %}
     {% for schoolunit in current_units %}
       <h3 class="kuraleFont">{{ schoolunit.unitname|title }} </h3>
       {% if schoolunit.getStudents is not empty %}
         {% for classgroup in schoolunit.getClassGroups %}
+		{% set i = i + 1 %}
+		
           <h4 class="kuraleFont">{{ classgroup.getGroupName }}</h2>
-          <table class="table">
+		  
+          <table class="table" id="example2{{i}}">
+		   
             <thead id="invoices_row">
               <tr>
                 <th width="25%">Elev</th>
@@ -273,6 +293,19 @@
               {% endfor %}
             </tbody>
           </table>
+		  
+		    <script>
+   $(function () { 
+   $('#example2{{i}}').DataTable({ 
+       'paging'      : true, 
+      'lengthChange': false, 
+       'searching'   : false, 
+       'ordering'    : true, 
+       'info'        : true, 
+      'autoWidth'   : false 
+     }) 
+   }); 
+</script>
           <br>
         {% endfor %}
         <hr>
@@ -296,4 +329,17 @@
     // ScrollReveal({ reset: true }).reveal('#enroll_table_head', { duration:800, delay:0 });
     // ScrollReveal({ reset: true }).reveal('#enrollments_row', { duration:1000, delay:0 });
   </script>
+  
+
+<script>
+
+  window.addEventListener("DOMContentLoaded", function(e) {
+    var myHilitor2 = new Hilitor("playground");
+    myHilitor2.setMatchType("left");
+    document.getElementById("buttonc").addEventListener("click", function(e) {
+      myHilitor2.apply($('#keywords').val());
+    }, false);
+  }, false);
+
+</script>
 {% endblock %}
